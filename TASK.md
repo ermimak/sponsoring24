@@ -9,18 +9,18 @@
 
 ## Current Sprint (2025‑05‑05 to 2025‑05‑15)
 ### To Do
-- [ ] Create repository & initial commit (2025‑05‑06)
+- [x] Create repository & initial commit (2025‑05‑06)
 - [ ] Setup GitHub Actions CI/CD pipeline (2025‑05‑07)
   - [ ] PHP unit tests & linting
   - [ ] JavaScript/TypeScript tests & linting
   - [ ] Build & deploy workflow
-- [ ] Scaffold Laravel 12 monolith + SPA frontend
-- [ ] Setup Docker & Docker Compose
-- [ ] Configure PostgreSQL and .env.example
-- [ ] Install Sanctum, Spatie Translatable
-- [ ] Define database schema (ERD)
+- [x] Setup Docker & Docker Compose
+- [x] Configure PostgreSQL and .env.example
+- [x] Install Sanctum, Spatie Translatable
+- [x] Define database schema (ERD)
 
 ### In Progress
+- [ ] Scaffold Laravel 12 monolith + SPA frontend
 - [ ] Implement user authentication endpoints (register, login, logout)
 - [ ] Seed initial roles (platform_admin, org_admin, donor)
 - [ ] Build i18n middleware & language switcher

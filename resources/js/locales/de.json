@@ -1,0 +1,25 @@
+{
+    "auth": {
+        "login": "Anmelden",
+        "register": "Registrieren",
+        "logout": "Abmelden",
+        "email": "E-Mail",
+        "password": "Passwort",
+        "remember_me": "Angemeldet bleiben",
+        "forgot_password": "Passwort vergessen?",
+        "failed": "Diese Anmeldedaten stimmen nicht mit unseren Aufzeichnungen überein.",
+        "throttle": "Zu viele Anmeldeversuche. Bitte versuchen Sie es in :seconds Sekunden erneut."
+    },
+    "dashboard": {
+        "home": "Dashboard",
+        "projects": "Projekte",
+        "donations": "Spenden",
+        "sponsorship_runs": "Sponsorenläufe",
+        "reports": "Berichte",
+        "admin": "Administration",
+        "manage_users": "Benutzer verwalten",
+        "manage_roles": "Rollen verwalten",
+        "manage_permissions": "Berechtigungen verwalten",
+        "platform_settings": "Plattform-Einstellungen"
+    }
+} 

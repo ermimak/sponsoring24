@@ -1,0 +1,25 @@
+{
+    "auth": {
+        "login": "Connexion",
+        "register": "S'inscrire",
+        "logout": "Déconnexion",
+        "email": "E-mail",
+        "password": "Mot de passe",
+        "remember_me": "Se souvenir de moi",
+        "forgot_password": "Mot de passe oublié ?",
+        "failed": "Ces identifiants ne correspondent pas à nos enregistrements.",
+        "throttle": "Trop de tentatives de connexion. Veuillez réessayer dans :seconds secondes."
+    },
+    "dashboard": {
+        "home": "Tableau de bord",
+        "projects": "Projets",
+        "donations": "Dons",
+        "sponsorship_runs": "Courses parrainées",
+        "reports": "Rapports",
+        "admin": "Administration",
+        "manage_users": "Gérer les utilisateurs",
+        "manage_roles": "Gérer les rôles",
+        "manage_permissions": "Gérer les permissions",
+        "platform_settings": "Paramètres de la plateforme"
+    }
+} 

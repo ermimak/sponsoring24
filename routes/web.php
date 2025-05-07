@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\LanguageController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -58,3 +59,7 @@ Route::get('/fr', function () {
         'locale' => 'fr'
     ]);
 });
+
+Route::get('language/{locale}', [App\Http\Controllers\LanguageController::class, 'switch'])
+    ->name('language.switch')
+    ->where('locale', 'de|fr');

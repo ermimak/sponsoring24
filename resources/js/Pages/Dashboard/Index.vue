@@ -161,7 +161,7 @@
                 </div>
             </div>
         </div>
-        <div v-if="$page.props.auth.user.permissions && $page.props.auth.user.permissions.includes('manage_users')" class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+        <div v-if="$page.props?.auth?.user?.permissions?.includes('manage_users')" class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
             <div>
                 <span class="font-semibold text-blue-800">Admin Quick Actions:</span>
                 <a href="/dashboard/admin/roles" class="ml-4 text-blue-700 hover:underline">Manage Roles</a>
@@ -173,6 +173,9 @@
 
 <script setup>
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
 
 // This would typically come from your backend
 const recentActivity = [
