@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Illuminate\Support\Facades\Log;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -36,9 +37,30 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+        
+        // Debug logging
+        Log::info('Inertia share user data', [
+            'user' => $user ? [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'permissions' => $user->permissions->pluck('name')->toArray(),
+                'roles' => $user->getRoleNames()->toArray(),
+            ] : null,
+            'session' => $request->session()->all(),
+            'auth' => $request->session()->get('auth')
+        ]);
+
         return array_merge(parent::share($request), [
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user ? [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'permissions' => $user->permissions->pluck('name')->toArray(),
+                    'roles' => $user->getRoleNames()->toArray(),
+                ] : null,
             ],
             'locale' => app()->getLocale(),
             'flash' => [

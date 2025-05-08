@@ -51,15 +51,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import SidebarLink from '@/Components/SidebarLink.vue'
 
 const page = usePage()
-const user = computed(() => ({
+const user = ref({
   name: page.props?.auth?.user?.name || 'User',
   org: page.props?.auth?.user?.organization || 'Org',
-}))
+})
 const currentLocale = ref(page.props?.locale || 'de')
 
 function switchLanguage() {

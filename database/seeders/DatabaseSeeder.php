@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Project;
-use App\Models\Role;
-use App\Models\Permission;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,42 +16,40 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->create();
-        Project::factory(10)->create();
+        // Reset cached roles and permissions
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Seed roles
-        $platformAdmin = Role::create(['name' => 'platform_admin', 'label' => 'Platform Admin']);
-        $orgAdmin = Role::create(['name' => 'org_admin', 'label' => 'Org Admin']);
-        $donor = Role::create(['name' => 'donor', 'label' => 'Donor/Participant']);
+        $permissionNames = [
+            // Project permissions
+            'manage_projects', 'view_projects', 'create_projects', 'edit_projects', 'delete_projects',
+            // Donation permissions
+            'manage_donations', 'view_donations', 'create_donations', 'edit_donations', 'delete_donations',
+            // Sponsorship run permissions
+            'manage_sponsorship_runs', 'view_sponsorship_runs', 'create_sponsorship_runs', 'edit_sponsorship_runs', 'delete_sponsorship_runs',
+            // Report permissions
+            'manage_reports', 'view_reports', 'create_reports', 'edit_reports', 'delete_reports',
+            // User management permissions
+            'manage_users', 'view_users', 'create_users', 'edit_users', 'delete_users',
+            // Role management permissions
+            'manage_roles', 'view_roles', 'create_roles', 'edit_roles', 'delete_roles',
+            // Permission management permissions
+            'manage_permissions', 'view_permissions', 'create_permissions', 'edit_permissions', 'delete_permissions',
+            // Platform management permissions
+            'manage_platform',
+        ];
 
-        // Seed permissions
-        $manageUsers = Permission::create(['name' => 'manage_users', 'label' => 'Manage Users']);
-        $manageProjects = Permission::create(['name' => 'manage_projects', 'label' => 'Manage Projects']);
-        $viewReports = Permission::create(['name' => 'view_reports', 'label' => 'View Reports']);
-        $donate = Permission::create(['name' => 'donate', 'label' => 'Donate']);
+        foreach ($permissionNames as $name) {
+            Permission::create(['name' => $name, 'guard_name' => 'web']);
+        }
 
-        // Assign permissions to roles
-        $platformAdmin->permissions()->attach([
-            $manageUsers->id,
-            $manageProjects->id,
-            $viewReports->id,
-            $donate->id,
-        ]);
-        $orgAdmin->permissions()->attach([
-            $manageProjects->id,
-            $viewReports->id,
-            $donate->id,
-        ]);
-        $donor->permissions()->attach([
-            $donate->id,
-        ]);
+        $platformAdmin = Role::create(['name' => 'platform_admin', 'guard_name' => 'web']);
+        $platformAdmin->givePermissionTo($permissionNames);
 
-        // Assign Platform Admin role to test user
-        $user = User::factory()->create([
+        $user = User::create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'password' => bcrypt('password'),
+            'password' => Hash::make('password'),
         ]);
-        $user->roles()->attach($platformAdmin->id);
+        $user->assignRole('platform_admin');
     }
 }

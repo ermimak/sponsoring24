@@ -1,5 +1,5 @@
 <template>
-    <MainLayout>
+    <DashboardLayout>
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="mb-8">
@@ -55,13 +55,13 @@
                 </div>
             </div>
         </div>
-    </MainLayout>
+    </DashboardLayout>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
-import MainLayout from '@/Layouts/MainLayout.vue';
+import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 
 const projects = ref([]);
 const loading = ref(true);

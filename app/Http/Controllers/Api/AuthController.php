@@ -20,7 +20,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $request->email)->first();
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => [__('auth.failed')],
             ]);
@@ -28,7 +28,17 @@ class AuthController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
-        return response()->json(['message' => 'Authenticated']);
+
+        return response()->json([
+            'message' => 'Authenticated',
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'permissions' => $user->getAllPermissionsAttribute(),
+                'roles' => $user->getAllRolesAttribute(),
+            ]
+        ]);
     }
 
     // SPA logout: destroys session
@@ -44,13 +54,16 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         $user = $request->user();
-        $user->load('roles.permissions');
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'roles' => $user->roles->pluck('name'),
-            'permissions' => $user->roles->flatMap->permissions->pluck('name')->unique()->values(),
+            'permissions' => $user->getAllPermissionsAttribute(),
+            'roles' => $user->getAllRolesAttribute(),
         ]);
     }
 } 

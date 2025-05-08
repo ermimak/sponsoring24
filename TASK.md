@@ -20,7 +20,7 @@
 - [x] Define database schema (ERD)
 
 ### In Progress
-- [ ] Scaffold Laravel 12 monolith + SPA frontend
+- [ ] Scaffold Laravel 12 monolith + SPA frontend
 - [ ] Implement user authentication endpoints (register, login, logout)
 - [ ] Seed initial roles (platform_admin, org_admin, donor)
 - [ ] Build i18n middleware & language switcher
@@ -30,6 +30,7 @@
 
 ### Done
 - [x] Add README.md, PLANNING.md, TASK.md stubs
+- [x] Fixed all dashboard route mappings and sidebar links to match actual Vue file structure (2025-05-08)
 
 ## Backlog
 - Create Project CRUD APIs & tests

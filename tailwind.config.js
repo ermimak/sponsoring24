@@ -11,34 +11,34 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#5B21B6', // deep purple
-          light: '#7C3AED',
-          dark: '#3C1361',
+          DEFAULT: '#1A237E', // professional deep blue
+          light: '#3949AB',
+          dark: '#0D133D',
         },
         accent: {
-          DEFAULT: '#06B6D4', // teal
-          light: '#67E8F9',
-          dark: '#0E7490',
+          DEFAULT: '#009688', // muted teal
+          light: '#4DB6AC',
+          dark: '#00695C',
         },
         secondary: {
-          DEFAULT: '#2563EB', // blue
-          light: '#60A5FA',
-          dark: '#1E40AF',
+          DEFAULT: '#546E7A', // slate gray
+          light: '#90A4AE',
+          dark: '#29434E',
         },
-        success: '#22C55E',
-        warning: '#F59E42',
-        danger: '#EF4444',
+        success: '#43A047',   // professional green
+        warning: '#FFB300',   // amber
+        danger: '#D32F2F',    // strong red
         gray: {
-          50: '#F9FAFB',
-          100: '#F3F4F6',
-          200: '#E5E7EB',
-          300: '#D1D5DB',
-          400: '#9CA3AF',
-          500: '#6B7280',
-          600: '#4B5563',
-          700: '#374151',
-          800: '#1F2937',
-          900: '#111827',
+          50: '#F8FAFC',
+          100: '#F1F5F9',
+          200: '#E2E8F0',
+          300: '#CBD5E1',
+          400: '#94A3B8',
+          500: '#64748B',
+          600: '#475569',
+          700: '#334155',
+          800: '#1E293B',
+          900: '#0F172A',
         },
       },
       fontFamily: {

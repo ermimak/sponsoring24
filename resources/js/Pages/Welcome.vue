@@ -16,7 +16,7 @@
         <!-- Partner Logos -->
         <section class="bg-white py-8">
             <div class="max-w-5xl mx-auto flex flex-wrap justify-center items-center gap-8 opacity-80">
-                <img v-for="n in 10" :key="n" :src="`/images/partner${n}.svg`" alt="Partner logo" class="h-10" />
+                <img v-for="n in 10" :key="n" :src="`/images/partner${n}.png`" alt="Partner logo" class="h-10" />
             </div>
         </section>
 
@@ -68,14 +68,14 @@
                 <a href="#" class="bg-lime-400 hover:bg-lime-500 text-lg font-bold px-8 py-3 rounded-full shadow">Start project</a>
             </div>
             <div class="flex-1 flex justify-center">
-                <img src="/images/piggy-illustration.svg" alt="Donation project" class="w-72" />
+                <img src="/images/piggy-illustration.png" alt="Donation project" class="w-72" />
             </div>
         </section>
 
         <!-- Our Tools -->
         <section class="py-16 bg-gradient-to-b from-[#f6f3ff] to-white flex flex-col md:flex-row items-center max-w-5xl mx-auto gap-12">
             <div class="flex-1 flex justify-center">
-                <img src="/images/tools-illustration.svg" alt="Our tools" class="w-72" />
+                <img src="/images/tools-illustration.png" alt="Our tools" class="w-72" />
             </div>
             <div class="flex-1">
                 <h3 class="text-2xl font-bold mb-4">Our tools</h3>
@@ -107,7 +107,7 @@
                 <a href="#" class="bg-purple-600 hover:bg-purple-700 text-lg font-bold px-8 py-3 rounded-full shadow text-white">Request online demo</a>
             </div>
             <div class="flex-1 flex justify-center">
-                <img src="/images/consultation-illustration.svg" alt="Consultation" class="w-72" />
+                <img src="/images/consultation-illustration.png" alt="Consultation" class="w-72" />
             </div>
         </section>
 
