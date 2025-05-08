@@ -109,28 +109,42 @@
           </div>
         </form>
       </div>
+      <div v-else-if="activeTab === 'Analytics'">
+        <AnalyticsTab v-if="activeTab==='Analytics'" :projectId="projectId" />
+      </div>
       <div v-else-if="activeTab === 'Emails'">
-        <!-- Placeholder for Emails tab -->
-        <div class="bg-white rounded-lg p-6 border">Emails tab content here</div>
+        <EmailsTab v-if="activeTab==='Emails'" :projectId="projectId" />
+      </div>
+      <div v-else-if="activeTab === 'Donations'">
+        <DonationsTab v-if="activeTab==='Donations'" :projectId="projectId" />
+      </div>
+      <div v-else-if="activeTab === 'Images'">
+        <ProjectImageUpload v-if="activeTab==='Images'" :projectId="projectId" />
       </div>
       <div v-else-if="activeTab === 'Participant'">
-        <!-- Placeholder for Participant tab -->
-        <div class="bg-white rounded-lg p-6 border">Participant tab content here</div>
-      </div>
-      <div v-else-if="activeTab === 'Donate'">
-        <!-- Placeholder for Donate tab -->
-        <div class="bg-white rounded-lg p-6 border">Donate tab content here</div>
+        <ParticipantModal :show="showParticipantModal" :members="participants" :projectId="projectId" @save="handleParticipantSave" @close="() => showParticipantModal = false" />
       </div>
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import AnalyticsTab from './AnalyticsTab.vue'
+import EmailsTab from './EmailsTab.vue'
+import DonationsTab from './DonationsTab.vue'
+import ProjectImageUpload from './ProjectImageUpload.vue'
+import ParticipantModal from './ParticipantModal.vue'
+import axios from 'axios'
 
-const tabs = ['Settings', 'Emails', 'Participant', 'Donate']
+const tabs = ['Settings', 'Analytics', 'Emails', 'Donations', 'Images']
 const activeTab = ref('Settings')
+const showParticipantModal = ref(false)
+const participants = ref([])
+const projectId = ref(/* get from route or props */)
+const loading = ref(false)
+const error = ref('')
 
 const form = ref({
   name: 'Christmas for everyone',
@@ -162,14 +176,61 @@ function onFileChange(event, field) {
   }
 }
 
-function submit() {
-  // TODO: Submit form to backend
-  alert('Project would be updated!')
+async function fetchProject() {
+  loading.value = true
+  error.value = ''
+  try {
+    const { data } = await axios.get(`/dashboard/projects/${projectId.value}`)
+    Object.assign(form.value, data)
+  } catch (e) {
+    error.value = 'Failed to load project.'
+  }
+  loading.value = false
+}
+
+async function fetchParticipants() {
+  try {
+    const { data } = await axios.get('/dashboard/members')
+    participants.value = data.data || data
+  } catch (e) {
+    error.value = 'Failed to load participants.'
+  }
+}
+
+async function submit() {
+  loading.value = true
+  error.value = ''
+  try {
+    await axios.put(`/dashboard/projects/${projectId.value}`, form.value)
+    alert('Project updated!')
+  } catch (e) {
+    error.value = 'Failed to update project.'
+  }
+  loading.value = false
 }
 
 function cancel() {
   window.history.back()
 }
+
+function openParticipantModal() {
+  showParticipantModal.value = true
+}
+
+async function handleParticipantSave(selected) {
+  try {
+    await Promise.all(selected.map(id => axios.post(`/dashboard/projects/${projectId.value}/add-participant`, { participant_id: id })))
+    showParticipantModal.value = false
+    fetchParticipants()
+  } catch (e) {
+    error.value = 'Failed to add participants.'
+  }
+}
+
+onMounted(() => {
+  fetchProject()
+  fetchParticipants()
+})
 </script>
 
 <style scoped>

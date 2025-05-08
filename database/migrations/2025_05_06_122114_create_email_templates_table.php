@@ -6,26 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
-        Schema::create('participant_project', function (Blueprint $table) {
+        Schema::create('email_templates', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('participant_id')->constrained('participants')->onDelete('cascade');
             $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
-            $table->string('status')->nullable();
-            $table->string('role')->nullable();
+            $table->string('type'); // invitation, bill, reminder, etc.
+            $table->string('name');
+            $table->string('subject');
+            $table->text('body');
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
-        Schema::dropIfExists('participant_project');
+        Schema::dropIfExists('email_templates');
     }
-};
+}; 

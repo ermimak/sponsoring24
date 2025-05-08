@@ -4,16 +4,17 @@
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Members <span class="text-gray-400 text-base font-normal">0 entries</span></h1>
         <div class="flex gap-2 items-center">
-          <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded flex items-center">
+          <button @click="redirectToGroups" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded flex items-center">
             <i class="fas fa-users mr-2"></i> Member groups
           </button>
-          <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded flex items-center">
+          <button @click="handleExport" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded flex items-center">
             <i class="fas fa-file-export mr-2"></i> export
           </button>
-          <button class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded flex items-center">
+          <button @click="openImportExport" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded flex items-center">
             <i class="fas fa-file-import mr-2"></i> import
           </button>
-          <button class="bg-yellow-400 hover:bg-yellow-500 text-white px-4 py-2 rounded-full text-2xl flex items-center justify-center">+</button>
+          <button class="rounded-full bg-gray-100 p-2 hover:bg-gray-200"><i class="fas fa-filter text-gray-500"></i></button>
+          <button @click="redirectToCreate" class="rounded-full bg-yellow-400 hover:bg-yellow-500 text-white text-2xl flex items-center justify-center w-10 h-10"><i class="fas fa-plus"></i></button>
         </div>
       </div>
       <div class="flex flex-col md:flex-row gap-4 mb-4">
@@ -56,6 +57,8 @@
           </table>
         </div>
       </div>
+      <ImportExportModal :show="showImportExport" @close="handleImportExportClose" />
+      <GroupModal :show="showGroupModal" :group="editingGroup" @save="handleGroupSave" @close="() => showGroupModal = false" />
     </div>
   </DashboardLayout>
 </template>
@@ -63,6 +66,9 @@
 <script setup>
 import { ref, computed } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import { router } from '@inertiajs/vue3'
+import ImportExportModal from './ImportExportModal.vue'
+import GroupModal from './GroupModal.vue'
 
 const search = ref('')
 const members = ref([
@@ -81,6 +87,39 @@ const filteredMembers = computed(() => {
   }
   return list
 })
+
+const redirectToCreate = () => {
+  router.visit('/dashboard/members/create')
+}
+
+const redirectToGroups = () => {
+  router.visit('/dashboard/members/groups')
+}
+
+const showImportExport = ref(false)
+const showGroupModal = ref(false)
+const editingGroup = ref(null)
+const message = ref('')
+
+function openImportExport() {
+  showImportExport.value = true
+}
+function openGroupModal(group = null) {
+  editingGroup.value = group
+  showGroupModal.value = true
+}
+function handleGroupSave(group) {
+  // TODO: Call API to save group, then refresh groups/members
+  showGroupModal.value = false
+  message.value = 'Group saved!'
+}
+function handleImportExportClose() {
+  showImportExport.value = false
+  message.value = 'Import/Export completed!'
+}
+function handleExport() {
+  window.location = '/dashboard/members/export'
+}
 </script>
 
 <style scoped>

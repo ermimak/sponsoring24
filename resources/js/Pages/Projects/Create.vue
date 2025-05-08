@@ -104,10 +104,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 
-const router = useRouter()
 const form = ref({
   name: '',
   location: '',
@@ -135,7 +133,7 @@ function submit() {
 }
 
 function cancel() {
-  router.back()
+  window.location.href = '/dashboard/projects'
 }
 </script>
 

@@ -23,4 +23,21 @@ class Participant extends Model
         'member_id',
         'archived',
     ];
+
+    public function memberGroups()
+    {
+        return $this->belongsToMany(MemberGroup::class, 'member_group_participant');
+    }
+
+    public function projects()
+    {
+        return $this->belongsToMany(Project::class, 'participant_project')
+            ->withPivot(['status', 'role'])
+            ->withTimestamps();
+    }
+
+    public function donations()
+    {
+        return $this->hasMany(Donation::class);
+    }
 }

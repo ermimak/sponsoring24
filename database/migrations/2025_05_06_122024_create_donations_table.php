@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('donations', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->foreignId('participant_id')->nullable()->constrained('participants')->nullOnDelete();
+            $table->unsignedBigInteger('supporter_id')->nullable(); // supporter user or contact
+            $table->decimal('amount', 10, 2);
+            $table->string('type'); // flat, unit, etc.
+            $table->date('billing_date')->nullable();
+            $table->string('status')->default('pending');
+            $table->string('payment_method')->nullable();
+            $table->string('currency', 3)->default('CHF');
             $table->timestamps();
         });
     }

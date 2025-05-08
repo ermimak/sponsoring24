@@ -6,6 +6,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LanguageController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Http\Controllers\MemberGroupController;
+use App\Http\Controllers\ParticipantController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\EmailTemplateController;
 
 // Public routes
 Route::get('/', function () {
@@ -41,6 +46,14 @@ Route::middleware(['auth', 'web'])->group(function () {
         return Inertia::render('Members/Index');
     })->name('dashboard.members');
 
+    Route::get('/dashboard/members/create', function () {
+        return Inertia::render('Members/Create');
+    })->name('dashboard.members.create');
+
+    Route::get('/dashboard/members/groups', function () {
+        return Inertia::render('Members/Groups');
+    })->name('dashboard.members.groups');
+
     Route::get('/dashboard/users', function () {
         return Inertia::render('Users/Index');
     })->name('dashboard.users');
@@ -61,6 +74,30 @@ Route::middleware(['auth', 'web'])->group(function () {
         return Inertia::render('Dashboard/Reports/Index');
     })->name('dashboard.reports');
 
+    Route::get('/dashboard/projects/create', function () {
+        return Inertia::render('Projects/Create');
+    })->name('dashboard.projects.create');
+
+    Route::get('/dashboard/projects/{project}/edit', function ($project) {
+        return Inertia::render('Projects/Edit', ['projectId' => $project]);
+    })->name('dashboard.projects.edit');
+
+    Route::resource('/dashboard/projects', ProjectController::class)
+        ->except(['index', 'create', 'edit'])
+        ->where(['project' => '[0-9]+']);
+
+    Route::get('/dashboard/members/create', function () {
+        return Inertia::render('Members/Create');
+    })->name('dashboard.members.create');
+
+    Route::get('/dashboard/members/groups', function () {
+        return Inertia::render('Members/Groups');
+    })->name('dashboard.members.groups');
+
+    Route::resource('/dashboard/members', ParticipantController::class)
+        ->except(['index', 'create', 'edit'])
+        ->where(['member' => '[0-9]+']);
+
     // Admin routes
     Route::middleware(['can:manage_roles'])->group(function () {
         Route::get('/dashboard/admin/roles', function () {
@@ -73,6 +110,13 @@ Route::middleware(['auth', 'web'])->group(function () {
             return Inertia::render('Dashboard/Permissions');
         })->name('dashboard.admin.permissions');
     });
+
+    Route::resource('/dashboard/members/groups', MemberGroupController::class)->except(['create', 'edit', 'show']);
+    Route::resource('/dashboard/donations', DonationController::class)->except(['create', 'edit']);
+    Route::resource('/dashboard/email-templates', EmailTemplateController::class)->except(['create', 'edit']);
+    Route::post('/dashboard/members/import', [ParticipantController::class, 'import'])->name('dashboard.members.import');
+    Route::get('/dashboard/members/export', [ParticipantController::class, 'export'])->name('dashboard.members.export');
+    Route::post('/dashboard/projects/{project}/upload-image', [ProjectController::class, 'uploadImage'])->name('dashboard.projects.uploadImage');
 });
 
 // Language routes
