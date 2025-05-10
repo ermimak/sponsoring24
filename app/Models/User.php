@@ -69,4 +69,14 @@ class User extends Authenticatable
     {
         return $this->getRoleNames()->toArray();
     }
+
+    /**
+     * Get the permissions attribute for the user (for appends).
+     *
+     * @return array
+     */
+    public function getPermissionsAttribute()
+    {
+        return $this->getAllPermissions()->pluck('name')->toArray();
+    }
 }

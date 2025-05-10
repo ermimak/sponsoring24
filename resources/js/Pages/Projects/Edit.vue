@@ -1,7 +1,7 @@
 <template>
   <DashboardLayout>
     <div class="max-w-5xl mx-auto py-8">
-      <h1 class="text-2xl font-bold mb-6">{{ form.name || 'Edit project' }}</h1>
+      <h1 class="text-2xl font-bold mb-6">{{ form.name.de || 'Edit project' }}</h1>
       <!-- Tabs -->
       <div class="flex border-b mb-8">
         <button v-for="tab in tabs" :key="tab" @click="activeTab = tab"
@@ -17,7 +17,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium mb-1">Project name*</label>
-                <input v-model="form.name" type="text" class="input w-full" required />
+                <input v-model="form.name.de" type="text" class="input w-full" required />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Location</label>
@@ -32,21 +32,21 @@
               </div>
               <div></div>
               <div>
-                <label class="block text-sm font-medium mb-1">Start*</label>
+                <div class="text-xs text-gray-500 font-semibold mb-1">Start*</div>
                 <input v-model="form.start" type="datetime-local" class="input w-full" required />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1">End*</label>
+                <div class="text-xs text-gray-500 font-semibold mb-1">End*</div>
                 <input v-model="form.end" type="datetime-local" class="input w-full" required />
               </div>
               <div>
-                <label class="block text-sm font-medium mb-1">Allow donation until*</label>
+                <div class="text-xs text-gray-500 font-semibold mb-1">Allow donation until*</div>
                 <input v-model="form.allow_donation_until" type="datetime-local" class="input w-full" required />
               </div>
             </div>
             <div class="mt-4">
               <label class="block text-sm font-medium mb-1">Project description*</label>
-              <textarea v-model="form.description" rows="5" class="input w-full" required></textarea>
+              <textarea v-model="form.description.de" rows="5" class="input w-full" required></textarea>
             </div>
             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -142,22 +142,21 @@ const tabs = ['Settings', 'Analytics', 'Emails', 'Donations', 'Images']
 const activeTab = ref('Settings')
 const showParticipantModal = ref(false)
 const participants = ref([])
-const projectId = ref(/* get from route or props */)
-const loading = ref(false)
+const projectId = ref(window.location.pathname.split('/').slice(-2, -1)[0])
+const loading = ref(true)
 const error = ref('')
-
 const form = ref({
-  name: 'Christmas for everyone',
-  location: 'Pfäffikon',
-  language: 'de',
-  start: '2025-12-24T18:00',
-  end: '2025-12-24T23:59',
-  allow_donation_until: '2025-12-15T18:00',
-  description: "We're organizing a Christmas dinner for everyone who has to celebrate alone at home. We're looking for donations to ensure that even those without financial means can attend.",
-  image_landscape_url: 'https://placehold.co/600x150',
-  image_square_url: 'https://placehold.co/200x200',
-  flat_rate_enabled: true,
-  flat_rate_min_amount: 20,
+  name: { de: '', fr: '' },
+  description: { de: '', fr: '' },
+  location: '',
+  language: '',
+  start: '',
+  end: '',
+  allow_donation_until: '',
+  image_landscape_url: '',
+  image_square_url: '',
+  flat_rate_enabled: false,
+  flat_rate_min_amount: '',
   flat_rate_help_text: '',
   unit_based_enabled: false,
   public_donation_enabled: false,
@@ -180,8 +179,21 @@ async function fetchProject() {
   loading.value = true
   error.value = ''
   try {
-    const { data } = await axios.get(`/dashboard/projects/${projectId.value}`)
-    Object.assign(form.value, data)
+    const { data } = await axios.get(`/api/projects/${projectId.value}`)
+    form.value.name = data.name || { de: '', fr: '' }
+    form.value.description = data.description || { de: '', fr: '' }
+    form.value.location = data.location || ''
+    form.value.language = data.language || ''
+    form.value.start = data.start ? new Date(data.start).toISOString().slice(0, 16) : ''
+    form.value.end = data.end ? new Date(data.end).toISOString().slice(0, 16) : ''
+    form.value.allow_donation_until = data.allow_donation_until ? new Date(data.allow_donation_until).toISOString().slice(0, 16) : ''
+    form.value.flat_rate_enabled = !!data.flat_rate_enabled
+    form.value.flat_rate_min_amount = data.flat_rate_min_amount || ''
+    form.value.flat_rate_help_text = data.flat_rate_help_text || ''
+    form.value.unit_based_enabled = !!data.unit_based_enabled
+    form.value.public_donation_enabled = !!data.public_donation_enabled
+    form.value.image_landscape_url = data.image_landscape || ''
+    form.value.image_square_url = data.image_square || ''
   } catch (e) {
     error.value = 'Failed to load project.'
   }
@@ -201,7 +213,7 @@ async function submit() {
   loading.value = true
   error.value = ''
   try {
-    await axios.put(`/dashboard/projects/${projectId.value}`, form.value)
+    await axios.put(`/api/projects/${projectId.value}`, form.value)
     alert('Project updated!')
   } catch (e) {
     error.value = 'Failed to update project.'

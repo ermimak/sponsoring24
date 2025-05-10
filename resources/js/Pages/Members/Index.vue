@@ -59,22 +59,22 @@
       </div>
       <ImportExportModal :show="showImportExport" @close="handleImportExportClose" />
       <GroupModal :show="showGroupModal" :group="editingGroup" @save="handleGroupSave" @close="() => showGroupModal = false" />
+      <div v-if="loading" class="p-4 text-center text-gray-500">Loading...</div>
+      <div v-if="error" class="p-4 text-center text-red-500">{{ error }}</div>
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { router } from '@inertiajs/vue3'
 import ImportExportModal from './ImportExportModal.vue'
 import GroupModal from './GroupModal.vue'
+import axios from 'axios'
 
 const search = ref('')
-const members = ref([
-  // Example mock data
-  // { id: 1, name: 'Anna Muster', member_id: 'M001', groups: ['Group A'], public_registration: true, email_status: 'Sent', archived: false, added: '2025-05-10' },
-])
+const members = ref([])
 
 const filteredMembers = computed(() => {
   let list = members.value
@@ -100,6 +100,8 @@ const showImportExport = ref(false)
 const showGroupModal = ref(false)
 const editingGroup = ref(null)
 const message = ref('')
+const loading = ref(false)
+const error = ref('')
 
 function openImportExport() {
   showImportExport.value = true
@@ -120,6 +122,21 @@ function handleImportExportClose() {
 function handleExport() {
   window.location = '/dashboard/members/export'
 }
+
+const fetchMembers = async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    const response = await axios.get('/dashboard/members')
+    members.value = response.data.data || response.data
+  } catch (e) {
+    error.value = 'Failed to load members.'
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchMembers)
 </script>
 
 <style scoped>

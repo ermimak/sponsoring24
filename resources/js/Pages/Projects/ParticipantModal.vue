@@ -22,7 +22,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-const props = defineProps({ show: Boolean, members: Array, projectId: Number })
+const props = defineProps({ show: Boolean, members: Array, projectId: String })
 const emit = defineEmits(['save', 'close'])
 const selected = ref([])
 

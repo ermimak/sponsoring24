@@ -97,9 +97,10 @@
             </div>
           </div>
         </div>
+        <div v-if="error" class="text-red-600 mb-2">{{ error }}</div>
         <div class="flex gap-4 mt-8">
-          <button type="submit" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">Save</button>
-          <button type="button" @click="saveAndClose" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">Save and close</button>
+          <button type="submit" :disabled="loading" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">Save</button>
+          <button type="button" @click="saveAndClose" :disabled="loading" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">Save and close</button>
           <button type="button" @click="cancel" class="px-6 py-2 rounded bg-gray-100 text-gray-700">Cancel</button>
         </div>
       </form>
@@ -111,6 +112,7 @@
 import { ref } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 import { router } from '@inertiajs/vue3'
+import axios from 'axios'
 
 const allGroups = ref([
   { id: 1, name: 'Group A' },
@@ -136,15 +138,31 @@ const form = ref({
   archived: false,
 })
 
-function submit() {
-  // TODO: Submit form to backend
-  alert('Member would be created!')
+const error = ref('')
+const loading = ref(false)
+
+async function submit() {
+  loading.value = true
+  error.value = ''
+  try {
+    await axios.post('/dashboard/members', form.value)
+    router.visit('/dashboard/members')
+  } catch (e) {
+    error.value = 'Failed to create member.'
+  }
+  loading.value = false
 }
 
-function saveAndClose() {
-  // TODO: Save and close logic
-  alert('Member would be created and closed!')
-  router.visit('/dashboard/members')
+async function saveAndClose() {
+  loading.value = true
+  error.value = ''
+  try {
+    await axios.post('/dashboard/members', form.value)
+    router.visit('/dashboard/members')
+  } catch (e) {
+    error.value = 'Failed to create member.'
+  }
+  loading.value = false
 }
 
 function cancel() {

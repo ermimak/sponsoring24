@@ -11,6 +11,8 @@ use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EmailTemplateController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 // Public routes
 Route::get('/', function () {
@@ -83,8 +85,8 @@ Route::middleware(['auth', 'web'])->group(function () {
     })->name('dashboard.projects.edit');
 
     Route::resource('/dashboard/projects', ProjectController::class)
-        ->except(['index', 'create', 'edit'])
-        ->where(['project' => '[0-9]+']);
+        ->except(['index', 'create', 'edit', 'show'])
+        ->where(['project' => '[0-9a-fA-F-]{36}']);
 
     Route::get('/dashboard/members/create', function () {
         return Inertia::render('Members/Create');
@@ -117,6 +119,26 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/dashboard/members/import', [ParticipantController::class, 'import'])->name('dashboard.members.import');
     Route::get('/dashboard/members/export', [ParticipantController::class, 'export'])->name('dashboard.members.export');
     Route::post('/dashboard/projects/{project}/upload-image', [ProjectController::class, 'uploadImage'])->name('dashboard.projects.uploadImage');
+    
+    // Add upload route
+    Route::post('/upload', function (Request $request) {
+        $request->validate([
+            'image_landscape' => 'nullable|image|max:2048',
+            'image_square' => 'nullable|image|max:2048',
+        ]);
+
+        $data = [];
+        if ($request->hasFile('image_landscape')) {
+            $path = $request->file('image_landscape')->store('projects/landscape', 'public');
+            $data['image_landscape'] = Storage::disk('public')->url($path);
+        }
+        if ($request->hasFile('image_square')) {
+            $path = $request->file('image_square')->store('projects/square', 'public');
+            $data['image_square'] = Storage::disk('public')->url($path);
+        }
+
+        return response()->json($data);
+    })->name('upload');
 });
 
 // Language routes
@@ -145,3 +167,6 @@ Route::get('/debug-login', function () {
     }
     return redirect()->route('login');
 });
+
+// Add this route at the end of the file (outside the middleware group)
+Route::get('/api/projects', [App\Http\Controllers\ProjectController::class, 'index']);

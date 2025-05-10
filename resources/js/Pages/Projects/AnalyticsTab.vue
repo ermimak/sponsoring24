@@ -32,7 +32,7 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const props = defineProps({ projectId: Number })
+const props = defineProps({ projectId: String })
 const stats = ref({ participants: 0, donations: 0, total_income: 0, progress: 0 })
 const loading = ref(true)
 

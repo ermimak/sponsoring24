@@ -72,7 +72,7 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const props = defineProps({ projectId: Number })
+const props = defineProps({ projectId: String })
 donations = ref([])
 const showModal = ref(false)
 const editing = ref(false)

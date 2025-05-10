@@ -9,7 +9,16 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium mb-1">Project name*</label>
-              <input v-model="form.name" type="text" class="input w-full" required />
+              <div class="space-y-2">
+                <div>
+                  <label class="text-xs text-gray-500">German</label>
+                  <input v-model="form.name.de" type="text" class="input w-full" required />
+                </div>
+                <div>
+                  <label class="text-xs text-gray-500">French</label>
+                  <input v-model="form.name.fr" type="text" class="input w-full" required />
+                </div>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">Location</label>
@@ -38,7 +47,16 @@
           </div>
           <div class="mt-4">
             <label class="block text-sm font-medium mb-1">Project description*</label>
-            <textarea v-model="form.description" rows="5" class="input w-full" required></textarea>
+            <div class="space-y-2">
+              <div>
+                <label class="text-xs text-gray-500">German</label>
+                <textarea v-model="form.description.de" rows="5" class="input w-full" required></textarea>
+              </div>
+              <div>
+                <label class="text-xs text-gray-500">French</label>
+                <textarea v-model="form.description.fr" rows="5" class="input w-full" required></textarea>
+              </div>
+            </div>
           </div>
           <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -95,9 +113,10 @@
         <!-- Buttons -->
         <div class="flex justify-end gap-4">
           <button type="button" @click="cancel" class="px-6 py-2 rounded bg-gray-100 text-gray-700">Cancel</button>
-          <button type="submit" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">Save</button>
+          <button type="submit" :disabled="loading" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">Save</button>
         </div>
       </form>
+      <div v-if="error" class="text-red-600 mb-2">{{ error }}</div>
     </div>
   </DashboardLayout>
 </template>
@@ -105,15 +124,22 @@
 <script setup>
 import { ref } from 'vue'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
+import axios from 'axios'
 
 const form = ref({
-  name: '',
+  name: {
+    de: '',
+    fr: ''
+  },
   location: '',
   language: 'de',
   start: '',
   end: '',
   allow_donation_until: '',
-  description: '',
+  description: {
+    de: '',
+    fr: ''
+  },
   image_landscape: null,
   image_square: null,
   flat_rate_enabled: false,
@@ -123,13 +149,88 @@ const form = ref({
   public_donation_enabled: false,
 })
 
+const error = ref('')
+const loading = ref(false)
+
 function onFileChange(event, field) {
   form.value[field] = event.target.files[0]
 }
 
-function submit() {
-  // TODO: Submit form to backend (Inertia or API)
-  alert('Project would be created!')
+async function submit() {
+  loading.value = true
+  error.value = ''
+  try {
+    // First upload the images if they exist
+    let imageLandscapePath = null
+    let imageSquarePath = null
+
+    if (form.value.image_landscape) {
+      const imageFormData = new FormData()
+      imageFormData.append('image_landscape', form.value.image_landscape)
+      const response = await axios.post('/upload', imageFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      imageLandscapePath = response.data.image_landscape
+    }
+
+    if (form.value.image_square) {
+      const imageFormData = new FormData()
+      imageFormData.append('image_square', form.value.image_square)
+      const response = await axios.post('/upload', imageFormData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      imageSquarePath = response.data.image_square
+    }
+
+    // Then create the project with the file paths
+    const formData = new FormData()
+    
+    // Add translatable fields
+    formData.append('name[de]', form.value.name.de)
+    formData.append('name[fr]', form.value.name.fr)
+    formData.append('description[de]', form.value.description.de)
+    formData.append('description[fr]', form.value.description.fr)
+    
+    // Add other text fields
+    formData.append('location', form.value.location)
+    formData.append('language', form.value.language)
+    formData.append('start', form.value.start)
+    formData.append('end', form.value.end)
+    formData.append('allow_donation_until', form.value.allow_donation_until)
+    
+    // Add image paths if they exist
+    if (imageLandscapePath) {
+      formData.append('image_landscape', imageLandscapePath)
+    }
+    if (imageSquarePath) {
+      formData.append('image_square', imageSquarePath)
+    }
+    
+    // Add boolean fields
+    formData.append('flat_rate_enabled', form.value.flat_rate_enabled ? '1' : '0')
+    formData.append('unit_based_enabled', form.value.unit_based_enabled ? '1' : '0')
+    formData.append('public_donation_enabled', form.value.public_donation_enabled ? '1' : '0')
+    
+    // Add flat rate fields if enabled
+    if (form.value.flat_rate_enabled) {
+      formData.append('flat_rate_min_amount', form.value.flat_rate_min_amount)
+      formData.append('flat_rate_help_text', form.value.flat_rate_help_text)
+    }
+
+    await axios.post('/dashboard/projects', formData)
+    window.location.href = '/dashboard/projects'
+  } catch (e) {
+    if (e.response?.data?.errors) {
+      error.value = Object.values(e.response.data.errors).flat().join(', ')
+    } else {
+      error.value = 'Failed to create project.'
+    }
+  }
+  loading.value = false
 }
 
 function cancel() {

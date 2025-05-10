@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('participant_project', function (Blueprint $table) {
             $table->id();
             $table->foreignId('participant_id')->constrained('participants')->onDelete('cascade');
-            $table->foreignId('project_id')->constrained('projects')->onDelete('cascade');
+            $table->uuid('project_id');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->string('status')->nullable();
             $table->string('role')->nullable();
             $table->timestamps();

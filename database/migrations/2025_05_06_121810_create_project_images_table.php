@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('project_images', function (Blueprint $table) {
             $table->id();
+            $table->uuid('project_id');
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -6,9 +6,11 @@ use App\Http\Controllers\Api\ParticipantController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\PermissionController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('projects', ProjectController::class);
+    Route::apiResource('projects', ProjectController::class)->where(['project' => '[0-9a-fA-F-]{36}']);
     Route::apiResource('participants', ParticipantController::class);
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('permissions', PermissionController::class);
@@ -23,4 +25,29 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum'); 
+Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
+
+// Move upload route inside auth middleware group since it requires authentication
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/upload', function (Request $request) {
+        $request->validate([
+            'image_landscape' => 'nullable|image|max:2048',
+            'image_square' => 'nullable|image|max:2048',
+        ]);
+
+        $data = [];
+        if ($request->hasFile('image_landscape')) {
+            $path = $request->file('image_landscape')->store('projects/landscape', 'public');
+            $data['image_landscape'] = Storage::disk('public')->url($path);
+        }
+        if ($request->hasFile('image_square')) {
+            $path = $request->file('image_square')->store('projects/square', 'public');
+            $data['image_square'] = Storage::disk('public')->url($path);
+        }
+
+        return response()->json($data);
+    });
+    
+});
+
+Route::get('/projects', [ProjectController::class, 'index']); 

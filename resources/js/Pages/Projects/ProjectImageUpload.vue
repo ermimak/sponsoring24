@@ -24,7 +24,7 @@
 import { ref } from 'vue'
 import axios from 'axios'
 
-const props = defineProps({ projectId: Number })
+const props = defineProps({ projectId: String })
 const files = ref({ landscape: null, square: null })
 const preview = ref({ landscape: '', square: '' })
 const message = ref('')

@@ -27,7 +27,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr v-for="project in projects" :key="project.id">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <a :href="`/dashboard/projects/${project.id}`" class="text-purple-700 font-medium hover:underline">
+                                    <a :href="`/dashboard/projects/${project.id}/edit`" class="text-purple-700 font-medium hover:underline">
                                         {{ project.name?.de || project.name?.fr || project.name?.en || 'Untitled' }}
                                     </a>
                                 </td>
@@ -47,10 +47,10 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <a :href="`/dashboard/projects/${project.id}/edit`" class="text-indigo-600 hover:text-indigo-900 mr-2">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="fas fa-edit">edit</i>
                                     </a>
                                     <button @click="deleteProject(project.id)" class="text-red-600 hover:text-red-900">
-                                        <i class="fas fa-trash"></i>
+                                        <i class="fas fa-trash">delete</i>
                                     </button>
                                 </td>
                             </tr>
@@ -79,7 +79,7 @@ const fetchProjects = async () => {
     error.value = null;
     try {
         const response = await axios.get('/api/projects');
-        projects.value = response.data.data;
+        projects.value = response.data.data || response.data;
     } catch (e) {
         error.value = 'Failed to load projects.';
     } finally {
