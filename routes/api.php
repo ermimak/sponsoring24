@@ -50,4 +50,4 @@ Route::middleware('auth:sanctum')->group(function () {
     
 });
 
-Route::get('/projects', [ProjectController::class, 'index']); 
+// Route::get('/projects', [ProjectController::class, 'index']); 

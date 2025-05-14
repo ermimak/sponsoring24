@@ -13,7 +13,9 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
-        return Project::withCount(['participants', 'donations'])->paginate(20);
+        return Project::withCount(['participants', 'donations'])
+            ->withSum('donations', 'amount')
+            ->paginate(20);
     }
 
     public function store(Request $request)
@@ -72,6 +74,24 @@ class ProjectController extends Controller
         return response()->noContent();
     }
 
+    public function duplicate(Project $project)
+    {
+        $newProject = $project->replicate();
+        $newProject->name = array_map(function ($name) {
+            return $name . ' (Copy)';
+        }, $newProject->name); // Append "(Copy)" to the project name in all languages
+        $newProject->save();
+
+        // Optionally duplicate related data (e.g., email templates)
+        foreach ($project->emailTemplates as $template) {
+            $newTemplate = $template->replicate();
+            $newTemplate->project_id = $newProject->id;
+            $newTemplate->save();
+        }
+
+        return $newProject;
+    }
+
     public function addParticipant(Request $request, Project $project)
     {
         $data = $request->validate(['participant_id' => 'required|exists:participants,id', 'status' => 'nullable|string', 'role' => 'nullable|string']);
@@ -89,8 +109,8 @@ class ProjectController extends Controller
     public function uploadImage(Request $request, Project $project)
     {
         $request->validate([
-            'image_landscape' => 'nullable|image|max:2048',
-            'image_square' => 'nullable|image|max:2048',
+            'image_landscape' => 'nullable|image|max:2048|dimensions:width=1200,height=300',
+            'image_square' => 'nullable|image|max:2048|dimensions:width=400,height=400',
         ]);
         $data = [];
         if ($request->hasFile('image_landscape')) {
@@ -106,4 +126,4 @@ class ProjectController extends Controller
         $project->save();
         return response()->json($data);
     }
-} 
+}

@@ -44,7 +44,12 @@ Route::middleware(['auth', 'web'])->group(function () {
 
     // Projects
     Route::prefix('dashboard/projects')->name('dashboard.projects.')->group(function () {
-        Route::get('/', fn() => Inertia::render('Projects/Index'))->name('index');
+        Route::get('/', function (Request $request) {
+            $projects = (new ProjectController())->index($request);
+            return Inertia::render('Projects/Index', [
+                'projects' => $projects,
+            ]);
+        })->name('index');
         Route::get('/create', fn() => Inertia::render('Projects/Create'))->name('create');
         Route::get('/{project}/edit', fn($project) => Inertia::render('Projects/Edit', ['projectId' => $project]))
             ->name('edit')
@@ -52,13 +57,16 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::post('/{project}/upload-image', [ProjectController::class, 'uploadImage'])
             ->name('uploadImage')
             ->where(['project' => '[0-9a-fA-F-]{36}']);
+        Route::post('/{project}/duplicate', [ProjectController::class, 'duplicate'])
+            ->name('duplicate')
+            ->where(['project' => '[0-9a-fA-F-]{36}']);
     });
     Route::apiResource('dashboard/projects', ProjectController::class)
         ->except(['index', 'create', 'edit', 'show'])
         ->where(['project' => '[0-9a-fA-F-]{36}']);
 
     // Members
-    Route::get('/dashboard/members', [ParticipantController::class, 'index'])->name('dashboard.members');
+    Route::get('/dashboard/members', [ParticipantController::class, 'index'])->name('dashboard.members.index');
     Route::post('/dashboard/members', [ParticipantController::class, 'store'])->name('dashboard.members.store');
     Route::get('/dashboard/members/create', function () {
         return Inertia::render('Members/Create', [
