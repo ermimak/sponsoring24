@@ -6,37 +6,32 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateParticipantRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return true;
+        return true; // Adjust based on your authorization logic
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'gender' => 'nullable|in:male,female,other',
-            'first_name' => 'sometimes|required|string',
-            'last_name' => 'sometimes|required|string',
-            'company' => 'nullable|string',
-            'address' => 'nullable|string',
-            'address_suffix' => 'nullable|string',
-            'postal_code' => 'nullable|string',
-            'location' => 'nullable|string',
-            'country' => 'sometimes|required|string',
-            'birthday' => 'nullable|date',
-            'email' => 'sometimes|required|email|unique:participants,email,' . $this->participant,
-            'email_cc' => 'nullable|email',
-            'phone' => 'nullable|string',
-            'member_id' => 'nullable|string',
-            'archived' => 'boolean',
+            'gender' => ['nullable', 'string', 'in:male,female,other'],
+            'first_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['nullable', 'string', 'max:255'],
+            'company' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'address_suffix' => ['nullable', 'string', 'max:255'],
+            'postal_code' => ['nullable', 'string', 'max:20'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'country' => ['nullable', 'string', 'max:255'],
+            'birthday' => ['nullable', 'date'],
+            'email' => ['nullable', 'email', 'max:255'],
+            'email_cc' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'member_id' => ['nullable', 'string', 'max:255'],
+            'public_registration' => ['nullable', 'boolean'],
+            'archived' => ['nullable', 'boolean'],
+            'groups' => ['nullable', 'array'],
+            'groups.*' => ['string', 'max:255'],
         ];
     }
 }

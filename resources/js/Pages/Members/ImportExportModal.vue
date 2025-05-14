@@ -1,41 +1,56 @@
 <template>
-  <div v-if="show" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-      <h2 class="text-xl font-bold mb-4">Import/Export Members</h2>
-      <form @submit.prevent="handleImport" class="mb-4">
-        <label class="block mb-2 font-medium">Import Members (CSV/XLSX)</label>
-        <input type="file" @change="onFileChange" accept=".csv,.xlsx" class="mb-4" />
-        <button type="submit" :disabled="!file" class="bg-purple-600 text-white px-4 py-2 rounded">Import</button>
-      </form>
+  <div v-if="show" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">Import Members</h2>
       <div class="mb-4">
-        <button @click="handleExport" class="bg-gray-200 text-gray-700 px-4 py-2 rounded">Export Members</button>
+        <label class="block text-sm font-medium mb-1">Upload File (CSV or XLSX)</label>
+        <input type="file" accept=".csv,.xlsx" @change="handleFileChange" class="input w-full" />
       </div>
-      <button @click="$emit('close')" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700">&times;</button>
+      <div class="flex gap-4">
+        <button @click="submit" :disabled="!file || loading" class="px-4 py-2 rounded bg-purple-600 text-white font-semibold">Import</button>
+        <button @click="close" class="px-4 py-2 rounded bg-gray-100 text-gray-700">Cancel</button>
+      </div>
+      <div v-if="error" class="text-red-600 mt-2">{{ error }}</div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import axios from 'axios'
+import { ref } from 'vue';
 
-const props = defineProps({ show: Boolean })
-const emit = defineEmits(['close'])
-const file = ref(null)
+defineProps({
+  show: { type: Boolean, default: false },
+});
 
-function onFileChange(e) {
-  file.value = e.target.files[0]
+const emit = defineEmits(['close', 'import']);
+const file = ref(null);
+const error = ref('');
+const loading = ref(false);
+
+function handleFileChange(event) {
+  file.value = event.target.files[0];
+  error.value = '';
 }
 
-async function handleImport() {
-  if (!file.value) return
-  const formData = new FormData()
-  formData.append('file', file.value)
-  await axios.post('/dashboard/members/import', formData)
-  emit('close')
+function submit() {
+  if (!file.value) {
+    error.value = 'Please select a file.';
+    return;
+  }
+  loading.value = true;
+  emit('import', file.value);
+  loading.value = false;
 }
 
-function handleExport() {
-  window.location = '/dashboard/members/export'
+function close() {
+  file.value = null;
+  error.value = '';
+  emit('close');
 }
-</script> 
+</script>
+
+<style scoped>
+.input {
+  @apply border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500;
+}
+</style>

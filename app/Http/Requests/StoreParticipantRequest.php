@@ -37,6 +37,8 @@ class StoreParticipantRequest extends FormRequest
             'phone' => 'nullable|string',
             'member_id' => 'nullable|string',
             'archived' => 'boolean',
+            'groups' => 'nullable|array',
+            'groups.*' => 'string',
         ];
     }
 }

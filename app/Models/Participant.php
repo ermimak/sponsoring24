@@ -17,16 +17,24 @@ class Participant extends Model
         'location',
         'country',
         'birthday',
+        'member_id',
         'email',
         'email_cc',
         'phone',
-        'member_id',
+        'public_registration',
         'archived',
+        'email_status',
+    ];
+
+    protected $casts = [
+        'public_registration' => 'boolean',
+        'archived' => 'boolean',
+        'birthday' => 'date',
     ];
 
     public function memberGroups()
     {
-        return $this->belongsToMany(MemberGroup::class, 'member_group_participant');
+        return $this->belongsToMany(MemberGroup::class, 'member_group_participant', 'participant_id', 'member_group_id');
     }
 
     public function projects()
