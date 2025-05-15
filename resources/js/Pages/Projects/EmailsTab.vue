@@ -51,7 +51,7 @@
       </div>
     </div>
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-2xl">
+      <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <h2 class="text-xl font-bold mb-4">{{ editing ? 'Edit' : 'Create' }} Email</h2>
         <form @submit.prevent="saveTemplate" class="space-y-4">
           <div class="mb-2">
@@ -158,11 +158,18 @@ async function fetchTemplates() {
   error.value = ''
   try {
     const { data } = await axios.get('/dashboard/email-templates', { params: { project_id: props.projectId } })
-    templates.value = data.data || data
+    if (data.error) {
+      error.value = data.error
+      templates.value = []
+    } else {
+      templates.value = data.data || data
+    }
   } catch (e) {
-    error.value = 'Failed to load email templates.'
+    error.value = 'Failed to load email templates: ' + (e.response?.data?.error || e.message)
+    templates.value = []
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 
 function openCreate() {
@@ -208,9 +215,10 @@ async function saveTemplate() {
     showModal.value = false
     fetchTemplates()
   } catch (e) {
-    error.value = 'Failed to save email template.'
+    error.value = 'Failed to save email template: ' + (e.response?.data?.error || e.message)
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 
 async function deleteTemplate(id) {
@@ -220,9 +228,10 @@ async function deleteTemplate(id) {
     await axios.delete(`/dashboard/email-templates/${id}`)
     fetchTemplates()
   } catch (e) {
-    error.value = 'Failed to delete email template.'
+    error.value = 'Failed to delete email template: ' + (e.response?.data?.error || e.message)
+  } finally {
+    loading.value = false
   }
-  loading.value = false
 }
 
 function sort(key) {
