@@ -12,6 +12,7 @@ class Project extends Model
     use HasFactory, HasTranslations;
 
     protected $fillable = [
+        'id',
         'name',
         'description',
         'location',

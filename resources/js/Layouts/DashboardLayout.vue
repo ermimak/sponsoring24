@@ -51,22 +51,22 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { usePage, router } from '@inertiajs/vue3'
-import SidebarLink from '@/Components/SidebarLink.vue'
+import { ref, computed } from 'vue';
+import { usePage, router } from '@inertiajs/vue3';
+import SidebarLink from '@/Components/SidebarLink.vue';
 
-const page = usePage()
+const page = usePage();
 const user = computed(() => ({
   name: page.props?.auth?.user?.name || 'User',
   org: page.props?.auth?.user?.organization || 'Org',
-}))
-const currentLocale = ref(page.props?.locale || 'de')
+}));
+const currentLocale = ref(page.props?.locale || 'de');
 
 function switchLanguage() {
-  router.visit(`/language/${currentLocale.value}`, { preserveState: true })
+  router.visit($route('language.switch', { locale: currentLocale.value }), { preserveState: true });
 }
 function logout() {
-  router.post($route('logout'))
+  router.post($route('logout'));
 }
 </script>
 

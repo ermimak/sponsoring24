@@ -10,7 +10,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::apiResource('projects', ProjectController::class)->where(['project' => '[0-9a-fA-F-]{36}']);
+    // Route::apiResource('projects', ProjectController::class)->where(['project' => '[0-9a-fA-F-]{36}']);
+    Route::get('/projects', [ProjectController::class, 'index'])->name('api.projects');
+
+    // Add route to fetch a specific project by ID
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('api.projects.show');
     Route::apiResource('participants', ParticipantController::class);
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('permissions', PermissionController::class);

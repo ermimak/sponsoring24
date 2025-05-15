@@ -51,7 +51,7 @@ Route::middleware(['auth', 'web'])->group(function () {
             ]);
         })->name('index');
         Route::get('/create', fn() => Inertia::render('Projects/Create'))->name('create');
-        Route::get('/{project}/edit', fn($project) => Inertia::render('Projects/Edit', ['projectId' => $project]))
+        Route::get('/{project}/edit', [ProjectController::class, 'show'])
             ->name('edit')
             ->where(['project' => '[0-9a-fA-F-]{36}']);
         Route::post('/{project}/upload-image', [ProjectController::class, 'uploadImage'])
