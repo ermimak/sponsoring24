@@ -127,7 +127,7 @@
           <ProjectImageUpload v-if="activeTab === 'Images'" :projectId="projectId" />
         </div>
         <div v-else-if="activeTab === 'Participant'">
-          <ParticipantModal :show="showParticipantModal" :members="participants" :projectId="projectId" @save="handleParticipantSave" @close="() => showParticipantModal = false" />
+          <ParticipantsTab :projectId="projectId" />
         </div>
       </div>
     </div>
@@ -141,13 +141,13 @@ import AnalyticsTab from './AnalyticsTab.vue';
 import EmailsTab from './EmailsTab.vue';
 import DonationsTab from './DonationsTab.vue';
 import ProjectImageUpload from './ProjectImageUpload.vue';
-import ParticipantModal from './ParticipantModal.vue';
+import ParticipantsTab from './ParticipantsTab.vue'; // Import ParticipantsTab
 import { usePage } from '@inertiajs/vue3';
+import axios from 'axios';
+import { route } from 'ziggy-js';
 
 const tabs = ['Settings', 'Analytics', 'Emails', 'Donations', 'Images', 'Participant'];
 const activeTab = ref('Settings');
-const showParticipantModal = ref(false);
-const participants = ref([]);
 const projectId = ref(window.location.pathname.split('/').slice(-2, -1)[0]);
 const loading = ref(false);
 const error = ref('');
@@ -175,11 +175,6 @@ const props = page.props;
 
 function setActiveTab(tab) {
   activeTab.value = tab;
-  if (tab === 'Participant') {
-    showParticipantModal.value = true;
-  } else {
-    showParticipantModal.value = false;
-  }
   const url = new URL(window.location);
   url.searchParams.set('tab', tab);
   window.history.pushState({}, '', url);
@@ -227,16 +222,6 @@ function initializeForm() {
   loading.value = false;
 }
 
-async function fetchParticipants() {
-  try {
-    const response = await axios.get('/dashboard/members');
-    participants.value = response.data.data || response.data;
-  } catch (e) {
-    error.value = 'Failed to load participants.';
-    console.error('Error fetching participants:', e);
-  }
-}
-
 async function submit() {
   loading.value = true;
   error.value = '';
@@ -265,7 +250,6 @@ async function submit() {
 
     await axios.post(updateUrl, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      // method put or patch
       method: 'PUT',
     });
 
@@ -282,20 +266,8 @@ function cancel() {
   window.history.back();
 }
 
-async function handleParticipantSave(selected) {
-  try {
-    await Promise.all(selected.map(id => axios.post(`/dashboard/projects/${projectId.value}/add-participant`, { participant_id: id })));
-    showParticipantModal.value = false;
-    fetchParticipants();
-  } catch (e) {
-    error.value = 'Failed to add participants.';
-    console.error('Error adding participants:', e);
-  }
-}
-
 onMounted(() => {
   initializeForm();
-  fetchParticipants();
   const urlParams = new URLSearchParams(window.location.search);
   const tab = urlParams.get('tab');
   if (tab && tabs.includes(tab)) {

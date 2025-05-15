@@ -66,7 +66,7 @@ Route::middleware(['auth', 'web'])->group(function () {
         ->where(['project' => '[0-9a-fA-F-]{36}']);
 
     // Members
-    Route::get('/dashboard/members', [ParticipantController::class, 'index'])->name('dashboard.members.index');
+    Route::get('/dashboard/members', [ParticipantController::class, 'indexAll'])->name('dashboard.members.index');
     Route::post('/dashboard/members', [ParticipantController::class, 'store'])->name('dashboard.members.store');
     Route::get('/dashboard/members/create', function () {
         return Inertia::render('Members/Create', [
@@ -100,6 +100,24 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/dashboard/donations', fn() => Inertia::render('Dashboard/Donations/Index'))->name('dashboard.donations');
     Route::get('/dashboard/reports', fn() => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
 
+    // Participant Routes
+    // Participant Routes
+Route::prefix('dashboard/projects/{projectId}')->group(function () {
+    Route::get('/participants', [ParticipantController::class, 'index']);
+    Route::post('/participants', [ParticipantController::class, 'addToProject']);
+    Route::get('/participants/create', fn($projectId) => Inertia::render('Projects/Participants/Create', ['projectId' => $projectId]))->name('participants.create');
+    Route::post('/send-mass-email', [ParticipantController::class, 'sendMassEmail']); // Added for mass email
+    Route::get('/participants/export', [ParticipantController::class, 'export']); // Added for export
+});
+
+    Route::apiResource('dashboard/email-templates', EmailTemplateController::class)
+        ->except(['create', 'edit'])
+        ->where(['email_template' => '[0-9]+']);
+
+    Route::apiResource('dashboard/member-groups', MemberGroupController::class)
+        ->except(['create', 'edit'])
+        ->where(['member_group' => '[0-9]+']);
+    
     // Admin Routes
     Route::middleware('can:manage_roles')->group(function () {
         Route::get('/dashboard/admin/roles', fn() => Inertia::render('Dashboard/Roles'))->name('dashboard.admin.roles');
@@ -137,6 +155,25 @@ Route::middleware(['auth', 'web'])->group(function () {
         return response()->json($data);
     })->name('upload');
 });
+
+// Public Routes
+// Route::get('api/projects/{project}', [ProjectController::class, 'show']);
+// Route::get('api/projects/{project}/participants/{participant}', [PublicParticipantController::class, 'show']);
+// Route::post('api/projects/{project}/participants/{participant}/donate', [PublicParticipantController::class, 'donate']);
+Route::prefix('projects/{projectId}')->group(function () {
+    Route::get('participants/{participantId}', [ParticipantController::class, 'showLandingPage'])->name('participant.landing');
+    Route::get('participants/{participantId}/donate', [ParticipantController::class, 'showDonationPage'])->name('participant.donate');
+    Route::post('participants/{participantId}/donate', [ParticipantController::class, 'storeDonation'])->name('participant.donate.store');
+});
+Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{email}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm');
+// Inertia Routes for Public Pages
+Route::get('projects/{project}/participants/{participant}', function ($project, $participant) {
+    return Inertia::render('Projects/ParticipantLanding', ['projectId' => $project, 'participantId' => $participant]);
+})->name('participant.landing');
+
+Route::get('projects/{project}/participants/{participant}/donate', function ($project, $participant) {
+    return Inertia::render('Projects/ParticipantDonation', ['projectId' => $project, 'participantId' => $participant]);
+})->name('participant.donate');
 
 // API Routes
 Route::get('/api/projects', [ProjectController::class, 'index'])->name('api.projects');
