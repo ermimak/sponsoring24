@@ -65,6 +65,15 @@ Route::middleware(['auth', 'web'])->group(function () {
         ->except(['index', 'create', 'edit', 'show'])
         ->where(['project' => '[0-9a-fA-F-]{36}']);
 
+    // Donation
+    Route::prefix('projects/{projectId}')->group(function () {
+        Route::get('donations', [DonationController::class, 'index'])->name('project.donations.index');
+        Route::post('donations/mass-email', [DonationController::class, 'sendMassEmail'])->name('project.donations.massEmail');
+        Route::post('donations/bulk-invoice', [DonationController::class, 'bulkInvoice'])->name('project.donations.bulkInvoice');
+    });
+    Route::get('/dashboard/projects/{project}/donations', [App\Http\Controllers\DonationController::class, 'fetchDonations'])
+    ->name('dashboard.project.donations.fetch');
+
     // Members
     Route::get('/dashboard/members', [ParticipantController::class, 'indexAll'])->name('dashboard.members.index');
     Route::post('/dashboard/members', [ParticipantController::class, 'store'])->name('dashboard.members.store');

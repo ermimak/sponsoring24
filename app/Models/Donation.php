@@ -11,11 +11,16 @@ class Donation extends Model
         'participant_id',
         'supporter_id',
         'amount',
+        'currency',
         'type',
         'billing_date',
         'status',
         'payment_method',
-        'currency',
+        'supporter_email',
+    ];
+
+    protected $casts = [
+        'billing_date' => 'datetime',
     ];
 
     public function project()
@@ -27,4 +32,9 @@ class Donation extends Model
     {
         return $this->belongsTo(Participant::class);
     }
-} 
+
+    public function supporter()
+    {
+        return $this->belongsTo(Supporter::class);
+    }
+}

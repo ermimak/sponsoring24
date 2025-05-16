@@ -1,7 +1,7 @@
 <template>
   <DashboardLayout>
     <div class="max-w-5xl mx-auto py-8">
-      <h1 class="text-2xl font-bold mb-6">{{ form.name.de || 'Edit project' }}</h1>
+      <h1 class="text-2xl font-bold mb-6">{{ form.name.de || form.name[Object.keys(form.name)[0]] || 'Edit project' }}</h1>
       <!-- Tabs -->
       <div class="flex border-b mb-8">
         <button v-for="tab in tabs" :key="tab" @click="setActiveTab(tab)"
@@ -20,7 +20,8 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Project name*</label>
-                  <input v-model="form.name.de" type="text" class="input w-full" required />
+                  <input v-model="form.name.de" type="text" class="input w-full" required @input="updateNameTranslations" />
+                  <input v-model="form.name.fr" type="text" class="input w-full mt-2" @input="updateNameTranslations" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -49,7 +50,8 @@
               </div>
               <div class="mt-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Project description*</label>
-                <textarea v-model="form.description.de" rows="5" class="input w-full" required></textarea>
+                <textarea v-model="form.description.de" rows="5" class="input w-full" required @input="updateDescriptionTranslations"></textarea>
+                <textarea v-model="form.description.fr" rows="5" class="input w-full mt-2" @input="updateDescriptionTranslations"></textarea>
               </div>
               <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -121,7 +123,7 @@
           <EmailsTab v-if="activeTab === 'Emails'" :projectId="projectId" />
         </div>
         <div v-else-if="activeTab === 'Donations'">
-          <DonationsTab v-if="activeTab === 'Donations'" :projectId="projectId" />
+          <DonationsTab v-if="activeTab === 'Donations'" :project="project" :filters="{}" />
         </div>
         <div v-else-if="activeTab === 'Images'">
           <ProjectImageUpload v-if="activeTab === 'Images'" :projectId="projectId" />
@@ -135,13 +137,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import AnalyticsTab from './AnalyticsTab.vue';
 import EmailsTab from './EmailsTab.vue';
 import DonationsTab from './DonationsTab.vue';
 import ProjectImageUpload from './ProjectImageUpload.vue';
-import ParticipantsTab from './ParticipantsTab.vue'; // Import ParticipantsTab
+import ParticipantsTab from './ParticipantsTab.vue';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { route } from 'ziggy-js';
@@ -172,6 +174,7 @@ const form = ref({
 
 const page = usePage();
 const props = page.props;
+const project = computed(() => props.project || {});
 
 function setActiveTab(tab) {
   activeTab.value = tab;
@@ -198,6 +201,14 @@ function onFileChange(event, field) {
     };
     reader.readAsDataURL(file);
   }
+}
+
+function updateNameTranslations() {
+  form.value.name = { de: form.value.name.de || '', fr: form.value.name.fr || '' };
+}
+
+function updateDescriptionTranslations() {
+  form.value.description = { de: form.value.description.de || '', fr: form.value.description.fr || '' };
 }
 
 function initializeForm() {
