@@ -12,6 +12,7 @@ use App\Http\Controllers\EmailTemplateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Participant;
+use App\Http\Controllers\SettingsController;
 
 // Public Routes
 Route::get('/', fn() => Inertia::render('Welcome'))->name('home');
@@ -163,6 +164,9 @@ Route::prefix('dashboard/projects/{projectId}')->group(function () {
 
         return response()->json($data);
     })->name('upload');
+
+    Route::get('/dashboard/settings', [SettingsController::class, 'index'])->name('dashboard.settings');
+    Route::post('/dashboard/settings', [SettingsController::class, 'update'])->name('dashboard.settings.update');
 });
 
 // Public Routes
