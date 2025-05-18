@@ -361,6 +361,9 @@ async function saveSettings() {
     })
     if (response.data.success) {
       page.props.flash = { success: 'Settings saved successfully' }
+      form.value.password = ''
+      form.value.password_confirmation = ''
+      window.location.reload()
     }
   } catch (error) {
     console.error('Failed to save settings:', error)

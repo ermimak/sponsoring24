@@ -121,11 +121,40 @@ class SettingsController extends Controller
 
             if ($request->filled('password')) {
                 $user = Auth::user();
-                $user->update(['password' => bcrypt($request->password)]);
+                $user->password = bcrypt($request->password);
+                $user->save();
             }
 
             $data['user_id'] = Auth::id();
             $settings->update($data);
+
+            // Propagate relevant settings to related projects
+            $projectFields = [
+                'organization_name',
+                'accent_color',
+                'logo_path',
+                'country',
+                'language',
+            ];
+
+            $changed = false;
+            foreach ($projectFields as $field) {
+                if (array_key_exists($field, $data) && $settings->$field !== $data[$field]) {
+                    $changed = true;
+                    break;
+                }
+            }
+
+            if ($changed) {
+                foreach ($settings->projects as $project) {
+                    foreach ($projectFields as $field) {
+                        if (array_key_exists($field, $data)) {
+                            $project->$field = $data[$field];
+                        }
+                    }
+                    $project->save();
+                }
+            }
 
             return redirect()->back()->with('success', 'Settings updated successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
