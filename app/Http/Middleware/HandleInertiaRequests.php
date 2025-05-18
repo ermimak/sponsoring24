@@ -38,27 +38,22 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        
-        // Debug logging
+
+        // Enhanced debug logging
         Log::info('Inertia share user data', [
-            'user' => $user ? [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'permissions' => $user->permissions->pluck('name')->toArray(),
-                'roles' => $user->getRoleNames()->toArray(),
-            ] : null,
-            'session' => $request->session()->all(),
-            'auth' => $request->session()->get('auth')
+            'user_object' => $user ? $user->toArray() : null,
+            'session_auth' => $request->session()->get('auth'),
+            'session_all' => $request->session()->all(),
         ]);
 
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'permissions' => $user->permissions->pluck('name')->toArray(),
+                    'name' => $user->name ?? $user->email ?? 'User',
+                    'email' => $user->email ?? null,
+                    'organization' => $user->organization ?? 'Org',
+                    'permissions' => $user->permissions->pluck('name')->toArray(), // Use Spatie's relationship
                     'roles' => $user->getRoleNames()->toArray(),
                 ] : null,
             ],
@@ -66,7 +61,9 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),
+                'success' => fn () => $request->session()->get('success'),
             ],
+            'errors' => fn () => $request->session()->get('errors') ? $request->session()->get('errors')->getBag('default')->toArray() : (object) [],
         ]);
     }
-} 
+}

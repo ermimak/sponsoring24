@@ -39,7 +39,7 @@
           </button>
           <div class="flex items-center space-x-2 bg-primary-light rounded px-3 py-1">
             <span class="font-semibold">{{ user.name }}</span>
-            <span class="text-xs text-primary-dark">{{ user.org }}</span>
+            <span class="text-xs text-primary-dark">{{ user.organization }}</span>
           </div>
         </div>
       </header>
@@ -57,16 +57,16 @@ import SidebarLink from '@/Components/SidebarLink.vue';
 
 const page = usePage();
 const user = computed(() => ({
-  name: page.props?.auth?.user?.name || 'User',
-  org: page.props?.auth?.user?.organization || 'Org',
+  name: page.props.auth?.user?.name || page.props.auth?.user?.email,
+  organization: page.props.auth?.user?.organization ,
 }));
-const currentLocale = ref(page.props?.locale || 'de');
+const currentLocale = ref(page.props.locale || 'de');
 
 function switchLanguage() {
-  router.visit($route('language.switch', { locale: currentLocale.value }), { preserveState: true });
+  router.visit(('/language.switch', { locale: currentLocale.value }), { preserveState: true });
 }
 function logout() {
-  router.post($route('logout'));
+  router.post('/logout');
 }
 </script>
 

@@ -16,6 +16,7 @@
             <div>
               <label class="block text-sm font-medium text-gray-700">Name of the organization*</label>
               <input v-model="form.organization_name" type="text" class="input w-full" required />
+              <p v-if="errors.organization_name" class="text-red-500 text-sm mt-1">{{ errors.organization_name }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Contact person Title*</label>
@@ -24,38 +25,46 @@
                 <option value="Mrs">Mrs</option>
                 <option value="Ms">Ms</option>
               </select>
+              <p v-if="errors.contact_title" class="text-red-500 text-sm mt-1">{{ errors.contact_title }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Contact person first name*</label>
               <input v-model="form.contact_first_name" type="text" class="input w-full" required />
+              <p v-if="errors.contact_first_name" class="text-red-500 text-sm mt-1">{{ errors.contact_first_name }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Contact person last name*</label>
               <input v-model="form.contact_last_name" type="text" class="input w-full" required />
+              <p v-if="errors.contact_last_name" class="text-red-500 text-sm mt-1">{{ errors.contact_last_name }}</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Address*</label>
               <input v-model="form.address" type="text" class="input w-full" required />
+              <p v-if="errors.address" class="text-red-500 text-sm mt-1">{{ errors.address }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Address suffix</label>
               <input v-model="form.address_suffix" type="text" class="input w-full" />
+              <p v-if="errors.address_suffix" class="text-red-500 text-sm mt-1">{{ errors.address_suffix }}</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Postal code*</label>
               <input v-model="form.postal_code" type="text" class="input w-full" required />
+              <p v-if="errors.postal_code" class="text-red-500 text-sm mt-1">{{ errors.postal_code }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Location*</label>
               <input v-model="form.location" type="text" class="input w-full" required />
+              <p v-if="errors.location" class="text-red-500 text-sm mt-1">{{ errors.location }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700">country*</label>
+              <label class="block text-sm font-medium text-gray-700">Country*</label>
               <input v-model="form.country" type="text" class="input w-full" required />
+              <p v-if="errors.country" class="text-red-500 text-sm mt-1">{{ errors.country }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Language*</label>
@@ -65,16 +74,19 @@
                 <option value="French">French</option>
                 <option value="Italian">Italian</option>
               </select>
+              <p v-if="errors.language" class="text-red-500 text-sm mt-1">{{ errors.language }}</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">E-mail*</label>
               <input v-model="form.email" type="email" class="input w-full" required />
+              <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Phone*</label>
               <input v-model="form.phone" type="text" class="input w-full" required />
+              <p v-if="errors.phone" class="text-red-500 text-sm mt-1">{{ errors.phone }}</p>
             </div>
           </div>
           <div v-if="form.user">
@@ -99,18 +111,20 @@
             <div>
               <label class="block text-sm font-medium text-gray-700">Accent color*</label>
               <input v-model="form.accent_color" type="color" class="input w-full h-10" required />
+              <p v-if="errors.accent_color" class="text-red-500 text-sm mt-1">{{ errors.accent_color }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700">Logo*</label>
+              <label class="block text-sm font-medium text-gray-700">Logo</label>
               <input type="file" @change="handleLogoUpload" class="input w-full" accept="image/*" />
               <div v-if="form.logo_path" class="mt-2">
                 <img :src="'/storage/' + form.logo_path" alt="Logo Preview" class="max-w-xs max-h-48" />
               </div>
               <div v-else class="mt-2 text-gray-500">Logo not chosen</div>
+              <p v-if="errors.logo" class="text-red-500 text-sm mt-1">{{ errors.logo }}</p>
             </div>
           </div>
           <div class="mt-4">
-            <h3 class="text-md font-medium text-gray-700">preview</h3>
+            <h3 class="text-md font-medium text-gray-700">Preview</h3>
             <div class="flex flex-wrap gap-2 mt-2">
               <span :style="{ color: form.accent_color, border: '1px solid ' + form.accent_color, padding: '4px 12px', borderRadius: '8px' }">Link example</span>
               <button :style="{ backgroundColor: form.accent_color }" class="px-4 py-2 rounded text-white">Button example</button>
@@ -141,46 +155,56 @@
                 <option value="Mrs">Mrs</option>
                 <option value="Ms">Ms</option>
               </select>
+              <p v-if="errors.billing_salutation" class="text-red-500 text-sm mt-1">{{ errors.billing_salutation }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">First name</label>
               <input v-model="form.billing_first_name" type="text" class="input w-full" />
+              <p v-if="errors.billing_first_name" class="text-red-500 text-sm mt-1">{{ errors.billing_first_name }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Last name</label>
               <input v-model="form.billing_last_name" type="text" class="input w-full" />
+              <p v-if="errors.billing_last_name" class="text-red-500 text-sm mt-1">{{ errors.billing_last_name }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Address suffix</label>
               <input v-model="form.billing_address_suffix" type="text" class="input w-full" />
+              <p v-if="errors.billing_address_suffix" class="text-red-500 text-sm mt-1">{{ errors.billing_address_suffix }}</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Address</label>
               <input v-model="form.billing_address" type="text" class="input w-full" />
+              <p v-if="errors.billing_address" class="text-red-500 text-sm mt-1">{{ errors.billing_address }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Postal code</label>
               <input v-model="form.billing_postal_code" type="text" class="input w-full" />
+              <p v-if="errors.billing_postal_code" class="text-red-500 text-sm mt-1">{{ errors.billing_postal_code }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Location</label>
               <input v-model="form.billing_location" type="text" class="input w-full" />
+              <p v-if="errors.billing_location" class="text-red-500 text-sm mt-1">{{ errors.billing_location }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700">country</label>
+              <label class="block text-sm font-medium text-gray-700">Country</label>
               <input v-model="form.billing_country" type="text" class="input w-full" />
+              <p v-if="errors.billing_country" class="text-red-500 text-sm mt-1">{{ errors.billing_country }}</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">E-mail</label>
               <input v-model="form.billing_email" type="email" class="input w-full" />
+              <p v-if="errors.billing_email" class="text-red-500 text-sm mt-1">{{ errors.billing_email }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Phone</label>
               <input v-model="form.billing_phone" type="text" class="input w-full" />
+              <p v-if="errors.billing_phone" class="text-red-500 text-sm mt-1">{{ errors.billing_phone }}</p>
             </div>
           </div>
         </form>
@@ -200,15 +224,18 @@
           <div>
             <label class="block text-sm font-medium text-gray-700">Bank account for transferring donations</label>
             <textarea v-model="form.bank_account_details" class="input w-full" rows="3"></textarea>
+            <p v-if="errors.bank_account_details" class="text-red-500 text-sm mt-1">{{ errors.bank_account_details }}</p>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">IBAN account number</label>
               <input v-model="form.iban" type="text" class="input w-full" />
+              <p v-if="errors.iban" class="text-red-500 text-sm mt-1">{{ errors.iban }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Recipient</label>
               <input v-model="form.recipient" type="text" class="input w-full" />
+              <p v-if="errors.recipient" class="text-red-500 text-sm mt-1">{{ errors.recipient }}</p>
             </div>
           </div>
         </form>
@@ -230,10 +257,12 @@
             <div>
               <label class="block text-sm font-medium text-gray-700">Password</label>
               <input v-model="form.password" type="password" class="input w-full" />
+              <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Repeat password</label>
               <input v-model="form.password_confirmation" type="password" class="input w-full" />
+              <p v-if="errors.password_confirmation" class="text-red-500 text-sm mt-1">{{ errors.password_confirmation }}</p>
             </div>
           </div>
         </form>
@@ -253,6 +282,7 @@
           <div class="flex items-center">
             <input v-model="form.project_overview_enabled" type="checkbox" id="project_overview" class="mr-2">
             <label for="project_overview" class="text-sm">Activate project overview</label>
+            <p v-if="errors.project_overview_enabled" class="text-red-500 text-sm mt-1">{{ errors.project_overview_enabled }}</p>
           </div>
         </form>
       </div>
@@ -277,8 +307,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { usePage } from '@inertiajs/vue3'
-import axios from 'axios'
+import { usePage, router } from '@inertiajs/vue3'
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 
 const props = defineProps({
@@ -301,6 +330,7 @@ const form = ref({
   phone: props.settings?.phone || '',
   accent_color: props.settings?.accent_color || '#9500FF',
   logo_path: props.settings?.logo_path || '',
+  logo: null, // For file upload
   billing_salutation: props.settings?.billing_salutation || 'Mister',
   billing_first_name: props.settings?.billing_first_name || '',
   billing_last_name: props.settings?.billing_last_name || '',
@@ -329,6 +359,7 @@ const activeSections = ref({
   overview: true,
 })
 
+const errors = ref({})
 const flashMessage = computed(() => ({
   success: page.props.flash?.success || '',
   error: page.props.flash?.error || '',
@@ -345,37 +376,37 @@ function handleLogoUpload(event) {
   }
 }
 
-async function saveSettings() {
+function saveSettings() {
+  errors.value = {} // Reset errors
+
   const formData = new FormData()
   for (const key in form.value) {
     if (key === 'logo' && form.value[key]) {
       formData.append('logo', form.value[key])
     } else if (key !== 'user') {
-      formData.append(key, form.value[key])
+      formData.append(key, form.value[key] ?? '') // Handle null/undefined values
     }
   }
 
-  try {
-    const response = await axios.post('/dashboard/settings', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    })
-    if (response.data.success) {
-      page.props.flash = { success: 'Settings saved successfully' }
-      form.value.password = ''
+  router.post('/dashboard/settings', formData, {
+    onSuccess: () => {
+      errors.value = {} // Clear errors on success
+      form.value.password = '' // Reset password fields
       form.value.password_confirmation = ''
-      window.location.reload()
-    }
-  } catch (error) {
-    console.error('Failed to save settings:', error)
-    page.props.flash = { error: 'Failed to save settings. Please try again.' }
-  }
+    },
+    onError: (err) => {
+      errors.value = err // Set validation errors
+    },
+    preserveState: true, // Preserve form state to show errors
+    preserveScroll: true, // Keep scroll position
+  })
 }
 
 watch(() => props.settings, (newSettings) => {
   if (newSettings) {
     for (const key in newSettings) {
       if (form.value.hasOwnProperty(key)) {
-        form.value[key] = newSettings[key] || form.value[key]
+        form.value[key] = newSettings[key] ?? form.value[key]
       }
     }
   }

@@ -2,81 +2,35 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasRoles, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'name', 'email', 'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
-        'password',
-        'remember_token',
+        'password', 'remember_token',
     ];
 
-    protected $appends = ['permissions'];
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    public function setting()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasOne(Setting::class);
     }
 
-    /**
-     * Get all permissions for the user.
-     *
-     * @return array
-     */
-    public function getAllPermissionsAttribute()
+    public function getOrganizationAttribute()
     {
-        return $this->permissions->pluck('name')->toArray();
+        return $this->setting ? $this->setting->organization_name : 'Org';
     }
 
-    /**
-     * Get all roles for the user.
-     *
-     * @return array
-     */
-    public function getAllRolesAttribute()
-    {
-        return $this->getRoleNames()->toArray();
-    }
-
-    /**
-     * Get the permissions attribute for the user (for appends).
-     *
-     * @return array
-     */
-    public function getPermissionsAttribute()
-    {
-        return $this->getAllPermissions()->pluck('name')->toArray();
-    }
+    // Removed getPermissionsAttribute to rely on Spatie's default permissions relationship
 }

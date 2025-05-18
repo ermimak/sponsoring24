@@ -25,7 +25,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $request->email)->first();
-        
+
         if (!$user || !Hash::check($request->password, $user->password)) {
             if ($request->wantsJson()) {
                 throw ValidationException::withMessages([
@@ -39,21 +39,21 @@ class AuthController extends Controller
 
         // Log in the user
         Auth::login($user, $request->boolean('remember'));
-        
+
         // Regenerate session
         $request->session()->regenerate();
-        
+
         // Debug logging
         Log::info('User logged in', [
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'permissions' => $user->permissions->pluck('name')->toArray(),
+                'permissions' => $user->permissions->pluck('name')->toArray(), // Use Spatie's relationship
                 'roles' => $user->getRoleNames()->toArray(),
             ],
             'session' => $request->session()->all(),
-            'auth' => Auth::check()
+            'auth' => Auth::check(),
         ]);
 
         if ($request->wantsJson()) {
@@ -63,14 +63,13 @@ class AuthController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'permissions' => $user->permissions->pluck('name')->toArray(),
+                    'permissions' => $user->permissions->pluck('name')->toArray(), // Use Spatie's relationship
                     'roles' => $user->getRoleNames()->toArray(),
-                ]
+                ],
             ]);
         }
 
-        // Use Inertia redirect instead of location
-        return redirect()->intended(route('dashboard'));
+        return redirect()->intended(route('dashboard'))->with('success', 'Login successful');
     }
 
     public function logout(Request $request)
@@ -83,7 +82,7 @@ class AuthController extends Controller
             return response()->json(['message' => 'Logged out']);
         }
 
-        return Inertia::location(route('login'));
+        return redirect()->route('login')->with('success', 'Logged out successfully');
     }
 
     public function showRegister()
@@ -106,11 +105,11 @@ class AuthController extends Controller
         ]);
 
         // Assign default role if needed
-        // $user->assignRole('user');
+        $user->assignRole('user');
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return Inertia::location(route('dashboard'));
+        return redirect()->route('dashboard')->with('success', 'Registration successful');
     }
-} 
+}

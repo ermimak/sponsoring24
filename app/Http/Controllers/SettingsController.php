@@ -69,9 +69,10 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         try {
+            Log::info('Updating settings for user: ' . Auth::id(), ['request_data' => $request->all()]);
             $settings = Setting::first() ?? new Setting();
 
-            $request->validate([
+            $validated = $request->validate([
                 'organization_name' => 'required|string|max:255',
                 'contact_title' => 'required|in:Mister,Mrs,Ms',
                 'contact_first_name' => 'required|string|max:255',
@@ -121,8 +122,9 @@ class SettingsController extends Controller
 
             if ($request->filled('password')) {
                 $user = Auth::user();
-                $user->password = bcrypt($request->password);
-                $user->save();
+                Log::info('Attempting to update password for user: ' . $user->id, ['new_password' => $request->password]);
+                $user->update(['password' => bcrypt($request->password)]);
+                Log::info('Password updated successfully for user: ' . $user->id);
             }
 
             $data['user_id'] = Auth::id();
@@ -156,12 +158,14 @@ class SettingsController extends Controller
                 }
             }
 
+            Log::info('Settings updated successfully for user: ' . Auth::id());
             return redirect()->back()->with('success', 'Settings updated successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::warning('Validation failed for settings update: ' . json_encode($e->errors()));
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
-            Log::error('Failed to update settings: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to update settings.');
+            Log::error('Failed to update settings: ' . $e->getMessage(), ['exception' => $e]);
+            return redirect()->back()->with('error', 'Failed to update settings.')->withInput();
         }
     }
 }
