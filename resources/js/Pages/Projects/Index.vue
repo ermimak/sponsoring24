@@ -121,7 +121,7 @@ const deleteProject = (id) => {
 };
 
 const duplicateProject = (project) => {
-  router.post($route('dashboard.projects.duplicate', project.id), {}, {
+  router.post('/dashboard/projects/duplicate/' + project.id, {}, {
     onStart: () => { loading.value = true; error.value = null; },
     onSuccess: (page) => {
       projects.value.push(page.props.projects.data[projects.value.length]);

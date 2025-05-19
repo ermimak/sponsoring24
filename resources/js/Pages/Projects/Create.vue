@@ -14,10 +14,10 @@
                   <label class="text-xs text-gray-500">German</label>
                   <input v-model="form.name.de" type="text" class="input w-full" required />
                 </div>
-                <div>
+                <!-- <div>
                   <label class="text-xs text-gray-500">French</label>
                   <input v-model="form.name.fr" type="text" class="input w-full" required />
-                </div>
+                </div> -->
               </div>
             </div>
             <div>
@@ -52,10 +52,10 @@
                 <label class="text-xs text-gray-500">German</label>
                 <textarea v-model="form.description.de" rows="5" class="input w-full" required></textarea>
               </div>
-              <div>
+              <!-- <div>
                 <label class="text-xs text-gray-500">French</label>
                 <textarea v-model="form.description.fr" rows="5" class="input w-full" required></textarea>
-              </div>
+              </div> -->
             </div>
           </div>
           <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">

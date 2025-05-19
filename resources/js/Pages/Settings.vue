@@ -4,7 +4,7 @@
       <!-- Profile Section -->
       <div class="bg-white shadow rounded-lg p-6 mb-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
-          <span>1 Profile</span>
+          <span>Profile</span>
           <button @click="toggleSection('profile')" class="ml-auto text-gray-500 hover:text-gray-700">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />

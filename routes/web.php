@@ -9,6 +9,7 @@ use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EmailTemplateController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Participant;
@@ -103,9 +104,16 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/dashboard/members/groups', [MemberGroupController::class, 'store'])->name('dashboard.members.groups.store');
     Route::delete('/dashboard/members/groups/{memberGroup}', [MemberGroupController::class, 'destroy'])->name('dashboard.members.groups.destroy')->where('memberGroup', '[0-9]+');
 
-    // Other Dashboard Routes
-    Route::get('/dashboard/users', fn() => Inertia::render('Users/Index'))->name('dashboard.users');
+    // Other Dashboard Routes    
     Route::get('/dashboard/settings', fn() => Inertia::render('Settings/Index'))->name('dashboard.settings');
+    Route::post('/dashboard/settings', [SettingsController::class, 'update'])->name('dashboard.settings.update');
+
+    Route::get('/dashboard/users', [UserController::class, 'index'])->name('dashboard.users');
+    Route::get('/dashboard/users/create', [UserController::class, 'create'])->name('dashboard.users.create');
+    Route::get('/dashboard/users/{id}/edit', [UserController::class, 'edit'])->name('dashboard.users.edit');
+    Route::post('/dashboard/users', [UserController::class, 'store'])->name('dashboard.users.store');
+
+
     Route::get('/dashboard/bonus', fn() => Inertia::render('Bonus/Index'))->name('dashboard.bonus');
     Route::get('/dashboard/donations', fn() => Inertia::render('Dashboard/Donations/Index'))->name('dashboard.donations');
     Route::get('/dashboard/reports', fn() => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
