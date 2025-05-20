@@ -9,6 +9,9 @@ use Illuminate\Validation\ValidationException;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use App\Models\BonusCredit;
+use App\Notifications\ReferralCodeUsed;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -92,24 +95,97 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255|unique:users',
+                'password' => 'required|string|min:8|confirmed',
+                'registration_discount_code' => 'nullable|string|max:255',
+            ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+            DB::beginTransaction();
 
-        // Assign default role if needed
-        $user->assignRole('user');
+            try {
+                $user = User::create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                ]);
 
-        Auth::login($user);
-        $request->session()->regenerate();
+                // Assign the user role
+                $user->assignRole('user');
 
-        return redirect()->route('dashboard')->with('success', 'Registration successful');
+                // Handle referral code if present
+                $referralInfo = null;
+                if ($request->filled('registration_discount_code')) {
+                    $referralCode = $request->input('registration_discount_code');
+                    $referrer = User::where('referral_code', $referralCode)->first();
+                    
+                    if ($referrer) {
+                        // Create bonus credit for referrer
+                        $bonusCredit = BonusCredit::create([
+                            'user_id' => $referrer->id,
+                            'referred_user_id' => $user->id,
+                            'amount' => 100.00,
+                            'status' => 'pending',
+                            'referral_code_used' => $referralCode,
+                        ]);
+
+                        // Send notification to referrer
+                        $referrer->notify(new ReferralCodeUsed($user, $bonusCredit->amount));
+                        
+                        Log::info('Referral notification sent', [
+                            'referrer_id' => $referrer->id,
+                            'referred_user_id' => $user->id,
+                            'bonus_credit_id' => $bonusCredit->id
+                        ]);
+
+                        $referralInfo = [
+                            'success' => true,
+                            'code' => $referralCode,
+                        ];
+                    } else {
+                        $referralInfo = [
+                            'success' => false,
+                            'code' => $referralCode,
+                            'message' => 'Invalid referral code'
+                        ];
+                    }
+                }
+
+                DB::commit();
+
+                Auth::login($user);
+
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'message' => 'Registration successful',
+                        'referralInfo' => $referralInfo
+                    ]);
+                }
+
+                return redirect()->route('home')->with('referralInfo', $referralInfo);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            Log::error('Registration failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->except(['password', 'password_confirmation'])
+            ]);
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Registration failed',
+                    'error' => $e->getMessage()
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->withErrors(['error' => 'Registration failed. Please try again.'])
+                ->withInput($request->except(['password', 'password_confirmation']));
+        }
     }
 }

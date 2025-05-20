@@ -71,7 +71,7 @@ class UserController extends Controller
     public function edit($id)
     {
         try {
-            $user = User::with('roles', 'permissions')->findOrFail($id);
+            $user = User::with(['roles', 'permissions', 'setting'])->findOrFail($id);
             $roles = Role::all()->map(function ($role) {
                 return ['id' => $role->id, 'name' => $role->name];
             });
@@ -88,7 +88,7 @@ class UserController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
-                    'two_factor_enabled' => $user->two_factor_enabled,
+                    'two_factor_enabled' => $user->setting?->two_factor_enabled ?? false,
                     'roles' => $user->roles->pluck('id')->toArray(),
                     'permissions' => $user->permissions->pluck('id')->toArray(),
                 ],
@@ -109,9 +109,10 @@ class UserController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . ($request->user_id ?? '')],
-                'password' => ['sometimes', 'string', 'min:8', 'confirmed'],
+                'first_name' => ['required', 'string', 'max:255'],
+                'last_name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . ($request->user_id ?: 'NULL')],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
                 'two_factor' => ['boolean'],
                 'roles' => ['array'],
                 'permissions' => ['array'],
@@ -121,13 +122,33 @@ class UserController extends Controller
                 ? User::findOrFail($request->user_id)
                 : new User();
 
-            $user->name = $validated['name'];
+            $user->name = $validated['first_name'] . ' ' . $validated['last_name'];
             $user->email = $validated['email'];
-            if ($validated['password']) {
-                $user->password = bcrypt($validated['password']);
-            }
-            $user->two_factor_enabled = $validated['two_factor'] ?? false;
+            $user->password = bcrypt($validated['password']);
             $user->save();
+
+            // Handle settings with default values
+            if ($user->setting) {
+                $user->setting->update([
+                    'two_factor_enabled' => $validated['two_factor'] ?? false,
+                    'accent_color' => '#9500FF',
+                    'country' => 'Switzerland',
+                    'language' => 'German',
+                    'billing_country' => 'Switzerland',
+                    'billing_last_name' => $validated['last_name'],
+                    'billing_address_suffix' => '',
+                ]);
+            } else {
+                $user->setting()->create([
+                    'two_factor_enabled' => $validated['two_factor'] ?? false,
+                    'accent_color' => '#9500FF',
+                    'country' => 'Switzerland',
+                    'language' => 'German',
+                    'billing_country' => 'Switzerland',
+                    'billing_last_name' => $validated['last_name'],
+                    'billing_address_suffix' => '',
+                ]);
+            }
 
             $user->syncRoles($request->roles ?? []);
             $user->syncPermissions($request->permissions ?? []);
@@ -141,13 +162,19 @@ class UserController extends Controller
             ]);
 
             return redirect()->route('dashboard.users')->with('success', 'User ' . ($request->user_id ? 'updated' : 'created') . ' successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed while ' . ($request->user_id ? 'updating' : 'creating') . ' user', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all(),
+            ]);
+            return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             Log::error('Failed to ' . ($request->user_id ? 'update' : 'create') . ' user', [
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->all(),
             ]);
-            return redirect()->back()->withErrors(['error' => 'An error occurred while ' . ($request->user_id ? 'updating' : 'creating') . ' the user.'])->withInput();
+            return redirect()->back()->withErrors(['error' => 'An unexpected error occurred. Please try again.'])->withInput();
         }
     }
 }

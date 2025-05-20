@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('bonus_credits', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('user_id'); // Referrer
+            $table->unsignedBigInteger('referred_user_id'); // Referred user
+            $table->decimal('amount', 8, 2)->default(100.00);
+            $table->string('status')->default('pending'); // pending, credited
             $table->timestamps();
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('referred_user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

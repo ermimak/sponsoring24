@@ -13,10 +13,39 @@
             </div>
         </section>
 
+        <!-- Notifications Panel -->
+        <section v-if="notifications && notifications.length > 0" class="bg-white py-8">
+            <div class="max-w-5xl mx-auto px-4">
+                <NotificationsPanel />
+            </div>
+        </section>
+
         <!-- Partner Logos -->
         <section class="bg-white py-8">
             <div class="max-w-5xl mx-auto flex flex-wrap justify-center items-center gap-8 opacity-80">
                 <img v-for="n in 10" :key="n" :src="`/images/partner${n}.png`" alt="Partner logo" class="h-10" />
+            </div>
+        </section>
+
+        <!-- Referral Tracking -->
+        <section v-if="referralInfo" class="bg-purple-50 py-8">
+            <div class="max-w-5xl mx-auto px-4">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold text-purple-800 mb-4">Referral Information</h3>
+                    <div class="space-y-4">
+                        <div v-if="referralInfo.success" class="text-green-600">
+                            <p class="font-semibold">Successfully registered with referral code!</p>
+                            <p>You will receive bonus credits once your account is verified.</p>
+                        </div>
+                        <div v-else class="text-red-600">
+                            <p class="font-semibold">Invalid referral code</p>
+                            <p>Please check your referral code and try again.</p>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <p>Your referral code: <span class="font-mono bg-gray-100 px-2 py-1 rounded">{{ referralInfo.code }}</span></p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -147,6 +176,12 @@
 <script setup>
 import MainLayout from '@/Layouts/MainLayout.vue';
 import ProjectCard from '@/Components/ProjectCard.vue';
+import NotificationsPanel from '@/Components/NotificationsPanel.vue';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const referralInfo = page.props.referralInfo;
+const notifications = page.props.notifications;
 
 const projects = [
     {

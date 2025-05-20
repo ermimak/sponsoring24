@@ -7,7 +7,11 @@
       <div class="p-6">
         <div class="max-w-2xl mx-auto bg-white shadow rounded-lg p-6">
           <div v-if="errors" class="mb-4 p-4 bg-red-100 text-red-700 rounded">
-            <p v-for="(error, index) in Object.values(errors)" :key="index">{{ error }}</p>
+            <ul class="list-disc list-inside">
+              <li v-for="(error, field) in errors" :key="field">
+                <span class="font-semibold">{{ field.replace('_', ' ') }}:</span> {{ error[0] }}
+              </li>
+            </ul>
           </div>
           <div v-if="flashMessage.error" class="mb-4 p-4 bg-red-100 text-red-700 rounded">
             {{ flashMessage.error }}
@@ -115,7 +119,8 @@
         flashMessage.error = '';
       },
       onError: (errors) => {
-        flashMessage.error = Object.values(errors)[0] || 'An error occurred.';
+        flashMessage.error = '';
+        // The errors will be automatically handled by Inertia's error handling
       },
     });
   }

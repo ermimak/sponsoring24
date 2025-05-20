@@ -4,7 +4,10 @@
     <div>
       <h1 class="text-3xl font-bold mb-8">Bonus credit</h1>
       <div class="mb-8">
-        <h2 class="text-2xl font-semibold mb-4">For every successful referral you will be rewarded with <span class="text-fuchsia-600 font-bold">CHF 100</span> !</h2>
+        <h2 class="text-2xl font-semibold mb-4">
+          For every successful referral you will be rewarded with
+          <span class="text-fuchsia-600 font-bold">CHF 100</span>!
+        </h2>
         <div class="mb-4">
           <span class="font-semibold">Share your unique referral link now:</span>
           <div class="flex items-center mt-2">
@@ -23,7 +26,7 @@
           </div>
         </div>
       </div>
-      <div class="bg-gray-100 rounded-lg p-6">
+      <div class="bg-gray-100 rounded-lg p-6 mb-8">
         <h3 class="text-xl font-bold mb-4">How it works</h3>
         <ol class="list-decimal list-inside space-y-2 text-gray-700">
           <li>Share your referral link with other clubs, organizations or schools.</li>
@@ -31,6 +34,28 @@
           <li>As a reward, you will receive a credit of CHF 100.*</li>
         </ol>
         <p class="text-xs text-gray-500 mt-4">*The amount will be credited to your next project invoice, provided your contact has completed and invoiced a project with fundoo.</p>
+      </div>
+      <div v-if="bonusCredits.length" class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-bold mb-4">Your Referrals</h3>
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr>
+              <th class="text-left py-2">Referred User</th>
+              <th class="text-left py-2">Amount</th>
+              <th class="text-left py-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="bonus in bonusCredits" :key="bonus.id">
+              <td class="py-2">{{ bonus.referred_user?.name || bonus.referred_user_id }}</td>
+              <td class="py-2">CHF {{ bonus.amount }}</td>
+              <td class="py-2">
+                <span v-if="bonus.status === 'pending'" class="text-yellow-600">Pending</span>
+                <span v-else class="text-green-600">Credited</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </DashboardLayout>
@@ -42,7 +67,8 @@ import { usePage } from '@inertiajs/vue3';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 
 const page = usePage();
-const referralLink = ref(page.props.auth?.user?.referral_link || 'https://app.fundoo.ch/de/users/register?registration_discount_code=C3BE7A');
+const referralLink = ref(page.props.referral_link);
+const bonusCredits = ref(page.props.bonusCredits);
 const copied = ref(false);
 
 function copyLink() {

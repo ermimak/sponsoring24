@@ -14,9 +14,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Participant;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\BonusCreditController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\WelcomeController;
 
 // Public Routes
-Route::get('/', fn() => Inertia::render('Welcome'))->name('home');
+Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('/projects', fn() => Inertia::render('Projects/Index'))->name('projects.index');
 
 // Authentication Routes
@@ -25,6 +28,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/register-with-referral', [AuthController::class, 'register'])->name('register.with_referral');
 });
 
 // Language Routes
@@ -114,7 +118,9 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/dashboard/users', [UserController::class, 'store'])->name('dashboard.users.store');
 
 
-    Route::get('/dashboard/bonus', fn() => Inertia::render('Bonus/Index'))->name('dashboard.bonus');
+    Route::get('/dashboard/bonus', [BonusCreditController::class, 'index'])->name('dashboard.bonus');
+    Route::post('/register-with-referral', [BonusCreditController::class, 'registerWithReferral'])->name('register.with_referral');
+    Route::post('/dashboard/bonus/{bonusCredit}/credit', [BonusCreditController::class, 'creditBonus'])->name('dashboard.bonus.credit');
     Route::get('/dashboard/donations', fn() => Inertia::render('Dashboard/Donations/Index'))->name('dashboard.donations');
     Route::get('/dashboard/reports', fn() => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
 
@@ -175,6 +181,12 @@ Route::prefix('dashboard/projects/{projectId}')->group(function () {
 
     Route::get('/dashboard/settings', [SettingsController::class, 'index'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [SettingsController::class, 'update'])->name('dashboard.settings.update');
+
+    // Notification routes
+    Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])
+        ->name('notifications.markAsRead');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.markAllAsRead');
 });
 
 // Public Routes

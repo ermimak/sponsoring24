@@ -5,13 +5,14 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class User extends Authenticatable
 {
-    use HasRoles, Notifiable;
+    use HasFactory, HasRoles, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'referral_code',
     ];
 
     protected $hidden = [
@@ -30,6 +31,21 @@ class User extends Authenticatable
     public function getOrganizationAttribute()
     {
         return $this->setting ? $this->setting->organization_name : 'Org';
+    }
+
+    public function bonusCredits()
+    {
+        return $this->hasMany(BonusCredit::class, 'user_id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($user) {
+            if (empty($user->referral_code)) {
+                $user->referral_code = strtoupper(bin2hex(random_bytes(3)));
+            }
+        });
     }
 
     // Removed getPermissionsAttribute to rely on Spatie's default permissions relationship
