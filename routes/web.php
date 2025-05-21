@@ -116,7 +116,7 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/dashboard/users/create', [UserController::class, 'create'])->name('dashboard.users.create');
     Route::get('/dashboard/users/{id}/edit', [UserController::class, 'edit'])->name('dashboard.users.edit');
     Route::post('/dashboard/users', [UserController::class, 'store'])->name('dashboard.users.store');
-
+    Route::delete('/dashboard/users/{id}', [UserController::class, 'destroy'])->name('dashboard.users.destroy');
 
     Route::get('/dashboard/bonus', [BonusCreditController::class, 'index'])->name('dashboard.bonus');
     Route::post('/register-with-referral', [BonusCreditController::class, 'registerWithReferral'])->name('register.with_referral');

@@ -177,4 +177,38 @@ class UserController extends Controller
             return redirect()->back()->withErrors(['error' => 'An unexpected error occurred. Please try again.'])->withInput();
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            
+            // Prevent self-deletion
+            if ($user->id === auth()->id()) {
+                return redirect()->back()->with('error', 'You cannot delete your own account.');
+            }
+
+            // Delete user's settings if they exist
+            if ($user->setting) {
+                $user->setting->delete();
+            }
+
+            // Delete the user
+            $user->delete();
+
+            Log::info('User deleted successfully', [
+                'user_id' => $id,
+                'deleted_by' => auth()->id()
+            ]);
+
+            return redirect()->route('dashboard.users')->with('success', 'User deleted successfully');
+        } catch (\Exception $e) {
+            Log::error('Failed to delete user', [
+                'exception' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $id
+            ]);
+            return redirect()->back()->with('error', 'An error occurred while deleting the user.');
+        }
+    }
 }
