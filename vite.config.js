@@ -31,6 +31,7 @@ export default defineConfig({
             '@': path.resolve(__dirname, './resources/js'),
             '~': path.resolve(__dirname, './resources/css'),
             '/vendor/tightenco/ziggy': path.resolve(__dirname, './vendor/tightenco/ziggy/dist'),
+            '@fortawesome': '/node_modules/@fortawesome',
         },
     },
     optimizeDeps: {

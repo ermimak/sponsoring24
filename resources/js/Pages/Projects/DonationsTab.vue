@@ -82,7 +82,7 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <Link :href="route('participant.donate.payment', { projectId: props.project.id, participantId: donation.participant_id, donationId: donation.id })" class="text-purple-600 hover:text-purple-900" title="To the invoice page">
+              <Link v-if="donation.participant_id" :href="route('participant.donate.payment', { projectId: props.project.id, participantId: donation.participant_id, donationId: donation.id })" class="text-purple-600 hover:text-purple-900" title="To the invoice page">
                 <i class="fas fa-file-invoice-dollar"></i>
               </Link>
             </td>

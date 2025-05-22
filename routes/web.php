@@ -17,6 +17,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\BonusCreditController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\PaymentController;
 
 // Public Routes
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
@@ -200,6 +201,9 @@ Route::prefix('projects/{projectId}')->group(function () {
 });
 Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{token}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm');
 Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment');
+
+Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
+
 // Inertia Routes for Public Pages
 Route::get('projects/{project}/participants/{participant}', function ($project, $participant) {
     return Inertia::render('Projects/ParticipantLanding', ['projectId' => $project, 'participantId' => $participant]);
@@ -211,6 +215,10 @@ Route::get('projects/{project}/participants/{participant}/donate', function ($pr
 
 // API Routes
 Route::get('/api/projects', [ProjectController::class, 'index'])->name('api.projects');
+
+// Payment Routes
+Route::post('/api/create-payment-intent', [PaymentController::class, 'createPaymentIntent'])->name('payment.intent');
+Route::post('/api/webhook/stripe', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 
 // Debug Route (Remove in Production)
 Route::get('/debug-login', function () {

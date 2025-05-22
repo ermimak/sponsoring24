@@ -7,6 +7,7 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { ZiggyVue, route } from 'ziggy-js'; // Import ZiggyVue and route as named exports
 import { Ziggy } from './ziggy'; // Import Ziggy configuration
 import i18n from './i18n';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 

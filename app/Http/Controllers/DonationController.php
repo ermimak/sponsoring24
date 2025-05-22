@@ -25,7 +25,7 @@ class DonationController extends Controller
 
             // Fetch donations with filters
             $query = Donation::where('project_id', $projectId)
-                ->with(['participant', 'supporter']);
+                ->with(['participant']);
 
             // Apply filters
             if ($request->filled('status')) {
@@ -79,7 +79,7 @@ class DonationController extends Controller
     {
         try {
             $query = Donation::where('project_id', $projectId)
-                ->with(['participant', 'supporter']);
+                ->with(['participant']);
 
             // Apply filters
             if ($request->filled('status')) {
@@ -99,23 +99,36 @@ class DonationController extends Controller
             }
 
             $donations = $query->get()->map(function ($donation) {
+                $participantName = 'N/A';
+                if ($donation->participant) {
+                    $participantName = ($donation->participant->first_name ?? '') . ' ' . ($donation->participant->last_name ?? '');
+                }
+
+                $donorName = 'Anonymous';
+                if ($donation->supporter) {
+                    $donorName = $donation->supporter->email ?? 'Anonymous';
+                } elseif ($donation->supporter_email) {
+                     $donorName = $donation->supporter_email;
+                }
+
                 return [
                     'id' => $donation->id,
-                    'donor_name' => $donation->supporter_email ?? 'Anonymous',
+                    'donor_name' => $donorName,
                     'amount' => $donation->amount,
                     'currency' => $donation->currency,
-                    'date' => $donation->billing_date->format('Y-m-d'),
+                    'date' => $donation->billing_date ? $donation->billing_date->format('Y-m-d') : null,
                     'status' => $donation->status,
-                    'participant_name' => $donation->participant ? $donation->participant->first_name . ' ' . $donation->participant->last_name : 'N/A',
+                    'participant_name' => $participantName,
                 ];
             });
 
             return response()->json(['data' => $donations]);
         } catch (\Exception $e) {
             Log::error('Failed to fetch donations: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+                'exception' => $e->getTraceAsString(),
+                 'request_params' => $request->all(),
             ]);
-            return response()->json(['error' => 'Failed to fetch donations.'], 500);
+            return response()->json(['error' => 'Failed to fetch donations.', 'details' => $e->getMessage()], 500);
         }
     }
 
@@ -139,12 +152,10 @@ class DonationController extends Controller
                         'message' => $request->message,
                     ]);
                     // Example with Laravel Mail (uncomment for production):
-                    /*
                     Mail::raw($request->message, function ($mail) use ($donation, $request) {
                         $mail->to($donation->supporter_email)
                              ->subject($request->subject);
                     });
-                    */
                 }
             }
 
@@ -210,5 +221,47 @@ class DonationController extends Controller
             ]);
             return redirect()->back()->with('error', 'Failed to generate bulk invoice: ' . $e->getMessage());
         }
+    }
+
+    public function showPreview(Donation $donation)
+    {
+        try {
+             $project = $donation->project;
+
+             if (!$project) {
+                 abort(404, 'Project not found for this donation.');
+             }
+
+             $projectName = is_array($project->name) ? reset($project->name) : $project->name;
+
+             // Prepare data for the PDF view (for a single donation)
+             $invoiceData = [[ // Wrap the single donation in an array to match the bulk invoice data structure
+                 'donor' => $donation->supporter_email ?? 'Anonymous',
+                 'participant' => $donation->participant ? ($donation->participant->first_name ?? '') . ' ' . ($donation->participant->last_name ?? '') : 'N/A',
+                 'amount' => $donation->amount,
+                 'currency' => $donation->currency,
+                 'date' => $donation->billing_date ? $donation->billing_date->format('Y-m-d') : null,
+                 'status' => $donation->status,
+             ]];
+
+             // Load the PDF view directly in the browser
+             $pdf = Pdf::loadView('pdf.bulk_invoice', [
+                 'project_name' => $projectName,
+                 'donations' => $invoiceData,
+                 'invoice_date' => now()->format('Y-m-d'),
+             ]);
+
+             // Stream the PDF directly in the browser
+             return $pdf->stream('invoice_' . $donation->id . '.pdf');
+
+         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+             Log::error('Donation not found: ' . $e->getMessage());
+             abort(404, 'Donation not found.');
+         } catch (\Exception $e) {
+             Log::error('Failed to generate donation preview: ' . $e->getMessage(), [
+                 'exception' => $e->getTraceAsString()
+             ]);
+             abort(500, 'Failed to generate donation preview.');
+         }
     }
 }
