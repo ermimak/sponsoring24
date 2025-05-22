@@ -119,6 +119,7 @@ class DonationController extends Controller
                     'date' => $donation->billing_date ? $donation->billing_date->format('Y-m-d') : null,
                     'status' => $donation->status,
                     'participant_name' => $participantName,
+                    'participant_id' => $donation->participant_id,
                 ];
             });
 
@@ -226,42 +227,56 @@ class DonationController extends Controller
     public function showPreview(Donation $donation)
     {
         try {
-             $project = $donation->project;
+            $donation->load(['supporter', 'project', 'participant']); // Eager load necessary relationships
 
-             if (!$project) {
-                 abort(404, 'Project not found for this donation.');
-             }
+            $project = $donation->project;
 
-             $projectName = is_array($project->name) ? reset($project->name) : $project->name;
+            if (!$project) {
+                abort(404, 'Project not found for this donation.');
+            }
 
-             // Prepare data for the PDF view (for a single donation)
-             $invoiceData = [[ // Wrap the single donation in an array to match the bulk invoice data structure
-                 'donor' => $donation->supporter_email ?? 'Anonymous',
-                 'participant' => $donation->participant ? ($donation->participant->first_name ?? '') . ' ' . ($donation->participant->last_name ?? '') : 'N/A',
-                 'amount' => $donation->amount,
-                 'currency' => $donation->currency,
-                 'date' => $donation->billing_date ? $donation->billing_date->format('Y-m-d') : null,
-                 'status' => $donation->status,
-             ]];
+            $projectName = is_array($project->name) ? reset($project->name) : $project->name;
 
-             // Load the PDF view directly in the browser
-             $pdf = Pdf::loadView('pdf.bulk_invoice', [
-                 'project_name' => $projectName,
-                 'donations' => $invoiceData,
-                 'invoice_date' => now()->format('Y-m-d'),
-             ]);
+            $supporterData = [
+                'name' => $donation->supporter ? $donation->supporter->name : null,
+                'address' => $donation->supporter ? $donation->supporter->address : null,
+                'city' => $donation->supporter ? $donation->supporter->city : null,
+                'postal_code' => $donation->supporter ? $donation->supporter->postal_code : null,
+                'country' => $donation->supporter ? $donation->supporter->country : null,
+                'email' => $donation->supporter ? $donation->supporter->email : ($donation->supporter_email ?? null),
+            ];
 
-             // Stream the PDF directly in the browser
-             return $pdf->stream('invoice_' . $donation->id . '.pdf');
+            // Return Inertia render for web view
+            return Inertia::render('Projects/Donations/DonationPreview', [
+                'donation' => [
+                    'id' => $donation->id,
+                    'supporter_email' => $donation->supporter_email ?? 'Anonymous',
+                    'amount' => $donation->amount,
+                    'currency' => $donation->currency,
+                    'billing_date' => $donation->billing_date ? $donation->billing_date->format('Y-m-d') : null,
+                    'status' => $donation->status,
+                    'participant_name' => $donation->participant ? ($donation->participant->first_name ?? '') . ' ' . ($donation->participant->last_name ?? '') : 'N/A',
+                ],
+                'project' => [
+                    'id' => $project->id,
+                    'name' => $projectName,
+                    'description' => is_array($project->description) ? reset($project->description) : $project->description,
+                    'image_landscape' => $project->image_landscape,
+                ],
+                'supporter' => $supporterData,
+                // Include dummy data for rounding up and payment button for visual match
+                'showRoundingUp' => true,
+                'roundingUpAmount' => 0,
+            ]);
 
-         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-             Log::error('Donation not found: ' . $e->getMessage());
-             abort(404, 'Donation not found.');
-         } catch (\Exception $e) {
-             Log::error('Failed to generate donation preview: ' . $e->getMessage(), [
-                 'exception' => $e->getTraceAsString()
-             ]);
-             abort(500, 'Failed to generate donation preview.');
-         }
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Donation not found: ' . $e->getMessage());
+            abort(404, 'Donation not found.');
+        } catch (\Exception $e) {
+            Log::error('Failed to generate donation preview: ' . $e->getMessage(), [
+                'exception' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Failed to generate donation preview.');
+        }
     }
 }

@@ -16,7 +16,8 @@ return new class extends Migration
             $table->uuid('project_id');
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->foreignId('participant_id')->nullable()->constrained('participants')->nullOnDelete();
-            $table->unsignedBigInteger('supporter_id')->nullable(); // supporter user or contact
+            $table->uuid('supporter_id')->nullable(); // supporter user or contact
+            $table->foreign('supporter_id')->references('id')->on('supporters')->nullOnDelete();
             $table->decimal('amount', 10, 2);
             $table->string('type'); // flat, unit, etc.
             $table->date('billing_date')->nullable();

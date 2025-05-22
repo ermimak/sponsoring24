@@ -82,9 +82,9 @@
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <Link v-if="donation.participant_id" :href="route('participant.donate.payment', { projectId: props.project.id, participantId: donation.participant_id, donationId: donation.id })" class="text-purple-600 hover:text-purple-900" title="To the invoice page">
+              <a v-if="donation.participant_id" :href="route('donations.preview', { donation: donation.id })" target="_blank" class="text-purple-600 hover:text-purple-900" title="To the invoice page">
                 <i class="fas fa-file-invoice-dollar"></i>
-              </Link>
+              </a>
             </td>
           </tr>
           <tr v-if="donations.length === 0">
@@ -181,7 +181,18 @@ const fetchDonations = debounce(async () => {
         amount_max: filters.value.amount_max,
       },
     })
-    donations.value = response.data.data || response.data
+    donations.value = response.data.data || response.data.map(donation => {
+      return {
+        'id': donation.id,
+        'donor_name': donation.supporter_email ?? 'Anonymous',
+        'amount': donation.amount,
+        'currency': donation.currency,
+        'date': donation.billing_date ? donation.billing_date.format('Y-m-d') : null,
+        'status': donation.status,
+        'participant_name': donation.participant ? (donation.participant.first_name ?? '') + ' ' + (donation.participant.last_name ?? '') : 'N/A',
+        'participant_id': donation.participant_id,
+      }
+    })
     selectedDonations.value = [] // Reset selections after fetching
     selectAll.value = false // Reset select all checkbox
   } catch (error) {

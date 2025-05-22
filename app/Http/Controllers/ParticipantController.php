@@ -546,6 +546,24 @@ class ParticipantController extends Controller
                 ]);
 
                 $email = $personalData['email'];
+
+                // Find or create the supporter based on email
+                $supporter = \App\Models\Supporter::firstOrCreate(
+                    ['email' => $email],  // Search criteria
+                    [
+                        'gender' => $personalData['gender'] ?? null,
+                        'first_name' => $personalData['first_name'],
+                        'last_name' => $personalData['last_name'],
+                        'company' => $personalData['company'] ?? null,
+                        'address' => $personalData['address'],
+                        'address_suffix' => $personalData['address_suffix'] ?? null,
+                        'postal_code' => $personalData['postal_code'],
+                        'location' => $personalData['location'],
+                        'country' => $personalData['country'],
+                        'phone' => $personalData['phone'] ?? null,
+                    ]
+                );
+
                 $confirmation_token = Str::uuid()->toString();
                 $confirmationLink = route('participant.donate.confirm', ['projectId' => $projectId, 'participantId' => $participantId, 'token' => $confirmation_token]);
 
@@ -566,7 +584,7 @@ class ParticipantController extends Controller
                 $donation = Donation::create([
                     'project_id' => $donationData['project_id'],
                     'participant_id' => $donationData['participant_id'],
-                    'supporter_id' => null,
+                    'supporter_id' => $supporter->id, // Link to the supporter
                     'amount' => $donationData['amount'],
                     'currency' => $donationData['currency'],
                     'type' => 'flat-rate',

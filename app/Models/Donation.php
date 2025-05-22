@@ -39,8 +39,8 @@ class Donation extends Model
         return $this->belongsTo(Participant::class);
     }
 
-    // public function supporter()
-    // {
-    //     return $this->belongsTo(Supporter::class);
-    // }
+    public function supporter()
+    {
+        return $this->belongsTo(Supporter::class);
+    }
 }
