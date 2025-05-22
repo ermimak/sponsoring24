@@ -26,6 +26,8 @@ return new class extends Migration
             $table->string('currency', 3)->default('CHF');
             $table->string('confirmation_token')->nullable();
             $table->timestamp('confirmed_at')->nullable();
+            $table->string('payment_id')->nullable();
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
         });
     }
