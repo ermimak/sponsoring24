@@ -17,6 +17,8 @@ class Donation extends Model
         'status',
         'payment_method',
         'supporter_email',
+        'confirmation_token',
+        'confirmed_at',
     ];
 
     protected $casts = [

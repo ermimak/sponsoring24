@@ -26,13 +26,16 @@ class CreateSettingsTable extends Migration
             $table->string('logo_path')->nullable();
             $table->string('billing_salutation')->nullable();
             $table->string('billing_first_name')->nullable();
+            $table->string('billing_last_name')->nullable();
             $table->string('billing_address')->nullable();
+            $table->string('billing_address_suffix')->nullable();
             $table->string('billing_postal_code')->nullable();
             $table->string('billing_location')->nullable();
             $table->string('billing_country')->nullable();
             $table->string('billing_email')->nullable();
             $table->string('billing_phone')->nullable();
             $table->text('bank_account_details')->nullable();
+            $table->boolean('two_factor_enabled')->default(false);
             $table->string('iban')->nullable();
             $table->string('recipient')->nullable();
             $table->boolean('project_overview_enabled')->default(false);

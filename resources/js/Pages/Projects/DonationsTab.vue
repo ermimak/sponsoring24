@@ -61,6 +61,7 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -80,9 +81,14 @@
                 {{ donation.status }}
               </span>
             </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <Link :href="route('participant.donate.payment', { projectId: props.project.id, participantId: donation.participant_id, donationId: donation.id })" class="text-purple-600 hover:text-purple-900" title="To the invoice page">
+                <i class="fas fa-file-invoice-dollar"></i>
+              </Link>
+            </td>
           </tr>
           <tr v-if="donations.length === 0">
-            <td colspan="6" class="px-6 py-4 text-center text-gray-400">No donations found 😊</td>
+            <td colspan="7" class="px-6 py-4 text-center text-gray-400">No donations found 😊</td>
           </tr>
         </tbody>
       </table>
@@ -121,7 +127,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { router, usePage } from '@inertiajs/vue3'
+import { router, usePage, Link } from '@inertiajs/vue3'
 import axios from 'axios'
 import { route } from 'ziggy-js'
 
@@ -132,7 +138,7 @@ const props = defineProps({
 })
 
 const page = usePage()
-const donations = ref(props.donations || [])
+const donations = ref([]) // Initialize as empty
 const filters = ref({
   status: props.filters.status || '',
   date_from: props.filters.date_from || '',
@@ -166,7 +172,7 @@ const debounce = (fn, delay) => {
 // Fetch donations without navigating away from the current route
 const fetchDonations = debounce(async () => {
   try {
-    const response = await axios.get(`/dashboard/projects/${props.project.id}/donations`, {
+    const response = await axios.get(route('dashboard.project.donations.fetch', props.project.id), {
       params: {
         status: filters.value.status,
         date_from: filters.value.date_from,
@@ -176,9 +182,13 @@ const fetchDonations = debounce(async () => {
       },
     })
     donations.value = response.data.data || response.data
+    selectedDonations.value = [] // Reset selections after fetching
+    selectAll.value = false // Reset select all checkbox
   } catch (error) {
     console.error('Failed to fetch donations:', error)
     donations.value = []
+    selectedDonations.value = []
+    selectAll.value = false
   }
 }, 300)
 
@@ -216,6 +226,10 @@ function sendMassEmail() {
       selectAll.value = false
       fetchDonations()
     },
+    onError: (err) => {
+      console.error('Failed to send mass email:', err);
+      alert('Failed to send mass email.');
+    }
   })
 }
 
@@ -243,7 +257,10 @@ async function generateBulkInvoice() {
     // Reset selections and refresh data
     selectedDonations.value = []
     selectAll.value = false
-    fetchDonations()
+    // No need to refetch, as generating invoice doesn't change donation status in this flow
+    // fetchDonations()
+    alert('Bulk invoice generated successfully!');
+
   } catch (error) {
     console.error('Failed to generate bulk invoice:', error)
     alert('Failed to generate bulk invoice. Please try again.')
@@ -253,10 +270,8 @@ async function generateBulkInvoice() {
 }
 
 onMounted(() => {
-  // Only fetch if initial donations prop is empty or undefined
-  if (!props.donations || props.donations.length === 0) {
-    fetchDonations()
-  }
+  // Always fetch data on mount based on initial filters from props or default
+  fetchDonations();
 })
 
 // Watch project changes, but avoid infinite loops
@@ -266,20 +281,21 @@ watch(() => props.project.id, (newProjectId) => {
   }
 })
 
-// Watch filters, but only fetch if values actually change
+// Watch filters, but only fetch if values actually change (deep watch)
 watch(filters, (newFilters, oldFilters) => {
-  const hasChanged = JSON.stringify(newFilters) !== JSON.stringify(oldFilters)
-  if (hasChanged) {
-    fetchDonations()
+  // Deep compare to avoid unnecessary fetches
+  if (JSON.stringify(newFilters) !== JSON.stringify(oldFilters)) {
+    fetchDonations();
   }
-}, { deep: true })
+}, { deep: true });
 
-// Watch for changes in the donations prop (e.g., after a server-side update)
-watch(() => props.donations, (newDonations) => {
-  if (newDonations) {
-    donations.value = newDonations
-  }
-})
+// Watch for changes in the initial donations prop if it's provided later (less common for initial load)
+// watch(() => props.donations, (newDonations) => {
+//   if (newDonations && newDonations.length > 0) {
+//     donations.value = newDonations;
+//   }
+// }, { immediate: true }); // Use immediate to potentially load initial prop data
+
 </script>
 
 <style scoped>

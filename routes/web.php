@@ -198,7 +198,8 @@ Route::prefix('projects/{projectId}')->group(function () {
     Route::get('participants/{participantId}/donate', [ParticipantController::class, 'showDonationPage'])->name('participant.donate');
     Route::post('participants/{participantId}/donate', [ParticipantController::class, 'storeDonation'])->name('participant.donate.store');
 });
-Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{email}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm');
+Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{token}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm');
+Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment');
 // Inertia Routes for Public Pages
 Route::get('projects/{project}/participants/{participant}', function ($project, $participant) {
     return Inertia::render('Projects/ParticipantLanding', ['projectId' => $project, 'participantId' => $participant]);

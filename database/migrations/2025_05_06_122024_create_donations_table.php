@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->string('payment_method')->nullable();
             $table->string('currency', 3)->default('CHF');
+            $table->string('confirmation_token')->nullable();
+            $table->timestamp('confirmed_at')->nullable();
             $table->timestamps();
         });
     }

@@ -202,10 +202,12 @@
     }, {
       onSuccess: () => {
         loading.value = false
+        console.log('Form submission successful. Current step:', props.step);
       },
       onError: (err) => {
         errors.value = err
         loading.value = false
+        console.error('Form submission failed:', err);
       },
     })
   }

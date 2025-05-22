@@ -7,6 +7,7 @@ use App\Models\MemberGroup;
 use App\Models\Project;
 use App\Models\EmailTemplate;
 use App\Models\ParticipantProject;
+use App\Models\Donation;
 use App\Http\Requests\StoreParticipantRequest;
 use App\Http\Requests\UpdateParticipantRequest;
 use Illuminate\Http\Request;
@@ -17,6 +18,8 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class ParticipantController extends Controller
 {
@@ -470,10 +473,57 @@ class ParticipantController extends Controller
                     'project_id' => $projectId,
                     'participant_id' => $participantId,
                 ]);
-                return redirect()->route('participant.donate', [
-                    'projectId' => $projectId,
-                    'participantId' => $participantId,
-                ])->with('step', 'confirmation');
+
+                // Handle translatable fields for rendering the next step
+                $name = $project->name ?? '';
+                $description = $project->description ?? '';
+                if (is_array($name)) {
+                    $name = reset($name); // Use the first translation as default
+                }
+                if (is_array($description)) {
+                    $description = reset($description); // Use the first translation as default
+                }
+
+                $startDateTime = $project->start;
+                $date = $startDateTime ? $startDateTime->format('F d, Y') : null;
+                $time = $startDateTime ? $startDateTime->format('H:i') : null;
+
+                // Render the same page but with step set to 'confirmation'
+                return Inertia::render('Projects/Participants/Donate', [
+                    'project' => [
+                        'id' => $project->id,
+                        'name' => $name,
+                        'description' => $description,
+                        'date' => $date,
+                        'time' => $time,
+                        'location' => $project->location,
+                        'image_url' => $project->image_landscape, // Use image_landscape as the landing image
+                    ],
+                    'participant' => [
+                         'id' => $participant->id,
+                         'first_name' => $participant->first_name,
+                         'last_name' => $participant->last_name,
+                         'sales_volume' => $participant->sales_volume ?? 0,
+                    ],
+                    'step' => 'confirmation',
+                    'form' => [ // Pass the collected amount to the next step form
+                        'amount' => $validated['amount'],
+                        'currency' => $validated['currency'],
+                         // include other default values for the next step form fields if needed
+                         'gender' => 'Masculine',
+                         'first_name' => '',
+                         'last_name' => '',
+                         'company' => '',
+                         'address' => '',
+                         'address_suffix' => '',
+                         'postal_code' => '',
+                         'location' => '',
+                         'country' => 'Switzerland',
+                         'email' => '',
+                         'phone' => '',
+                         'privacy_policy' => false,
+                    ]
+                ]);
             } elseif ($validated['step'] === 'confirmation') {
                 $donationData = $request->session()->get('donation_data', []);
                 if (empty($donationData)) {
@@ -496,7 +546,8 @@ class ParticipantController extends Controller
                 ]);
 
                 $email = $personalData['email'];
-                $confirmationLink = route('participant.donate.confirm', ['projectId' => $projectId, 'participantId' => $participantId, 'email' => $email]);
+                $confirmation_token = Str::uuid()->toString();
+                $confirmationLink = route('participant.donate.confirm', ['projectId' => $projectId, 'participantId' => $participantId, 'token' => $confirmation_token]);
 
                 // Handle translatable fields
                 $name = $project->name;
@@ -523,9 +574,16 @@ class ParticipantController extends Controller
                     'status' => 'pending',
                     'payment_method' => 'manual',
                     'supporter_email' => $email,
+                    'confirmation_token' => $confirmation_token,
                 ]);
 
                 $request->session()->forget('donation_data');
+
+                // Send confirmation email
+                Mail::raw("Thank you for your donation! Please confirm your donation by clicking the following link: $confirmationLink", function ($message) use ($email) {
+                    $message->to($email)
+                        ->subject('Please confirm your donation');
+                });
 
                 return Inertia::render('Projects/Participants/Donate', [
                     'project' => [
@@ -560,12 +618,12 @@ class ParticipantController extends Controller
         }
     }
 
-    public function confirmDonation(Request $request, $projectId, $participantId, $email)
+    public function confirmDonation(Request $request, $projectId, $participantId, $token)
     {
         try {
             $donation = Donation::where('project_id', $projectId)
                 ->where('participant_id', $participantId)
-                ->where('supporter_email', $email)
+                ->where('confirmation_token', $token)
                 ->where('status', 'pending')
                 ->firstOrFail();
 
@@ -585,19 +643,15 @@ class ParticipantController extends Controller
             $date = $startDateTime ? $startDateTime->format('F d, Y') : null;
             $time = $startDateTime ? $startDateTime->format('H:i') : null;
 
-            $donation->update(['status' => 'completed']);
-            return Inertia::render('Projects/Participants/Donate', [
-                'project' => [
-                    'id' => $project->id,
-                    'name' => $name,
-                    'description' => $description,
-                    'date' => $date,
-                    'time' => $time,
-                    'location' => $project->location,
-                    'image_url' => $project->image_landscape,
-                ],
-                'step' => 'confirmed',
-                'message' => 'Thank you for confirming your donation!',
+            $donation->update([
+                'status' => 'confirmed',
+                'confirmed_at' => now(),
+            ]);
+            // Redirect to payment options page (to be implemented)
+            return redirect()->route('participant.donate.payment', [
+                'projectId' => $projectId,
+                'participantId' => $participantId,
+                'donationId' => $donation->id,
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error('Donation not found: ' . $e->getMessage());
@@ -607,6 +661,37 @@ class ParticipantController extends Controller
                 'exception' => $e->getTraceAsString()
             ]);
             return redirect()->route('dashboard')->with('error', 'Failed to confirm donation.');
+        }
+    }
+
+    public function showPaymentOptions(Request $request, $projectId, $participantId, $donationId)
+    {
+        try {
+            $donation = \App\Models\Donation::where('id', $donationId)
+                ->where('project_id', $projectId)
+                ->where('participant_id', $participantId)
+                ->firstOrFail();
+            $project = Project::findOrFail($projectId);
+            $participant = Participant::findOrFail($participantId);
+            return Inertia::render('Projects/Participants/DonationPayment', [
+                'project' => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                ],
+                'participant' => [
+                    'id' => $participant->id,
+                    'first_name' => $participant->first_name,
+                    'last_name' => $participant->last_name,
+                ],
+                'donation' => [
+                    'id' => $donation->id,
+                    'amount' => $donation->amount,
+                    'currency' => $donation->currency,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to load payment options: ' . $e->getMessage());
+            return redirect()->route('dashboard')->with('error', 'Failed to load payment options.');
         }
     }
 }

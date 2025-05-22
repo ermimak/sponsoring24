@@ -46,8 +46,8 @@
                   </Link>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div>Total: <span class="font-semibold">CHF {{ project.donations_sum_amount ? project.donations_sum_amount.toFixed(2) : '0.00' }}</span></div>
-                  <div class="text-xs text-gray-500">Paid: CHF {{ project.donations_sum_amount ? project.donations_sum_amount.toFixed(2) : '0.00' }}</div>
+                  <div>Total: <span class="font-semibold">CHF {{ Number.isFinite(project.donations_sum_amount) ? project.donations_sum_amount.toFixed(2) : '0.00' }}</span></div>
+                  <div class="text-xs text-gray-500">Paid: CHF {{ Number.isFinite(project.donations_sum_amount) ? project.donations_sum_amount.toFixed(2) : '0.00' }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button @click="duplicateProject(project)" class="text-gray-600 hover:text-gray-800 mr-2">
