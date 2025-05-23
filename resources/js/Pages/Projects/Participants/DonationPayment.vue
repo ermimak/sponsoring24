@@ -67,39 +67,56 @@ const stripe = ref(null)
 const cardElement = ref(null)
 
 onMounted(async () => {
-  // Initialize Stripe
-  stripe.value = await loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY)
-  
-  // Create card element
-  const elements = stripe.value.elements()
-  cardElement.value = elements.create('card', {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
+  try {
+    // Check if Stripe key is available
+    const stripeKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+    if (!stripeKey) {
+      throw new Error('Stripe public key is not configured. Please check your environment variables.');
+    }
+
+    // Initialize Stripe
+    stripe.value = await loadStripe(stripeKey);
+    if (!stripe.value) {
+      throw new Error('Failed to initialize Stripe');
+    }
+    
+    // Create card element
+    const elements = stripe.value.elements();
+    cardElement.value = elements.create('card', {
+      style: {
+        base: {
+          fontSize: '16px',
+          color: '#424770',
+          '::placeholder': {
+            color: '#aab7c4',
+          },
+        },
+        invalid: {
+          color: '#9e2146',
         },
       },
-      invalid: {
-        color: '#9e2146',
-      },
-    },
-  })
-  
-  // Mount the card element
-  cardElement.value.mount('#card-element')
-  
-  // Handle real-time validation errors
-  cardElement.value.on('change', (event) => {
-    const displayError = document.getElementById('card-errors')
-    if (event.error) {
-      displayError.textContent = event.error.message
-    } else {
-      displayError.textContent = ''
+    });
+    
+    // Mount the card element
+    cardElement.value.mount('#card-element');
+    
+    // Handle real-time validation errors
+    cardElement.value.on('change', (event) => {
+      const displayError = document.getElementById('card-errors');
+      if (event.error) {
+        displayError.textContent = event.error.message;
+      } else {
+        displayError.textContent = '';
+      }
+    });
+  } catch (error) {
+    console.error('Error initializing Stripe:', error);
+    const errorElement = document.getElementById('card-errors');
+    if (errorElement) {
+      errorElement.textContent = 'Failed to initialize payment system. Please try again later.';
     }
-  })
-})
+  }
+});
 
 function selectPaymentMethod(method) {
   selectedMethod.value = method
