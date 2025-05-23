@@ -133,23 +133,6 @@
         </div>
       </main>
   
-      <!-- Footer -->
-      <footer class="bg-gray-900 text-white py-6">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>© 2025 {{ project.name }}. All rights reserved.</p>
-        </div>
-      </footer>
-  
-      <!-- Cookie Banner -->
-      <div class="fixed bottom-0 w-full bg-gray-800 text-white p-4 flex justify-between items-center">
-        <div>
-          <p>We use cookies! We use cookies to analyze our website traffic and improve your user experience. For detailed information and individual settings, <a href="#" class="text-purple-300 hover:underline">click here</a></p>
-        </div>
-        <div class="space-x-4">
-          <button class="text-purple-300 hover:underline">Only necessary cookies</button>
-          <button class="bg-purple-600 px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-200">Accept all</button>
-        </div>
-      </div>
     </div>
   </template>
   

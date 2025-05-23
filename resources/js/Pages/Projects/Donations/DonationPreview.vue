@@ -42,11 +42,11 @@
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
             <tr>
-              <td class="px-4 py-2 whitespace-nowrap">Donation for {{ donation.participant_name }}</td>
-              <td class="px-4 py-2 whitespace-nowrap text-right">1</td>
-              <td class="px-4 py-2 whitespace-nowrap text-right">lump sum</td>
-              <td class="px-4 py-2 whitespace-nowrap text-right">{{ donation.currency }} {{ parseFloat(donation.amount).toFixed(2) }}</td>
-              <td class="px-4 py-2 whitespace-nowrap text-right">{{ donation.currency }} {{ parseFloat(donation.amount).toFixed(2) }}</td>
+              <td class="px-4 py-2">Donation for {{ donation.participant_name }}</td>
+              <td class="px-4 py-2 text-right">1</td>
+              <td class="px-4 py-2 text-right">lump sum</td>
+              <td class="px-4 py-2 text-right">{{ donation.currency }} {{ parseFloat(donation.amount).toFixed(2) }}</td>
+              <td class="px-4 py-2 text-right">{{ donation.currency }} {{ parseFloat(donation.amount).toFixed(2) }}</td>
             </tr>
           </tbody>
         </table>
@@ -107,15 +107,6 @@
       <p><a href="#" class="text-gray-500 hover:underline">info@fundoo.ch</a> - <a href="#" class="text-gray-500 hover:underline">Datenschutzerklärung</a></p>
     </div>
 
-    <!-- Cookie Consent Banner (Placeholder) -->
-    <div class="fixed bottom-4 right-4 bg-gray-800 text-white p-4 rounded-lg shadow-lg text-sm">
-        <p>We use cookies!</p>
-        <p class="text-xs">We use cookies to analyze our website traffic and improve your user experience. For detailed information and individual settings, click<a href="#" class="text-purple-400 hover:underline">here</a></p>
-        <div class="mt-2 flex justify-end space-x-2">
-            <button class="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded">Only necessary cookies</button>
-            <button class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded">Accept all</button>
-        </div>
-    </div>
   </div>
 </template>
 
