@@ -18,14 +18,14 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build Docker Images
-      run: docker-compose build
+      run: docker compose build
 
     - name: Run Docker Tests
       run: |
-        docker-compose up -d
-        docker-compose exec -T app php artisan test
-        docker-compose exec -T app vendor/bin/php-cs-fixer fix --dry-run --diff
-        docker-compose down
+        docker compose up -d
+        docker compose exec -T app php artisan test
+        docker compose exec -T app vendor/bin/php-cs-fixer fix --dry-run --diff
+        docker compose down
 
   php-tests:
     name: PHP Tests & Linting
@@ -135,8 +135,8 @@ jobs:
 
     - name: Build and Push Docker Images
       run: |
-        docker-compose -f docker-compose.prod.yml build
-        docker-compose -f docker-compose.prod.yml push
+        docker compose -f docker-compose.prod.yml build
+        docker compose -f docker-compose.prod.yml push
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
