@@ -205,10 +205,6 @@ Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{do
 Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
 
 // Inertia Routes for Public Pages
-Route::get('projects/{project}/participants/{participant}', function ($project, $participant) {
-    return Inertia::render('Projects/ParticipantLanding', ['projectId' => $project, 'participantId' => $participant]);
-})->name('participant.landing');
-
 Route::get('projects/{project}/participants/{participant}/donate', function ($project, $participant) {
     return Inertia::render('Projects/ParticipantDonation', ['projectId' => $project, 'participantId' => $participant]);
 })->name('participant.donate');
