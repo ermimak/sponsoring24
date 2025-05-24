@@ -1,0 +1,73 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: build
+        path: build
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.FUNDOO }}
+
+    - name: Add Host Key
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy Docker Compose Files
+      run: |
+        scp docker-compose.prod.yml ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/fundoo/
+        scp .env.production ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/fundoo/.env
+
+    - name: Deploy Application
+      run: |
+        ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} '
+          cd /var/www/fundoo && \
+          docker-compose -f docker-compose.prod.yml pull && \
+          docker-compose -f docker-compose.prod.yml down && \
+          docker-compose -f docker-compose.prod.yml up -d && \
+          docker-compose -f docker-compose.prod.yml exec -T app php artisan optimize:clear && \
+          docker-compose -f docker-compose.prod.yml exec -T app php artisan optimize && \
+          docker-compose -f docker-compose.prod.yml exec -T app php artisan config:cache && \
+          docker-compose -f docker-compose.prod.yml exec -T app php artisan route:cache && \
+          docker-compose -f docker-compose.prod.yml exec -T app php artisan view:cache && \
+          docker system prune -f
+        '
+
+    - name: Notify on Success
+      if: success()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_CHANNEL: deployments
+        SLACK_COLOR: good
+        SLACK_TITLE: Deployment Successful
+        SLACK_MESSAGE: 'Deployment to production completed successfully!'
+        SLACK_FOOTER: 'Fundoo Platform'
+
+    - name: Notify on Failure
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_CHANNEL: deployments
+        SLACK_COLOR: danger
+        SLACK_TITLE: Deployment Failed
+        SLACK_MESSAGE: 'Deployment to production failed!'
+        SLACK_FOOTER: 'Fundoo Platform' 
