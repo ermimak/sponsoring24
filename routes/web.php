@@ -110,7 +110,7 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::delete('/dashboard/members/groups/{memberGroup}', [MemberGroupController::class, 'destroy'])->name('dashboard.members.groups.destroy')->where('memberGroup', '[0-9]+');
 
     // Other Dashboard Routes    
-    Route::get('/dashboard/settings', fn() => Inertia::render('Settings/Index'))->name('dashboard.settings');
+    Route::get('/dashboard/settings', [SettingsController::class, 'index'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [SettingsController::class, 'update'])->name('dashboard.settings.update');
 
     Route::get('/dashboard/users', [UserController::class, 'index'])->name('dashboard.users');
@@ -205,9 +205,9 @@ Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{do
 Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
 
 // Inertia Routes for Public Pages
-Route::get('projects/{project}/participants/{participant}/donate', function ($project, $participant) {
-    return Inertia::render('Projects/ParticipantDonation', ['projectId' => $project, 'participantId' => $participant]);
-})->name('participant.donate');
+// Route::get('projects/{project}/participants/{participant}/donate', function ($project, $participant) {
+//     return Inertia::render('Projects/ParticipantDonation', ['projectId' => $project, 'participantId' => $participant]);
+// })->name('participant.donate');
 
 // API Routes
 Route::get('/api/projects', [ProjectController::class, 'index'])->name('api.projects');
