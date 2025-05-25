@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Participant;
-use App\Models\MemberGroup;
-use App\Models\Project;
-use App\Models\EmailTemplate;
-use App\Models\ParticipantProject;
-use App\Models\Donation;
 use App\Http\Requests\StoreParticipantRequest;
 use App\Http\Requests\UpdateParticipantRequest;
-use Illuminate\Http\Request;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\ParticipantsImport;
-use App\Exports\ParticipantsExport;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
+use App\Models\Donation;
+use App\Models\EmailTemplate;
+use App\Models\MemberGroup;
+use App\Models\Participant;
+use App\Models\ParticipantProject;
+use App\Models\Project;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ParticipantController extends Controller
 {
@@ -29,70 +28,74 @@ class ParticipantController extends Controller
     }
 
     public function index(Request $request, $projectId)
-{
-    try {
-        // Verify project exists
-        $project = Project::findOrFail($projectId);
+    {
+        try {
+            // Verify project exists
+            $project = Project::findOrFail($projectId);
 
-        // Fetch participants via pivot model
-        $participantProjects = ParticipantProject::where('project_id', $projectId)
-            ->with(['participant.memberGroups', 'participant.donations'])
-            ->get();
+            // Fetch participants via pivot model
+            $participantProjects = ParticipantProject::where('project_id', $projectId)
+                ->with(['participant.memberGroups', 'participant.donations'])
+                ->get();
 
-        // Log the raw results
-        Log::info('ParticipantProject raw results:', [
-            'count' => $participantProjects->count(),
-            'data' => $participantProjects->toArray()
-        ]);
+            // Log the raw results
+            Log::info('ParticipantProject raw results:', [
+                'count' => $participantProjects->count(),
+                'data' => $participantProjects->toArray(),
+            ]);
 
-        $participants = $participantProjects->map(function ($participantProject) {
-            $participant = $participantProject->participant;
-            if (!$participant) {
-                return null;
-            }
-            try {
-                return [
-                    'id' => $participant->id,
-                    'first_name' => $participant->first_name,
-                    'last_name' => $participant->last_name,
-                    'email' => $participant->email,
-                    'member_groups' => $participant->memberGroups->map(function ($group) {
-                        return ['id' => $group->id, 'name' => $group->name];
-                    })->toArray(),
-                    'supporters' => $participant->supporters ?? 0,
-                    'sales_volume' => $participant->sales_volume ?? 0,
-                    'emails' => $participant->emails_sent ?? 0,
-                    'landing_page_opened' => $participant->landing_page_opened ?? false,
-                ];
-            } catch (\Exception $e) {
-                Log::error('Failed to map participant ' . $participant->id . ': ' . $e->getMessage());
-                return null;
-            }
-        })->filter();
+            $participants = $participantProjects->map(function ($participantProject) {
+                $participant = $participantProject->participant;
+                if (! $participant) {
+                    return null;
+                }
 
-        // Log the final mapped results
-        Log::info('Mapped participants:', [
-            'count' => $participants->count(),
-            'data' => $participants->toArray()
-        ]);
+                try {
+                    return [
+                        'id' => $participant->id,
+                        'first_name' => $participant->first_name,
+                        'last_name' => $participant->last_name,
+                        'email' => $participant->email,
+                        'member_groups' => $participant->memberGroups->map(function ($group) {
+                            return ['id' => $group->id, 'name' => $group->name];
+                        })->toArray(),
+                        'supporters' => $participant->supporters ?? 0,
+                        'sales_volume' => $participant->sales_volume ?? 0,
+                        'emails' => $participant->emails_sent ?? 0,
+                        'landing_page_opened' => $participant->landing_page_opened ?? false,
+                    ];
+                } catch (\Exception $e) {
+                    Log::error('Failed to map participant ' . $participant->id . ': ' . $e->getMessage());
 
-        return response()->json(['data' => $participants]);
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        Log::error('Project not found: ' . $projectId);
-        return response()->json(['error' => 'Project not found'], 404);
-    } catch (\Exception $e) {
-        Log::error('Failed to load participants for project ' . $projectId . ': ' . $e->getMessage(), [
-            'exception' => $e->getTraceAsString()
-        ]);
-        return response()->json(['error' => 'Failed to load participants: ' . $e->getMessage()], 500);
+                    return null;
+                }
+            })->filter();
+
+            // Log the final mapped results
+            Log::info('Mapped participants:', [
+                'count' => $participants->count(),
+                'data' => $participants->toArray(),
+            ]);
+
+            return response()->json(['data' => $participants]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Project not found: ' . $projectId);
+
+            return response()->json(['error' => 'Project not found'], 404);
+        } catch (\Exception $e) {
+            Log::error('Failed to load participants for project ' . $projectId . ': ' . $e->getMessage(), [
+                'exception' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json(['error' => 'Failed to load participants: ' . $e->getMessage()], 500);
+        }
     }
-}
 
     public function addToProject(Request $request, $projectId)
     {
         $request->validate([
             'group_ids' => 'required|array',
-            'group_ids.*' => 'exists:member_groups,id'
+            'group_ids.*' => 'exists:member_groups,id',
         ]);
 
         try {
@@ -103,7 +106,7 @@ class ParticipantController extends Controller
 
             foreach ($participants as $participant) {
                 $participant->projects()->syncWithoutDetaching([
-                    $project->id => ['status' => 'active', 'role' => 'participant']
+                    $project->id => ['status' => 'active', 'role' => 'participant'],
                 ]);
             }
 
@@ -129,6 +132,7 @@ class ParticipantController extends Controller
             return response()->json(['message' => 'Participants added to project', 'data' => $updatedParticipants]);
         } catch (\Exception $e) {
             Log::error('Failed to add participants to project ' . $projectId . ': ' . $e->getMessage());
+
             return response()->json(['error' => 'Failed to add participants'], 500);
         }
     }
@@ -139,7 +143,7 @@ class ParticipantController extends Controller
             'template_id' => 'required|exists:email_templates,id',
             'subject' => 'required|string',
             'body' => 'required|string',
-            'project_id' => 'required|exists:projects,id'
+            'project_id' => 'required|exists:projects,id',
         ]);
 
         try {
@@ -157,7 +161,7 @@ class ParticipantController extends Controller
             \Log::info('Sending email to ' . $participant->email, [
                 'subject' => $request->subject,
                 'body' => $body,
-                'template' => $template->name
+                'template' => $template->name,
             ]);
 
             // Optionally log the email in a table (e.g., EmailLog) to track emails_sent
@@ -166,6 +170,7 @@ class ParticipantController extends Controller
             return response()->json(['message' => 'Email sent successfully']);
         } catch (\Exception $e) {
             Log::error('Failed to send email to participant ' . $participantId . ': ' . $e->getMessage());
+
             return response()->json(['error' => 'Failed to send email'], 500);
         }
     }
@@ -197,7 +202,7 @@ class ParticipantController extends Controller
                 \Log::info('Sending mass email to ' . $participant->email, [
                     'subject' => $request->subject,
                     'body' => $body,
-                    'template' => $template->name
+                    'template' => $template->name,
                 ]);
 
                 // Optionally log the email in a table (e.g., EmailLog) to track emails_sent
@@ -207,6 +212,7 @@ class ParticipantController extends Controller
             return response()->json(['message' => 'Mass email sent successfully']);
         } catch (\Exception $e) {
             Log::error('Failed to send mass email for project ' . $projectId . ': ' . $e->getMessage());
+
             return response()->json(['error' => 'Failed to send mass email'], 500);
         }
     }
@@ -261,9 +267,11 @@ class ParticipantController extends Controller
             if ($request->wantsJson() || $request->isXmlHttpRequest()) {
                 return response()->json($members);
             }
+
             return Inertia::render('Members/Index', ['members' => $members]);
         } catch (\Exception $e) {
             Log::error('Failed to load members: ' . $e->getMessage());
+
             return response()->json(['message' => 'Failed to load members'], 500);
         }
     }
@@ -276,19 +284,22 @@ class ParticipantController extends Controller
                 $groupIds = MemberGroup::whereIn('name', $request->input('groups'))->pluck('id');
                 $participant->memberGroups()->sync($groupIds);
             }
+
             return response()->json(['message' => 'Participant created', 'participant' => $participant], 201);
         } catch (\Exception $e) {
             Log::error('Failed to create participant: ' . $e->getMessage());
+
             return response()->json(['error' => 'Failed to create participant'], 500);
         }
     }
 
     public function show(Participant $participant)
     {
-        if (!$participant->exists) {
+        if (! $participant->exists) {
             return response()->json(['message' => 'Participant not found'], 404);
         }
         $participant->load('memberGroups');
+
         return response()->json([
             'id' => $participant->id,
             'gender' => $participant->gender ?? '',
@@ -317,16 +328,17 @@ class ParticipantController extends Controller
 
     public function update(UpdateParticipantRequest $request, Participant $participant)
     {
-        if (!$participant->exists) {
+        if (! $participant->exists) {
             return response()->json(['message' => 'Participant not found'], 404);
         }
+
         try {
-            $data = array_filter($request->validated(), fn($value) => !is_null($value));
+            $data = array_filter($request->validated(), fn ($value) => ! is_null($value));
             $participant->update($data);
 
             if ($request->has('groups')) {
-                $groupNames = array_filter($request->input('groups'), fn($name) => !empty(trim($name)));
-                if (!empty($groupNames)) {
+                $groupNames = array_filter($request->input('groups'), fn ($name) => ! empty(trim($name)));
+                if (! empty($groupNames)) {
                     $groupIds = collect($groupNames)->map(function ($name) {
                         return MemberGroup::firstOrCreate(['name' => trim($name)])->id;
                     })->toArray();
@@ -339,22 +351,26 @@ class ParticipantController extends Controller
             return response()->json(['message' => 'Participant updated', 'participant' => $participant->load('memberGroups')]);
         } catch (\Exception $e) {
             Log::error('Failed to update participant ' . $participant->id . ': ' . $e->getMessage());
+
             return response()->json(['error' => 'Failed to update participant'], 500);
         }
     }
 
     public function destroy(Participant $participant)
     {
-        if (!$participant->exists) {
+        if (! $participant->exists) {
             return response()->json(['message' => 'Participant not found'], 404);
         }
+
         try {
             $participant->memberGroups()->detach();
             $participant->projects()->detach();
             $participant->delete();
+
             return response()->json(['message' => 'Participant deleted'], 204);
         } catch (\Exception $e) {
             Log::error('Failed to delete participant ' . $participant->id . ': ' . $e->getMessage());
+
             return response()->json(['error' => 'Failed to delete participant'], 500);
         }
     }
@@ -378,6 +394,7 @@ class ParticipantController extends Controller
             return response()->json(['message' => $e->errors()['import'][0] ?? 'Invalid file format'], 422);
         } catch (\Exception $e) {
             Log::error('Import failed: ' . $e->getMessage());
+
             return response()->json(['message' => 'Import failed: ' . $e->getMessage()], 422);
         }
     }
@@ -391,9 +408,11 @@ class ParticipantController extends Controller
             })->with(['memberGroups'])->get();
 
             $export = new \App\Exports\ProjectParticipantsExport($participants);
+
             return Excel::download($export, "participants_project_{$projectId}.csv");
         } catch (\Exception $e) {
             Log::error('Export failed for project ' . $projectId . ': ' . $e->getMessage());
+
             return response()->json(['message' => 'Export failed: ' . $e->getMessage()], 422);
         }
     }
@@ -443,11 +462,13 @@ class ParticipantController extends Controller
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error('Resource not found: ' . $e->getMessage());
+
             return redirect()->back()->with('error', 'Project or Participant not found.');
         } catch (\Exception $e) {
             Log::error('Failed to load donation page: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+                'exception' => $e->getTraceAsString(),
             ]);
+
             return redirect()->back()->with('error', 'Failed to load donation page.');
         }
     }
@@ -522,7 +543,7 @@ class ParticipantController extends Controller
                          'email' => '',
                          'phone' => '',
                          'privacy_policy' => false,
-                    ]
+                    ],
                 ]);
             } elseif ($validated['step'] === 'confirmation') {
                 $donationData = $request->session()->get('donation_data', []);
@@ -627,11 +648,13 @@ class ParticipantController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error('Resource not found: ' . $e->getMessage());
+
             return redirect()->back()->with('error', 'Project or Participant not found.');
         } catch (\Exception $e) {
             Log::error('Failed to process donation: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+                'exception' => $e->getTraceAsString(),
             ]);
+
             return redirect()->back()->with('error', 'Failed to process donation. Please try again.');
         }
     }
@@ -665,6 +688,7 @@ class ParticipantController extends Controller
                 'status' => 'confirmed',
                 'confirmed_at' => now(),
             ]);
+
             // Redirect to payment options page (to be implemented)
             return redirect()->route('participant.donate.payment', [
                 'projectId' => $projectId,
@@ -673,11 +697,13 @@ class ParticipantController extends Controller
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error('Donation not found: ' . $e->getMessage());
+
             return redirect()->route('dashboard')->with('error', 'Invalid confirmation link.');
         } catch (\Exception $e) {
             Log::error('Failed to confirm donation: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+                'exception' => $e->getTraceAsString(),
             ]);
+
             return redirect()->route('dashboard')->with('error', 'Failed to confirm donation.');
         }
     }
@@ -691,6 +717,7 @@ class ParticipantController extends Controller
                 ->firstOrFail();
             $project = Project::findOrFail($projectId);
             $participant = Participant::findOrFail($participantId);
+
             return Inertia::render('Projects/Participants/DonationPayment', [
                 'project' => [
                     'id' => $project->id,
@@ -709,6 +736,7 @@ class ParticipantController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to load payment options: ' . $e->getMessage());
+
             return redirect()->route('dashboard')->with('error', 'Failed to load payment options.');
         }
     }

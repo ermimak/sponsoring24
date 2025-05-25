@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 use Spatie\Permission\Traits\RefreshesPermissionCache;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Permission extends SpatiePermission
 {
-    use HasFactory, RefreshesPermissionCache;
+    use HasFactory;
+    use RefreshesPermissionCache;
 
     protected $fillable = [
         'name',

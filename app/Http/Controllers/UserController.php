@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -34,6 +34,7 @@ class UserController extends Controller
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return Inertia::render('Error', [
                 'message' => 'An error occurred while loading users.',
             ])->toResponse(request())->setStatusCode(500);
@@ -62,6 +63,7 @@ class UserController extends Controller
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+
             return Inertia::render('Error', [
                 'message' => 'An error occurred while loading the user creation form.',
             ])->toResponse(request())->setStatusCode(500);
@@ -99,6 +101,7 @@ class UserController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'user_id' => $id,
             ]);
+
             return Inertia::render('Error', [
                 'message' => 'An error occurred while loading the user edit form.',
             ])->toResponse(request())->setStatusCode(500);
@@ -167,6 +170,7 @@ class UserController extends Controller
                 'errors' => $e->errors(),
                 'request_data' => $request->all(),
             ]);
+
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             Log::error('Failed to ' . ($request->user_id ? 'update' : 'create') . ' user', [
@@ -174,6 +178,7 @@ class UserController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'request_data' => $request->all(),
             ]);
+
             return redirect()->back()->withErrors(['error' => 'An unexpected error occurred. Please try again.'])->withInput();
         }
     }
@@ -198,7 +203,7 @@ class UserController extends Controller
 
             Log::info('User deleted successfully', [
                 'user_id' => $id,
-                'deleted_by' => auth()->id()
+                'deleted_by' => auth()->id(),
             ]);
 
             return redirect()->route('dashboard.users')->with('success', 'User deleted successfully');
@@ -206,8 +211,9 @@ class UserController extends Controller
             Log::error('Failed to delete user', [
                 'exception' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'user_id' => $id
+                'user_id' => $id,
             ]);
+
             return redirect()->back()->with('error', 'An error occurred while deleting the user.');
         }
     }

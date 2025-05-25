@@ -2,11 +2,11 @@
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Models\User;
 use Illuminate\Support\Facades\Log;
 
 class ReferralCodeUsed extends Notification implements ShouldQueue
@@ -54,8 +54,9 @@ class ReferralCodeUsed extends Notification implements ShouldQueue
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'referred_user_id' => $this->referredUser->id,
-                'bonus_amount' => $this->bonusAmount
+                'bonus_amount' => $this->bonusAmount,
             ]);
+
             throw $e;
         }
     }
@@ -79,8 +80,9 @@ class ReferralCodeUsed extends Notification implements ShouldQueue
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'referred_user_id' => $this->referredUser->id,
-                'bonus_amount' => $this->bonusAmount
+                'bonus_amount' => $this->bonusAmount,
             ]);
+
             throw $e;
         }
     }

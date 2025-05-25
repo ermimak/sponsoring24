@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Donation;
 use App\Models\Project;
-use Inertia\Inertia;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Inertia\Inertia;
 
 class DonationController extends Controller
 {
@@ -66,11 +66,13 @@ class DonationController extends Controller
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::error('Project not found: ' . $e->getMessage());
+
             return redirect()->back()->with('error', 'Project not found.');
         } catch (\Exception $e) {
             Log::error('Failed to load donations: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+                'exception' => $e->getTraceAsString(),
             ]);
+
             return redirect()->back()->with('error', 'Failed to load donations.');
         }
     }
@@ -108,7 +110,7 @@ class DonationController extends Controller
                 if ($donation->supporter) {
                     $donorName = $donation->supporter->email ?? 'Anonymous';
                 } elseif ($donation->supporter_email) {
-                     $donorName = $donation->supporter_email;
+                    $donorName = $donation->supporter_email;
                 }
 
                 return [
@@ -129,6 +131,7 @@ class DonationController extends Controller
                 'exception' => $e->getTraceAsString(),
                  'request_params' => $request->all(),
             ]);
+
             return response()->json(['error' => 'Failed to fetch donations.', 'details' => $e->getMessage()], 500);
         }
     }
@@ -165,8 +168,9 @@ class DonationController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             Log::error('Failed to send mass email: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+                'exception' => $e->getTraceAsString(),
             ]);
+
             return redirect()->back()->with('error', 'Failed to send mass email.');
         }
     }
@@ -218,8 +222,9 @@ class DonationController extends Controller
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             Log::error('Failed to generate bulk invoice: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+                'exception' => $e->getTraceAsString(),
             ]);
+
             return redirect()->back()->with('error', 'Failed to generate bulk invoice: ' . $e->getMessage());
         }
     }
@@ -231,7 +236,7 @@ class DonationController extends Controller
 
             $project = $donation->project;
 
-            if (!$project) {
+            if (! $project) {
                 abort(404, 'Project not found for this donation.');
             }
 
@@ -274,7 +279,7 @@ class DonationController extends Controller
             abort(404, 'Donation not found.');
         } catch (\Exception $e) {
             Log::error('Failed to generate donation preview: ' . $e->getMessage(), [
-                'exception' => $e->getTraceAsString()
+                'exception' => $e->getTraceAsString(),
             ]);
             abort(500, 'Failed to generate donation preview.');
         }

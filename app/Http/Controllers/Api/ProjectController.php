@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Project;
-use App\Http\Resources\ProjectResource;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
-use Illuminate\Http\Request;
+use App\Http\Resources\ProjectResource;
+use App\Models\Project;
 
 class ProjectController extends Controller
 {
@@ -17,6 +16,7 @@ class ProjectController extends Controller
     public function index()
     {
         $projects = Project::latest()->paginate(15);
+
         return ProjectResource::collection($projects);
     }
 
@@ -28,6 +28,7 @@ class ProjectController extends Controller
         $data = $request->validated();
         $data['created_by'] = $request->user()->id;
         $project = Project::create($data);
+
         return new ProjectResource($project);
     }
 
@@ -45,6 +46,7 @@ class ProjectController extends Controller
     public function update(UpdateProjectRequest $request, Project $project)
     {
         $project->update($request->validated());
+
         return new ProjectResource($project);
     }
 
@@ -54,6 +56,7 @@ class ProjectController extends Controller
     public function destroy(Project $project)
     {
         $project->delete();
+
         return response()->json(['message' => 'Project deleted']);
     }
 }

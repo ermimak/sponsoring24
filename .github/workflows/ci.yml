@@ -27,7 +27,7 @@ jobs:
         docker compose exec -T app cp .env.example .env
         docker compose exec -T app php artisan key:generate
         docker compose exec -T app php artisan test
-        docker compose exec -T app vendor/bin/php-cs-fixer fix --dry-run --diff
+        docker compose exec -T app vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff
         docker compose down
 
   php-tests:

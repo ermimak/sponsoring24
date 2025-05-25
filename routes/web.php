@@ -1,27 +1,27 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\LanguageController;
-use App\Http\Controllers\MemberGroupController;
-use App\Http\Controllers\ParticipantController;
-use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\BonusCreditController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EmailTemplateController;
-use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use App\Models\Participant;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\BonusCreditController;
+use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\MemberGroupController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\WelcomeController;
+use App\Models\Participant;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 // Public Routes
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
-Route::get('/projects', fn() => Inertia::render('Projects/Index'))->name('projects.index');
+Route::get('/projects', fn () => Inertia::render('Projects/Index'))->name('projects.index');
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -38,7 +38,7 @@ Route::get('language/{locale}', [LanguageController::class, 'switch'])
     ->where(['locale' => 'de|fr']);
 
 // Localized Welcome Pages
-Route::get('/{locale}', fn($locale) => Inertia::render('Welcome', ['locale' => $locale]))
+Route::get('/{locale}', fn ($locale) => Inertia::render('Welcome', ['locale' => $locale]))
     ->where(['locale' => 'de|fr'])
     ->name('welcome.locale');
 
@@ -47,17 +47,18 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Dashboard Routes
-    Route::get('/dashboard', fn() => Inertia::render('Dashboard/Index'))->name('dashboard');
+    Route::get('/dashboard', fn () => Inertia::render('Dashboard/Index'))->name('dashboard');
 
     // Projects
     Route::prefix('dashboard/projects')->name('dashboard.projects.')->group(function () {
         Route::get('/', function (Request $request) {
             $projects = (new ProjectController())->index($request);
+
             return Inertia::render('Projects/Index', [
                 'projects' => $projects,
             ]);
         })->name('index');
-        Route::get('/create', fn() => Inertia::render('Projects/Create'))->name('create');
+        Route::get('/create', fn () => Inertia::render('Projects/Create'))->name('create');
         Route::get('/{project}/edit', [ProjectController::class, 'show'])
             ->name('edit')
             ->where(['project' => '[0-9a-fA-F-]{36}']);
@@ -93,9 +94,10 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::put('/dashboard/members/{participant}', [ParticipantController::class, 'update'])->name('dashboard.members.update')->where('participant', '[0-9]+');
     Route::delete('/dashboard/members/{participant}', [ParticipantController::class, 'destroy'])->name('dashboard.members.destroy')->where('participant', '[0-9]+');
     Route::get('/dashboard/members/{participant}/edit', function (Participant $participant) {
-        if (!$participant->exists) {
+        if (! $participant->exists) {
             abort(404, 'Participant not found');
         }
+
         return Inertia::render('Members/Create', [
             'routeParams' => ['id' => $participant->id],
         ]);
@@ -109,7 +111,7 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/dashboard/members/groups', [MemberGroupController::class, 'store'])->name('dashboard.members.groups.store');
     Route::delete('/dashboard/members/groups/{memberGroup}', [MemberGroupController::class, 'destroy'])->name('dashboard.members.groups.destroy')->where('memberGroup', '[0-9]+');
 
-    // Other Dashboard Routes    
+    // Other Dashboard Routes
     Route::get('/dashboard/settings', [SettingsController::class, 'index'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [SettingsController::class, 'update'])->name('dashboard.settings.update');
 
@@ -122,18 +124,18 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/dashboard/bonus', [BonusCreditController::class, 'index'])->name('dashboard.bonus');
     Route::post('/register-with-referral', [BonusCreditController::class, 'registerWithReferral'])->name('register.with_referral');
     Route::post('/dashboard/bonus/{bonusCredit}/credit', [BonusCreditController::class, 'creditBonus'])->name('dashboard.bonus.credit');
-    Route::get('/dashboard/donations', fn() => Inertia::render('Dashboard/Donations/Index'))->name('dashboard.donations');
-    Route::get('/dashboard/reports', fn() => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
+    Route::get('/dashboard/donations', fn () => Inertia::render('Dashboard/Donations/Index'))->name('dashboard.donations');
+    Route::get('/dashboard/reports', fn () => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
 
     // Participant Routes
     // Participant Routes
-Route::prefix('dashboard/projects/{projectId}')->group(function () {
-    Route::get('/participants', [ParticipantController::class, 'index']);
-    Route::post('/participants', [ParticipantController::class, 'addToProject']);
-    Route::get('/participants/create', fn($projectId) => Inertia::render('Projects/Participants/Create', ['projectId' => $projectId]))->name('participants.create');
-    Route::post('/send-mass-email', [ParticipantController::class, 'sendMassEmail']); // Added for mass email
-    Route::get('/participants/export', [ParticipantController::class, 'export']); // Added for export
-});
+    Route::prefix('dashboard/projects/{projectId}')->group(function () {
+        Route::get('/participants', [ParticipantController::class, 'index']);
+        Route::post('/participants', [ParticipantController::class, 'addToProject']);
+        Route::get('/participants/create', fn ($projectId) => Inertia::render('Projects/Participants/Create', ['projectId' => $projectId]))->name('participants.create');
+        Route::post('/send-mass-email', [ParticipantController::class, 'sendMassEmail']); // Added for mass email
+        Route::get('/participants/export', [ParticipantController::class, 'export']); // Added for export
+    });
 
     Route::apiResource('dashboard/email-templates', EmailTemplateController::class)
         ->except(['create', 'edit'])
@@ -145,11 +147,11 @@ Route::prefix('dashboard/projects/{projectId}')->group(function () {
     
     // Admin Routes
     Route::middleware('can:manage_roles')->group(function () {
-        Route::get('/dashboard/admin/roles', fn() => Inertia::render('Dashboard/Roles'))->name('dashboard.admin.roles');
+        Route::get('/dashboard/admin/roles', fn () => Inertia::render('Dashboard/Roles'))->name('dashboard.admin.roles');
     });
 
     Route::middleware('can:manage_permissions')->group(function () {
-        Route::get('/dashboard/admin/permissions', fn() => Inertia::render('Dashboard/Permissions'))->name('dashboard.admin.permissions');
+        Route::get('/dashboard/admin/permissions', fn () => Inertia::render('Dashboard/Permissions'))->name('dashboard.admin.permissions');
     });
 
     // Resource Routes
@@ -224,7 +226,9 @@ Route::get('/debug-login', function () {
     $user = \App\Models\User::where('email', 'test@example.com')->first();
     if ($user) {
         \Illuminate\Support\Facades\Auth::login($user);
+
         return redirect()->route('dashboard');
     }
+
     return redirect()->route('login');
 })->name('debug.login');

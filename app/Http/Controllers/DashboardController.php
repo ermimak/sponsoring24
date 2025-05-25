@@ -15,4 +15,4 @@ class DashboardController extends Controller
             'notifications' => $user->notifications()->latest()->take(10)->get(),
         ]);
     }
-} 
+}

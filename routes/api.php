@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\ProjectController;
-use App\Http\Controllers\Api\ParticipantController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\ParticipantController;
 use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\ProjectController;
+use App\Http\Controllers\Api\RoleController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -51,7 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         return response()->json($data);
     });
-    
+
 });
 
-// Route::get('/projects', [ProjectController::class, 'index']); 
+// Route::get('/projects', [ProjectController::class, 'index']);

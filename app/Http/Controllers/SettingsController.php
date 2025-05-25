@@ -3,12 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
-use App\Models\User;
-use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class SettingsController extends Controller
 {
@@ -16,13 +15,15 @@ class SettingsController extends Controller
     {
         try {
             Log::info('Loading settings page for user: ' . (Auth::check() ? Auth::id() : 'unauthenticated'));
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 Log::warning('User not authenticated, redirecting to login.');
+
                 return redirect()->route('login')->with('error', 'Please log in to access settings.');
             }
 
             $settings = Setting::firstOrNew([]);
             Log::info('Settings loaded: ' . json_encode($settings->toArray()));
+
             return Inertia::render('Settings', [
                 'settings' => [
                     'organization_name' => $settings->organization_name,
@@ -62,6 +63,7 @@ class SettingsController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to load settings: ' . $e->getMessage(), ['exception' => $e]);
+
             return redirect()->back()->with('error', 'An error occurred while loading settings. Please try again.')->withInput();
         }
     }
@@ -143,6 +145,7 @@ class SettingsController extends Controller
             foreach ($projectFields as $field) {
                 if (array_key_exists($field, $data) && $settings->$field !== $data[$field]) {
                     $changed = true;
+
                     break;
                 }
             }
@@ -159,12 +162,15 @@ class SettingsController extends Controller
             }
 
             Log::info('Settings updated successfully for user: ' . Auth::id());
+
             return redirect()->back()->with('success', 'Settings updated successfully.');
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::warning('Validation failed for settings update: ' . json_encode($e->errors()));
+
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             Log::error('Failed to update settings: ' . $e->getMessage(), ['exception' => $e]);
+
             return redirect()->back()->with('error', 'Failed to update settings.')->withInput();
         }
     }

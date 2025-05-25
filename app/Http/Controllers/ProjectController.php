@@ -3,9 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
-use App\Models\Participant;
-use App\Models\Donation;
-use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -41,6 +38,7 @@ class ProjectController extends Controller
 
         $data['created_by'] = $data['created_by'] ?? auth()->id();
         $project = Project::create($data);
+
         return $project;
     }
 
@@ -130,6 +128,7 @@ class ProjectController extends Controller
         }
 
         $project->delete();
+
         return response()->noContent();
     }
 
@@ -170,6 +169,7 @@ class ProjectController extends Controller
             'status' => $data['status'] ?? null,
             'role' => $data['role'] ?? null,
         ]);
+
         return response()->noContent();
     }
 
@@ -183,6 +183,7 @@ class ProjectController extends Controller
             'participant_id' => 'required|exists:participants,id',
         ]);
         $project->participants()->detach($data['participant_id']);
+
         return response()->noContent();
     }
 
@@ -215,6 +216,7 @@ class ProjectController extends Controller
             $data['image_square'] = Storage::disk('public')->url($path);
         }
         $project->save();
+
         return response()->json($data);
     }
 }

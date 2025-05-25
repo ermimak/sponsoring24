@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Role;
-use App\Models\Permission;
-use App\Models\User;
+use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
     public function index()
     {
         $this->authorize('manage_users');
+
         return Role::with('permissions')->get();
     }
 
@@ -23,12 +22,14 @@ class RoleController extends Controller
             'name' => 'required|string|unique:roles,name',
             'label' => 'nullable|string',
         ]);
+
         return Role::create($data);
     }
 
     public function show(Role $role)
     {
         $this->authorize('manage_users');
+
         return $role->load('permissions');
     }
 
@@ -40,6 +41,7 @@ class RoleController extends Controller
             'label' => 'nullable|string',
         ]);
         $role->update($data);
+
         return $role;
     }
 
@@ -47,6 +49,7 @@ class RoleController extends Controller
     {
         $this->authorize('manage_users');
         $role->delete();
+
         return response()->json(['message' => 'Role deleted']);
     }
 
@@ -55,6 +58,7 @@ class RoleController extends Controller
         $this->authorize('manage_users');
         $permissionId = $request->validate(['permission_id' => 'required|exists:permissions,id'])['permission_id'];
         $role->permissions()->attach($permissionId);
+
         return $role->load('permissions');
     }
 
@@ -63,6 +67,7 @@ class RoleController extends Controller
         $this->authorize('manage_users');
         $permissionId = $request->validate(['permission_id' => 'required|exists:permissions,id'])['permission_id'];
         $role->permissions()->detach($permissionId);
+
         return $role->load('permissions');
     }
 
@@ -71,6 +76,7 @@ class RoleController extends Controller
         $this->authorize('manage_users');
         $userId = $request->validate(['user_id' => 'required|exists:users,id'])['user_id'];
         $role->users()->attach($userId);
+
         return $role->load('users');
     }
 
@@ -79,6 +85,7 @@ class RoleController extends Controller
         $this->authorize('manage_users');
         $userId = $request->validate(['user_id' => 'required|exists:users,id'])['user_id'];
         $role->users()->detach($userId);
+
         return $role->load('users');
     }
-} 
+}

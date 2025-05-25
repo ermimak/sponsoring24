@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BonusCredit;
+use App\Models\User;
+use App\Notifications\ReferralCodeUsed;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
-use Illuminate\Validation\ValidationException;
-use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use App\Models\BonusCredit;
-use App\Notifications\ReferralCodeUsed;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 
 class AuthController extends Controller
 {
@@ -29,12 +29,13 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             if ($request->wantsJson()) {
                 throw ValidationException::withMessages([
                     'email' => [trans('auth.failed')],
                 ]);
             }
+
             return back()->withErrors([
                 'email' => trans('auth.failed'),
             ]);
@@ -137,7 +138,7 @@ class AuthController extends Controller
                         Log::info('Referral notification sent', [
                             'referrer_id' => $referrer->id,
                             'referred_user_id' => $user->id,
-                            'bonus_credit_id' => $bonusCredit->id
+                            'bonus_credit_id' => $bonusCredit->id,
                         ]);
 
                         $referralInfo = [
@@ -148,7 +149,7 @@ class AuthController extends Controller
                         $referralInfo = [
                             'success' => false,
                             'code' => $referralCode,
-                            'message' => 'Invalid referral code'
+                            'message' => 'Invalid referral code',
                         ];
                     }
                 }
@@ -160,26 +161,27 @@ class AuthController extends Controller
                 if ($request->wantsJson()) {
                     return response()->json([
                         'message' => 'Registration successful',
-                        'referralInfo' => $referralInfo
+                        'referralInfo' => $referralInfo,
                     ]);
                 }
 
                 return redirect()->route('home')->with('referralInfo', $referralInfo);
             } catch (\Exception $e) {
                 DB::rollBack();
+
                 throw $e;
             }
         } catch (\Exception $e) {
             Log::error('Registration failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
-                'input' => $request->except(['password', 'password_confirmation'])
+                'input' => $request->except(['password', 'password_confirmation']),
             ]);
 
             if ($request->wantsJson()) {
                 return response()->json([
                     'message' => 'Registration failed',
-                    'error' => $e->getMessage()
+                    'error' => $e->getMessage(),
                 ], 422);
             }
 

@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Donation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use Stripe\Stripe;
 
 class PaymentController extends Controller
 {
@@ -21,7 +21,7 @@ class PaymentController extends Controller
             $request->validate([
                 'amount' => 'required|numeric',
                 'currency' => 'required|string|size:3',
-                'donation_id' => 'required|exists:donations,id'
+                'donation_id' => 'required|exists:donations,id',
             ]);
 
             $donation = Donation::findOrFail($request->donation_id);
@@ -48,6 +48,7 @@ class PaymentController extends Controller
                 'exception' => $e->getTraceAsString(),
                 'request' => $request->all(),
             ]);
+
             return response()->json(['error' => 'Failed to create payment intent'], 500);
         }
     }
@@ -60,7 +61,9 @@ class PaymentController extends Controller
 
         try {
             $event = \Stripe\Webhook::constructEvent(
-                $payload, $sig_header, $endpoint_secret
+                $payload,
+                $sig_header,
+                $endpoint_secret
             );
         } catch (\UnexpectedValueException $e) {
             return response()->json(['error' => 'Invalid payload'], 400);
@@ -82,6 +85,7 @@ class PaymentController extends Controller
                         'paid_at' => now(),
                     ]);
                 }
+
                 break;
             case 'payment_intent.payment_failed':
                 $paymentIntent = $event->data->object;
@@ -94,9 +98,10 @@ class PaymentController extends Controller
                         'payment_id' => $paymentIntent->id,
                     ]);
                 }
+
                 break;
         }
 
         return response()->json(['status' => 'success']);
     }
-} 
+}

@@ -2,8 +2,8 @@
 
 namespace App\Imports;
 
-use App\Models\Participant;
 use App\Models\MemberGroup;
+use App\Models\Participant;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -29,7 +29,7 @@ class ParticipantsImport implements ToModel, WithHeadingRow
             'archived' => isset($row['archived']) && in_array(strtolower($row['archived']), ['yes', 'true', '1']),
         ]);
 
-        if (!empty($row['groups'])) {
+        if (! empty($row['groups'])) {
             $groupNames = array_map('trim', explode(',', $row['groups']));
             $groupIds = MemberGroup::whereIn('name', $groupNames)->pluck('id');
             $participant->memberGroups()->sync($groupIds);

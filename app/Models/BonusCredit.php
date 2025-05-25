@@ -25,4 +25,4 @@ class BonusCredit extends Model
     {
         return $this->belongsTo(User::class, 'referred_user_id');
     }
-} 
+}
