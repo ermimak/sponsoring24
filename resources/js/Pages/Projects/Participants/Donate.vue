@@ -27,7 +27,13 @@
             </div>
             <form @submit.prevent="submitDonation" class="space-y-6">
               <div class="relative">
-                <input v-model="form.amount" type="number" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required min="0" step="0.01" placeholder="0.00" />
+                <input v-model="form.amount"
+type="number"
+class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+required
+min="0"
+step="0.01"
+placeholder="0.00" />
                 <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">CHF</span>
               </div>
               <button type="submit" class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-200 font-medium">
@@ -60,11 +66,17 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">First name *</label>
-                  <input v-model="form.first_name" type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+                  <input v-model="form.first_name"
+type="text"
+class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Last name *</label>
-                  <input v-model="form.last_name" type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+                  <input v-model="form.last_name"
+type="text"
+class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Company</label>
@@ -72,7 +84,10 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Address *</label>
-                  <input v-model="form.address" type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+                  <input v-model="form.address"
+type="text"
+class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Address suffix</label>
@@ -80,11 +95,17 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Postal code *</label>
-                  <input v-model="form.postal_code" type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+                  <input v-model="form.postal_code"
+type="text"
+class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Location *</label>
-                  <input v-model="form.location" type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+                  <input v-model="form.location"
+type="text"
+class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Country *</label>
@@ -95,15 +116,24 @@
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">E-mail *</label>
-                  <input v-model="form.email" type="email" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+                  <input v-model="form.email"
+type="email"
+class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Phone *</label>
-                  <input v-model="form.phone" type="tel" class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500" required />
+                  <input v-model="form.phone"
+type="tel"
+class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+required />
                 </div>
               </div>
               <div class="flex items-center">
-                <input v-model="form.privacy_policy" type="checkbox" class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded" required />
+                <input v-model="form.privacy_policy"
+type="checkbox"
+class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+required />
                 <label class="ml-2 text-sm text-gray-700">I accept the <a href="#" class="text-purple-600 hover:underline">privacy policy</a> and the <a href="#" class="text-purple-600 hover:underline">terms and conditions of participation</a>.*</label>
               </div>
               <button type="submit" class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-200 font-medium">

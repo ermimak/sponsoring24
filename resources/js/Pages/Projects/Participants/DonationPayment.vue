@@ -8,19 +8,45 @@
         <button @click="selectPaymentMethod('invoice')" 
                 :class="{'bg-purple-50 border-purple-500': selectedMethod === 'invoice'}"
                 class="w-full flex items-center px-4 py-3 border rounded-lg hover:bg-gray-100 transition">
-          <span class="mr-3"><svg width="24" height="24" fill="none" stroke="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" stroke-width="2"/></svg></span>
+          <span class="mr-3"><svg width="24"
+height="24"
+fill="none"
+stroke="currentColor"><rect x="4"
+y="4"
+width="16"
+height="16"
+rx="2"
+stroke-width="2"/></svg></span>
           The invoice
         </button>
         <button @click="selectPaymentMethod('twint')"
                 :class="{'bg-purple-50 border-purple-500': selectedMethod === 'twint'}"
                 class="w-full flex items-center px-4 py-3 border rounded-lg hover:bg-gray-100 transition">
-          <span class="mr-3"><svg width="24" height="24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/></svg></span>
+          <span class="mr-3"><svg width="24"
+height="24"
+fill="none"
+stroke="currentColor"><circle cx="12"
+cy="12"
+r="10"
+stroke-width="2"/></svg></span>
           TWINT
         </button>
         <button @click="selectPaymentMethod('card')"
                 :class="{'bg-purple-50 border-purple-500': selectedMethod === 'card'}"
                 class="w-full flex items-center px-4 py-3 border rounded-lg hover:bg-gray-100 transition">
-          <span class="mr-3"><svg width="24" height="24" fill="none" stroke="currentColor"><rect x="2" y="6" width="20" height="12" rx="2" stroke-width="2"/><rect x="6" y="10" width="4" height="4" stroke-width="2"/></svg></span>
+          <span class="mr-3"><svg width="24"
+height="24"
+fill="none"
+stroke="currentColor"><rect x="2"
+y="6"
+width="20"
+height="12"
+rx="2"
+stroke-width="2"/><rect x="6"
+y="10"
+width="4"
+height="4"
+stroke-width="2"/></svg></span>
           Credit or debit card
         </button>
       </div>

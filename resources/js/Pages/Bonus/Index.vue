@@ -19,7 +19,12 @@
               readonly
             />
             <button @click="copyLink" class="bg-yellow-300 hover:bg-yellow-400 text-gray-900 px-4 py-2 rounded-r font-semibold focus:outline-none">
-              <svg v-if="!copied" class="w-5 h-5 inline-block mr-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16h8M8 12h8m-7 8h6a2 2 0 002-2V7a2 2 0 00-2-2h-6a2 2 0 00-2 2v2"/></svg>
+              <svg v-if="!copied"
+class="w-5 h-5 inline-block mr-1"
+fill="none"
+stroke="currentColor"
+stroke-width="2"
+viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16h8M8 12h8m-7 8h6a2 2 0 002-2V7a2 2 0 00-2-2h-6a2 2 0 00-2 2v2"/></svg>
               <span v-if="!copied">Copy link</span>
               <span v-else>Copied!</span>
             </button>

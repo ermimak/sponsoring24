@@ -4,15 +4,30 @@
       <h2 class="text-xl font-semibold">Participants {{ participants.length }} entries</h2>
       <div class="flex space-x-2">
         <button @click="openMassEmailModal" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded flex items-center" title="Mass Email">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l9-6 9 6v12a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l9 6 9-6"/>
+          <svg class="w-4 h-4 mr-1"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+            <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M3 8l9-6 9 6v12a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+            <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M3 8l9 6 9-6"/>
           </svg>
           Mass email
         </button>
         <button @click="exportParticipants" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded flex items-center" title="Export">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          <svg class="w-4 h-4 mr-1"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+            <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
           </svg>
           Export
         </button>
@@ -28,7 +43,10 @@
       <div class="bg-gray-50 border rounded p-4 w-full md:w-1/3">
         <h3 class="font-semibold mb-2">Filter</h3>
         <label class="block text-sm font-medium mb-1">Search</label>
-        <input v-model="search" type="text" class="input w-full mb-2" placeholder="Search" />
+        <input v-model="search"
+type="text"
+class="input w-full mb-2"
+placeholder="Search" />
         <label class="flex items-center">
           <input type="checkbox" v-model="allGroups" class="mr-2" /> All groups
         </label>
@@ -58,20 +76,44 @@
               <td class="px-6 py-4 whitespace-nowrap">{{ participant.emails }}</td>
               <td class="px-6 py-4 whitespace-nowrap flex space-x-2">
                 <button @click="viewLandingPage(participant)" class="text-purple-600 hover:text-purple-800 flex items-center" title="To the participant landing page">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  <svg class="w-4 h-4 mr-1"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                   </svg>
                 </button>
                 <button @click="viewDonationPage(participant)" class="text-purple-600 hover:text-purple-800 flex items-center" title="Public Donation Page">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2h6v-2c0-1.657-1.343-3-3-3zm0-4a7 7 0 00-7 7v2h2v-2a5 5 0 0110 0v2h2v-2a7 7 0 00-7-7z"/>
+                  <svg class="w-4 h-4 mr-1"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M12 8c-1.657 0-3 1.343-3 3v2h6v-2c0-1.657-1.343-3-3-3zm0-4a7 7 0 00-7 7v2h2v-2a5 5 0 0110 0v2h2v-2a7 7 0 00-7-7z"/>
                   </svg>
                 </button>
                 <button @click="openSendEmailModal(participant)" class="text-purple-600 hover:text-purple-800 flex items-center" title="Send Email">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l9-6 9 6v12a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l9 6 9-6"/>
+                  <svg class="w-4 h-4 mr-1"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+                    <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M3 8l9-6 9 6v12a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                    <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M3 8l9 6 9-6"/>
                   </svg>
                 </button>
               </td>
@@ -100,11 +142,17 @@
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium mb-1">Subject</label>
-            <input v-model="massEmailForm.subject" type="text" class="input w-full" required />
+            <input v-model="massEmailForm.subject"
+type="text"
+class="input w-full"
+required />
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium mb-1">Message</label>
-            <textarea v-model="massEmailForm.body" class="input w-full" rows="5" required></textarea>
+            <textarea v-model="massEmailForm.body"
+class="input w-full"
+rows="5"
+required></textarea>
           </div>
           <div class="flex gap-2 justify-end">
             <button type="button" @click="showMassEmailModal = false" class="bg-gray-200 text-gray-700 px-4 py-2 rounded">Cancel</button>
@@ -132,11 +180,17 @@
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium mb-1">Subject</label>
-            <input v-model="emailForm.subject" type="text" class="input w-full" required />
+            <input v-model="emailForm.subject"
+type="text"
+class="input w-full"
+required />
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium mb-1">Message</label>
-            <textarea v-model="emailForm.body" class="input w-full" rows="5" required></textarea>
+            <textarea v-model="emailForm.body"
+class="input w-full"
+rows="5"
+required></textarea>
           </div>
           <div class="flex gap-2 justify-end">
             <button type="button" @click="showEmailModal = false" class="bg-gray-200 text-gray-700 px-4 py-2 rounded">Cancel</button>

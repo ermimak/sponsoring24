@@ -4,7 +4,9 @@
       <h1 class="text-2xl font-bold mb-6">{{ form.name.de || form.name[Object.keys(form.name)[0]] || 'Edit project' }}</h1>
       <!-- Tabs -->
       <div class="flex border-b mb-8">
-        <button v-for="tab in tabs" :key="tab" @click="setActiveTab(tab)"
+        <button v-for="tab in tabs"
+:key="tab"
+@click="setActiveTab(tab)"
           :class="['px-4 py-2 -mb-px font-medium', activeTab === tab ? 'border-b-2 border-purple-600 text-purple-600' : 'text-gray-500']">
           {{ tab }}
         </button>
@@ -20,8 +22,15 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Project name*</label>
-                  <input v-model="form.name.de" type="text" class="input w-full" required @input="updateNameTranslations" />
-                  <input v-model="form.name.fr" type="text" class="input w-full mt-2" @input="updateNameTranslations" />
+                  <input v-model="form.name.de"
+type="text"
+class="input w-full"
+required
+@input="updateNameTranslations" />
+                  <input v-model="form.name.fr"
+type="text"
+class="input w-full mt-2"
+@input="updateNameTranslations" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
@@ -37,33 +46,55 @@
                 <div></div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Start*</label>
-                  <input v-model="form.start" type="datetime-local" class="input w-full" required />
+                  <input v-model="form.start"
+type="datetime-local"
+class="input w-full"
+required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">End*</label>
-                  <input v-model="form.end" type="datetime-local" class="input w-full" required />
+                  <input v-model="form.end"
+type="datetime-local"
+class="input w-full"
+required />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Allow donation until*</label>
-                  <input v-model="form.allow_donation_until" type="datetime-local" class="input w-full" required />
+                  <input v-model="form.allow_donation_until"
+type="datetime-local"
+class="input w-full"
+required />
                 </div>
               </div>
               <div class="mt-6">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Project description*</label>
-                <textarea v-model="form.description.de" rows="5" class="input w-full" required @input="updateDescriptionTranslations"></textarea>
-                <textarea v-model="form.description.fr" rows="5" class="input w-full mt-2" @input="updateDescriptionTranslations"></textarea>
+                <textarea v-model="form.description.de"
+rows="5"
+class="input w-full"
+required
+@input="updateDescriptionTranslations"></textarea>
+                <textarea v-model="form.description.fr"
+rows="5"
+class="input w-full mt-2"
+@input="updateDescriptionTranslations"></textarea>
               </div>
               <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Project image landscape format (1200x300px)*</label>
-                  <input type="file" @change="onFileChange($event, 'image_landscape')" class="input w-full" accept="image/*" />
+                  <input type="file"
+@change="onFileChange($event, 'image_landscape')"
+class="input w-full"
+accept="image/*" />
                   <div v-if="form.image_landscape_url" class="mt-2">
                     <img :src="form.image_landscape_url" alt="Landscape preview" class="rounded border max-w-full h-48 object-cover" />
                   </div>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Project image square (400x400px)*</label>
-                  <input type="file" @change="onFileChange($event, 'image_square')" class="input w-full" accept="image/*" />
+                  <input type="file"
+@change="onFileChange($event, 'image_square')"
+class="input w-full"
+accept="image/*" />
                   <div v-if="form.image_square_url" class="mt-2">
                     <img :src="form.image_square_url" alt="Square preview" class="rounded border w-48 h-48 object-cover" />
                   </div>
@@ -74,14 +105,21 @@
             <div class="bg-gray-50 rounded-lg p-6 border">
               <div class="flex items-center mb-2">
                 <h2 class="font-semibold text-lg flex-1">Flat-rate donations</h2>
-                <input type="checkbox" v-model="form.flat_rate_enabled" class="mr-2" id="flat_rate_enabled" />
+                <input type="checkbox"
+v-model="form.flat_rate_enabled"
+class="mr-2"
+id="flat_rate_enabled" />
                 <label for="flat_rate_enabled" class="text-sm">Activate flat-rate donations</label>
               </div>
               <p class="text-sm text-gray-600 mb-2">Enable flat-rate donations. For example, a flat rate of CHF 20 for one participant.</p>
               <div v-if="form.flat_rate_enabled" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Minimum amount (CHF)</label>
-                  <input v-model="form.flat_rate_min_amount" type="number" min="0" step="0.01" class="input w-full" />
+                  <input v-model="form.flat_rate_min_amount"
+type="number"
+min="0"
+step="0.01"
+class="input w-full" />
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-1">Help text</label>
@@ -93,7 +131,10 @@
             <div class="bg-gray-50 rounded-lg p-6 border">
               <div class="flex items-center mb-2">
                 <h2 class="font-semibold text-lg flex-1">Unit-based donations</h2>
-                <input type="checkbox" v-model="form.unit_based_enabled" class="mr-2" id="unit_based_enabled" />
+                <input type="checkbox"
+v-model="form.unit_based_enabled"
+class="mr-2"
+id="unit_based_enabled" />
                 <label for="unit_based_enabled" class="text-sm">Allow unit-based donations</label>
               </div>
               <p class="text-sm text-gray-600">Allow unit-based donations. For example, CHF 1 per lap run or per kg of waste paper collected.</p>
@@ -102,7 +143,10 @@
             <div class="bg-gray-50 rounded-lg p-6 border">
               <div class="flex items-center mb-2">
                 <h2 class="font-semibold text-lg flex-1">Public project donation page, banner and poster</h2>
-                <input type="checkbox" v-model="form.public_donation_enabled" class="mr-2" id="public_donation_enabled" />
+                <input type="checkbox"
+v-model="form.public_donation_enabled"
+class="mr-2"
+id="public_donation_enabled" />
                 <label for="public_donation_enabled" class="text-sm">Allow public project donations</label>
               </div>
               <p class="text-sm text-gray-600">Receive a link to your project with an integrated donation form. Donations received through this form cannot be allocated to any member. Share this page on your channels to promote the project and receive additional donations.</p>

@@ -2,9 +2,19 @@
     <div class="relative min-h-screen flex flex-col justify-center items-center bg-[#0a0a16] overflow-hidden">
         <!-- Animated background placeholder -->
         <div class="absolute inset-0 z-0">
-            <svg class="w-full h-full" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg class="w-full h-full"
+viewBox="0 0 1920 1080"
+fill="none"
+xmlns="http://www.w3.org/2000/svg">
                 <g>
-                    <circle v-for="n in 60" :key="n" :cx="Math.random()*1920" :cy="Math.random()*1080" :r="Math.random()*6+2" :fill="`rgba(162,89,255,0.2)`" class="animated-dot" :style="{ animationDelay: `${Math.random()*10}s` }" />
+                    <circle v-for="n in 60"
+:key="n"
+:cx="Math.random()*1920"
+:cy="Math.random()*1080"
+:r="Math.random()*6+2"
+:fill="`rgba(162,89,255,0.2)`"
+class="animated-dot"
+:style="{ animationDelay: `${Math.random()*10}s` }" />
                 </g>
             </svg>
         </div>
@@ -23,9 +33,21 @@
                 <a href="/" class="flex items-center gap-2">
                     <span class="inline-block">
                         <!-- Simple SVG logo placeholder -->
-                        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="18" cy="18" r="16" stroke="#a259ff" stroke-width="4" />
-                            <circle cx="18" cy="18" r="8" stroke="#a259ff" stroke-width="2" />
+                        <svg width="36"
+height="36"
+viewBox="0 0 36 36"
+fill="none"
+xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="18"
+cy="18"
+r="16"
+stroke="#a259ff"
+stroke-width="4" />
+                            <circle cx="18"
+cy="18"
+r="8"
+stroke="#a259ff"
+stroke-width="2" />
                         </svg>
                     </span>
                     <span class="text-3xl font-bold text-white tracking-tight">fundoo</span>

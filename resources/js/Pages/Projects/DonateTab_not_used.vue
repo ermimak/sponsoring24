@@ -11,7 +11,10 @@
     <div class="flex flex-col md:flex-row gap-4 mb-4">
       <div class="bg-gray-50 border rounded p-4 w-full md:w-1/4">
         <label class="block text-sm font-medium mb-1">Search</label>
-        <input v-model="search" type="text" class="input w-full mb-2" placeholder="Search" />
+        <input v-model="search"
+type="text"
+class="input w-full mb-2"
+placeholder="Search" />
       </div>
       <div class="flex-1 overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg border">

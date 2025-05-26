@@ -15,7 +15,14 @@
                         class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-base"
                     />
                     <span class="text-gray-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V8a4 4 0 00-8 0v4m8 0v4a4 4 0 01-8 0v-4" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+class="h-5 w-5"
+fill="none"
+viewBox="0 0 24 24"
+stroke="currentColor"><path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M16 12a4 4 0 01-8 0m8 0a4 4 0 00-8 0m8 0V8a4 4 0 00-8 0v4m8 0v4a4 4 0 01-8 0v-4" /></svg>
                     </span>
                 </div>
                 <div v-if="form.errors.email" class="mt-1 text-sm text-red-600">
@@ -33,7 +40,14 @@
                         class="flex-1 px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-base"
                     />
                     <span class="text-gray-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.104.896-2 2-2s2 .896 2 2-.896 2-2 2-2-.896-2-2zm0 0V7m0 4v4" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+class="h-5 w-5"
+fill="none"
+viewBox="0 0 24 24"
+stroke="currentColor"><path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M12 11c0-1.104.896-2 2-2s2 .896 2 2-.896 2-2 2-2-.896-2-2zm0 0V7m0 4v4" /></svg>
                     </span>
                 </div>
                 <div v-if="form.errors.password" class="mt-1 text-sm text-red-600">

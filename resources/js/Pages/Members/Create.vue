@@ -23,11 +23,17 @@
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">First Name{{ editingId ? '' : '*' }}</label>
-                <input v-model="form.first_name" type="text" class="input w-full" :required="!editingId" />
+                <input v-model="form.first_name"
+type="text"
+class="input w-full"
+:required="!editingId" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Last Name{{ editingId ? '' : '*' }}</label>
-                <input v-model="form.last_name" type="text" class="input w-full" :required="!editingId" />
+                <input v-model="form.last_name"
+type="text"
+class="input w-full"
+:required="!editingId" />
               </div>
               <div>
                 <label class="block text-sm font-medium mb-1">Address</label>
@@ -70,7 +76,10 @@
               <h2 class="font-semibold text-lg mb-4">Contact</h2>
               <div class="mb-2">
                 <label class="block text-sm font-medium mb-1">E-mail{{ editingId ? '' : '*' }}</label>
-                <input v-model="form.email" type="email" class="input w-full" :required="!editingId" />
+                <input v-model="form.email"
+type="email"
+class="input w-full"
+:required="!editingId" />
               </div>
               <div class="mb-2">
                 <label class="block text-sm font-medium mb-1">Email CC</label>
@@ -103,7 +112,10 @@
           <button type="submit" :disabled="loading" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">
             {{ loading ? 'Saving...' : 'Save' }}
           </button>
-          <button type="button" @click="saveAndClose" :disabled="loading" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">
+          <button type="button"
+@click="saveAndClose"
+:disabled="loading"
+class="px-6 py-2 rounded bg-purple-600 text-white font-semibold">
             {{ loading ? 'Saving...' : 'Save and Close' }}
           </button>
           <button type="button" @click="cancel" class="px-6 py-2 rounded bg-gray-100 text-gray-700">Cancel</button>
