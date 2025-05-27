@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download Build Artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v3
       with:
         name: build-artifacts
         path: build-artifacts
@@ -70,25 +70,3 @@ jobs:
           sudo systemctl restart php8.3-fpm
           sudo systemctl restart nginx
           echo "Deployment completed successfully!"
-
-    - name: Notify on Success
-      if: success()
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_CHANNEL: deployments
-        SLACK_COLOR: good
-        SLACK_TITLE: Deployment Successful
-        SLACK_MESSAGE: 'Deployment to production completed successfully!'
-        SLACK_FOOTER: 'Fundoo Platform'
-
-    - name: Notify on Failure
-      if: failure()
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_CHANNEL: deployments
-        SLACK_COLOR: danger
-        SLACK_TITLE: Deployment Failed
-        SLACK_MESSAGE: 'Deployment to production failed!'
-        SLACK_FOOTER: 'Fundoo Platform'
