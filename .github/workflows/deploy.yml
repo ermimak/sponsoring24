@@ -23,6 +23,8 @@ jobs:
       with:
         name: build-artifacts
         path: build-artifacts
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Verify Downloaded Artifacts
       run: |
@@ -55,8 +57,10 @@ jobs:
           cd /var/www/fundoo
           echo "Pulling latest changes..."
           git pull origin main
-          echo "Installing dependencies..."
-          composer install --no-dev --optimize-autoloader
+          echo "Copying artifacts..."
+          mkdir -p public/build vendor
+          cp -r build-artifacts/build/* public/build/
+          cp -r build-artifacts/vendor/* vendor/
           echo "Optimizing application..."
           php artisan optimize
           php artisan config:cache
@@ -87,4 +91,4 @@ jobs:
         SLACK_COLOR: danger
         SLACK_TITLE: Deployment Failed
         SLACK_MESSAGE: 'Deployment to production failed!'
-        SLACK_FOOTER: 'Fundoo Platform' 
+        SLACK_FOOTER: 'Fundoo Platform'
