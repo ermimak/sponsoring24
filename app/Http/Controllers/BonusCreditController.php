@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\BonusCredit;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Inertia\Inertia;
 
 class BonusCreditController extends Controller
 {
@@ -22,7 +22,7 @@ class BonusCreditController extends Controller
             
         return Inertia::render('Bonus/Index', [
             'bonusCredits' => $bonusCredits,
-            'referral_link' => route('register', ['registration_discount_code' => $user->referral_code ?? 'C3BE7A'])
+            'referral_link' => route('register', ['registration_discount_code' => $user->referral_code ?? 'C3BE7A']),
         ]);
     }
 
@@ -51,7 +51,7 @@ class BonusCreditController extends Controller
                     'referrer_id' => $referrer->id,
                     'referred_user_id' => $user->id,
                     'referral_code' => $referralCode,
-                    'bonus_credit_id' => $bonusCredit->id
+                    'bonus_credit_id' => $bonusCredit->id,
                 ]);
 
                 // Store success message in session
@@ -62,7 +62,7 @@ class BonusCreditController extends Controller
             } else {
                 Log::warning('Invalid referral code used', [
                     'referral_code' => $referralCode,
-                    'ip_address' => $request->ip()
+                    'ip_address' => $request->ip(),
                 ]);
                 
                 Session::flash('error', 'Invalid referral code. Please check and try again.');
@@ -75,10 +75,11 @@ class BonusCreditController extends Controller
             Log::error('Error processing referral code', [
                 'error' => $e->getMessage(),
                 'referral_code' => $referralCode ?? null,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             
             Session::flash('error', 'There was an error processing your referral code. Please try again later.');
+
             return redirect()->back();
         }
     }
@@ -94,7 +95,7 @@ class BonusCreditController extends Controller
                 'bonus_credit_id' => $bonusCredit->id,
                 'user_id' => $bonusCredit->user_id,
                 'referred_user_id' => $bonusCredit->referred_user_id,
-                'amount' => $bonusCredit->amount
+                'amount' => $bonusCredit->amount,
             ]);
 
             // Optionally, trigger invoice logic here
@@ -103,10 +104,10 @@ class BonusCreditController extends Controller
             Log::error('Error crediting bonus', [
                 'error' => $e->getMessage(),
                 'bonus_credit_id' => $bonusCredit->id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             
             return back()->with('error', 'There was an error crediting the bonus. Please try again.');
         }
     }
-} 
+}

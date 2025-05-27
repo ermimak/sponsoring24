@@ -12,7 +12,10 @@
               <div class="space-y-2">
                 <div>
                   <label class="text-xs text-gray-500">German</label>
-                  <input v-model="form.name.de" type="text" class="input w-full" required />
+                  <input v-model="form.name.de"
+type="text"
+class="input w-full"
+required />
                 </div>
                 <!-- <div>
                   <label class="text-xs text-gray-500">French</label>
@@ -34,15 +37,24 @@
             <div></div>
             <div>
               <label class="block text-sm font-medium mb-1">Start*</label>
-              <input v-model="form.start" type="date" class="input w-full" required />
+              <input v-model="form.start"
+type="date"
+class="input w-full"
+required />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">End*</label>
-              <input v-model="form.end" type="date" class="input w-full" required />
+              <input v-model="form.end"
+type="date"
+class="input w-full"
+required />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">Allow donation until*</label>
-              <input v-model="form.allow_donation_until" type="date" class="input w-full" required />
+              <input v-model="form.allow_donation_until"
+type="date"
+class="input w-full"
+required />
             </div>
           </div>
           <div class="mt-4">
@@ -50,7 +62,10 @@
             <div class="space-y-2">
               <div>
                 <label class="text-xs text-gray-500">German</label>
-                <textarea v-model="form.description.de" rows="5" class="input w-full" required></textarea>
+                <textarea v-model="form.description.de"
+rows="5"
+class="input w-full"
+required></textarea>
               </div>
               <!-- <div>
                 <label class="text-xs text-gray-500">French</label>
@@ -74,14 +89,21 @@
         <div class="bg-gray-50 rounded-lg p-6 border">
           <div class="flex items-center mb-2">
             <h2 class="font-semibold text-lg flex-1">Flat-rate donations</h2>
-            <input type="checkbox" v-model="form.flat_rate_enabled" class="mr-2" id="flat_rate_enabled" />
+            <input type="checkbox"
+v-model="form.flat_rate_enabled"
+class="mr-2"
+id="flat_rate_enabled" />
             <label for="flat_rate_enabled" class="text-sm">Activate flat-rate donations</label>
           </div>
           <p class="text-sm text-gray-600 mb-2">Enable flat-rate donations. For example, a flat rate of CHF 20 for one participant.</p>
           <div v-if="form.flat_rate_enabled" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
             <div>
               <label class="block text-sm font-medium mb-1">Minimum amount (CHF)</label>
-              <input v-model="form.flat_rate_min_amount" type="number" min="0" step="0.01" class="input w-full" />
+              <input v-model="form.flat_rate_min_amount"
+type="number"
+min="0"
+step="0.01"
+class="input w-full" />
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">Help text</label>
@@ -94,7 +116,10 @@
         <div class="bg-gray-50 rounded-lg p-6 border">
           <div class="flex items-center mb-2">
             <h2 class="font-semibold text-lg flex-1">Unit-based donations</h2>
-            <input type="checkbox" v-model="form.unit_based_enabled" class="mr-2" id="unit_based_enabled" />
+            <input type="checkbox"
+v-model="form.unit_based_enabled"
+class="mr-2"
+id="unit_based_enabled" />
             <label for="unit_based_enabled" class="text-sm">Allow unit-based donations</label>
           </div>
           <p class="text-sm text-gray-600">Allow unit-based donations. For example, CHF 1 per lap run or per kg of waste paper collected.</p>
@@ -104,7 +129,10 @@
         <div class="bg-gray-50 rounded-lg p-6 border">
           <div class="flex items-center mb-2">
             <h2 class="font-semibold text-lg flex-1">Public project donation page, banner and poster</h2>
-            <input type="checkbox" v-model="form.public_donation_enabled" class="mr-2" id="public_donation_enabled" />
+            <input type="checkbox"
+v-model="form.public_donation_enabled"
+class="mr-2"
+id="public_donation_enabled" />
             <label for="public_donation_enabled" class="text-sm">Allow public project donations</label>
           </div>
           <p class="text-sm text-gray-600">Receive a link to your project with an integrated donation form. Donations received through this form cannot be allocated to any member. Share this page on your channels to promote the project and receive additional donations.</p>

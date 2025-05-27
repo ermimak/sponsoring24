@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use App\Models\User;
 
 class AuthController extends Controller
 {
@@ -20,7 +20,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $request->email)->first();
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
                 'email' => [__('auth.failed')],
             ]);
@@ -37,7 +37,7 @@ class AuthController extends Controller
                 'email' => $user->email,
                 'permissions' => $user->getAllPermissionsAttribute(),
                 'roles' => $user->getAllRolesAttribute(),
-            ]
+            ],
         ]);
     }
 
@@ -47,6 +47,7 @@ class AuthController extends Controller
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         return response()->json(['message' => 'Logged out']);
     }
 
@@ -54,7 +55,7 @@ class AuthController extends Controller
     public function user(Request $request)
     {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
@@ -66,4 +67,4 @@ class AuthController extends Controller
             'roles' => $user->getAllRolesAttribute(),
         ]);
     }
-} 
+}

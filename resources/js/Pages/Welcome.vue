@@ -23,7 +23,11 @@
         <!-- Partner Logos -->
         <section class="bg-white py-8">
             <div class="max-w-5xl mx-auto flex flex-wrap justify-center items-center gap-8 opacity-80">
-                <img v-for="n in 10" :key="n" :src="`/images/partner${n}.png`" alt="Partner logo" class="h-10" />
+                <img v-for="n in 10"
+:key="n"
+:src="`/images/partner${n}.png`"
+alt="Partner logo"
+class="h-10" />
             </div>
         </section>
 

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Donation;
 use App\Models\Participant;
 use App\Models\Project;
-use App\Models\Donation;
 use Illuminate\Http\Request;
 
 class PublicParticipantController extends Controller
@@ -46,7 +46,7 @@ class PublicParticipantController extends Controller
             'amount' => $request->amount,
             'donor_name' => $request->donor_name,
             'donor_email' => $request->donor_email,
-            'status' => 'completed'
+            'status' => 'completed',
         ]);
 
         return response()->json(['message' => 'Donation successful', 'data' => $donation], 201);

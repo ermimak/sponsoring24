@@ -19,4 +19,4 @@ class WelcomeController extends Controller
             'notifications' => $notifications,
         ]);
     }
-} 
+}

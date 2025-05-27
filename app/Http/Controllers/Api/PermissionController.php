@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Permission;
-use App\Models\Role;
+use Illuminate\Http\Request;
 
 class PermissionController extends Controller
 {
     public function index()
     {
         $this->authorize('manage_users');
+
         return Permission::all();
     }
 
@@ -22,12 +22,14 @@ class PermissionController extends Controller
             'name' => 'required|string|unique:permissions,name',
             'label' => 'nullable|string',
         ]);
+
         return Permission::create($data);
     }
 
     public function show(Permission $permission)
     {
         $this->authorize('manage_users');
+
         return $permission;
     }
 
@@ -39,6 +41,7 @@ class PermissionController extends Controller
             'label' => 'nullable|string',
         ]);
         $permission->update($data);
+
         return $permission;
     }
 
@@ -46,6 +49,7 @@ class PermissionController extends Controller
     {
         $this->authorize('manage_users');
         $permission->delete();
+
         return response()->json(['message' => 'Permission deleted']);
     }
 
@@ -54,6 +58,7 @@ class PermissionController extends Controller
         $this->authorize('manage_users');
         $roleId = $request->validate(['role_id' => 'required|exists:roles,id'])['role_id'];
         $permission->roles()->attach($roleId);
+
         return $permission->load('roles');
     }
 
@@ -62,6 +67,7 @@ class PermissionController extends Controller
         $this->authorize('manage_users');
         $roleId = $request->validate(['role_id' => 'required|exists:roles,id'])['role_id'];
         $permission->roles()->detach($roleId);
+
         return $permission->load('roles');
     }
-} 
+}

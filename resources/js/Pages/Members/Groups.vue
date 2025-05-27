@@ -45,7 +45,10 @@
           <h2 class="text-xl font-bold mb-4">Create Group</h2>
           <div class="mb-4">
             <label class="block text-sm font-medium mb-1">Group Name</label>
-            <input v-model="newGroupName" type="text" class="input w-full" placeholder="Enter group name" />
+            <input v-model="newGroupName"
+type="text"
+class="input w-full"
+placeholder="Enter group name" />
           </div>
           <div class="flex gap-4">
             <button @click="createGroup" class="px-4 py-2 rounded bg-purple-600 text-white font-semibold" :disabled="loading">Save</button>

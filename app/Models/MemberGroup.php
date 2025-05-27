@@ -12,4 +12,4 @@ class MemberGroup extends Model
     {
         return $this->belongsToMany(Participant::class, 'member_group_participant');
     }
-} 
+}

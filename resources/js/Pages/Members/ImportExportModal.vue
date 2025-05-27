@@ -4,7 +4,10 @@
       <h2 class="text-xl font-bold mb-4">Import Members</h2>
       <div class="mb-4">
         <label class="block text-sm font-medium mb-1">Upload File (CSV or XLSX)</label>
-        <input type="file" accept=".csv,.xlsx" @change="handleFileChange" class="input w-full" />
+        <input type="file"
+accept=".csv,.xlsx"
+@change="handleFileChange"
+class="input w-full" />
       </div>
       <div class="flex gap-4">
         <button @click="submit" :disabled="!file || loading" class="px-4 py-2 rounded bg-purple-600 text-white font-semibold">Import</button>

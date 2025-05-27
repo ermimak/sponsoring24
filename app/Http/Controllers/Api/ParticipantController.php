@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Participant;
-use App\Http\Resources\ParticipantResource;
 use App\Http\Requests\StoreParticipantRequest;
 use App\Http\Requests\UpdateParticipantRequest;
-use Illuminate\Http\Request;
+use App\Http\Resources\ParticipantResource;
+use App\Models\Participant;
 
 class ParticipantController extends Controller
 {
@@ -17,6 +16,7 @@ class ParticipantController extends Controller
     public function index()
     {
         $participants = Participant::latest()->paginate(15);
+
         return ParticipantResource::collection($participants);
     }
 
@@ -26,6 +26,7 @@ class ParticipantController extends Controller
     public function store(StoreParticipantRequest $request)
     {
         $participant = Participant::create($request->validated());
+
         return new ParticipantResource($participant);
     }
 
@@ -43,6 +44,7 @@ class ParticipantController extends Controller
     public function update(UpdateParticipantRequest $request, Participant $participant)
     {
         $participant->update($request->validated());
+
         return new ParticipantResource($participant);
     }
 
@@ -52,6 +54,7 @@ class ParticipantController extends Controller
     public function destroy(Participant $participant)
     {
         $participant->delete();
+
         return response()->json(['message' => 'Participant deleted']);
     }
 }

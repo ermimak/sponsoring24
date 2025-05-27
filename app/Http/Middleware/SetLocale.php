@@ -13,7 +13,7 @@ class SetLocale
     {
         $locale = Session::get('locale', 'de');
         
-        if (!in_array($locale, ['de', 'fr'])) {
+        if (! in_array($locale, ['de', 'fr'])) {
             $locale = 'de';
         }
 
@@ -22,4 +22,4 @@ class SetLocale
 
         return $next($request);
     }
-} 
+}

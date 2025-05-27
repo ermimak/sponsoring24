@@ -6,8 +6,14 @@
         <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
           <span>Profile</span>
           <button @click="toggleSection('profile')" class="ml-auto text-gray-500 hover:text-gray-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg class="w-4 h-4"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </h2>
@@ -15,7 +21,10 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Name of the organization*</label>
-              <input v-model="form.organization_name" type="text" class="input w-full" required />
+              <input v-model="form.organization_name"
+type="text"
+class="input w-full"
+required />
               <p v-if="errors.organization_name" class="text-red-500 text-sm mt-1">{{ errors.organization_name }}</p>
             </div>
             <div>
@@ -29,19 +38,28 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Contact person first name*</label>
-              <input v-model="form.contact_first_name" type="text" class="input w-full" required />
+              <input v-model="form.contact_first_name"
+type="text"
+class="input w-full"
+required />
               <p v-if="errors.contact_first_name" class="text-red-500 text-sm mt-1">{{ errors.contact_first_name }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Contact person last name*</label>
-              <input v-model="form.contact_last_name" type="text" class="input w-full" required />
+              <input v-model="form.contact_last_name"
+type="text"
+class="input w-full"
+required />
               <p v-if="errors.contact_last_name" class="text-red-500 text-sm mt-1">{{ errors.contact_last_name }}</p>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Address*</label>
-              <input v-model="form.address" type="text" class="input w-full" required />
+              <input v-model="form.address"
+type="text"
+class="input w-full"
+required />
               <p v-if="errors.address" class="text-red-500 text-sm mt-1">{{ errors.address }}</p>
             </div>
             <div>
@@ -53,17 +71,26 @@
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Postal code*</label>
-              <input v-model="form.postal_code" type="text" class="input w-full" required />
+              <input v-model="form.postal_code"
+type="text"
+class="input w-full"
+required />
               <p v-if="errors.postal_code" class="text-red-500 text-sm mt-1">{{ errors.postal_code }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Location*</label>
-              <input v-model="form.location" type="text" class="input w-full" required />
+              <input v-model="form.location"
+type="text"
+class="input w-full"
+required />
               <p v-if="errors.location" class="text-red-500 text-sm mt-1">{{ errors.location }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Country*</label>
-              <input v-model="form.country" type="text" class="input w-full" required />
+              <input v-model="form.country"
+type="text"
+class="input w-full"
+required />
               <p v-if="errors.country" class="text-red-500 text-sm mt-1">{{ errors.country }}</p>
             </div>
             <div>
@@ -80,12 +107,18 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">E-mail*</label>
-              <input v-model="form.email" type="email" class="input w-full" required />
+              <input v-model="form.email"
+type="email"
+class="input w-full"
+required />
               <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Phone*</label>
-              <input v-model="form.phone" type="text" class="input w-full" required />
+              <input v-model="form.phone"
+type="text"
+class="input w-full"
+required />
               <p v-if="errors.phone" class="text-red-500 text-sm mt-1">{{ errors.phone }}</p>
             </div>
           </div>
@@ -101,8 +134,14 @@
         <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
           <span>2 Appearance</span>
           <button @click="toggleSection('appearance')" class="ml-auto text-gray-500 hover:text-gray-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg class="w-4 h-4"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </h2>
@@ -110,12 +149,18 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">Accent color*</label>
-              <input v-model="form.accent_color" type="color" class="input w-full h-10" required />
+              <input v-model="form.accent_color"
+type="color"
+class="input w-full h-10"
+required />
               <p v-if="errors.accent_color" class="text-red-500 text-sm mt-1">{{ errors.accent_color }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Logo</label>
-              <input type="file" @change="handleLogoUpload" class="input w-full" accept="image/*" />
+              <input type="file"
+@change="handleLogoUpload"
+class="input w-full"
+accept="image/*" />
               <div v-if="form.logo_path" class="mt-2">
                 <img :src="'/storage/' + form.logo_path" alt="Logo Preview" class="max-w-xs max-h-48" />
               </div>
@@ -141,8 +186,14 @@
         <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
           <span>3 Billing address</span>
           <button @click="toggleSection('billing')" class="ml-auto text-gray-500 hover:text-gray-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg class="w-4 h-4"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </h2>
@@ -215,8 +266,14 @@
         <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
           <span>4 Bank details</span>
           <button @click="toggleSection('bank')" class="ml-auto text-gray-500 hover:text-gray-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg class="w-4 h-4"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </h2>
@@ -246,8 +303,14 @@
         <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
           <span>5 Reset password</span>
           <button @click="toggleSection('password')" class="ml-auto text-gray-500 hover:text-gray-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg class="w-4 h-4"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </h2>
@@ -273,14 +336,23 @@
         <h2 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
           <span>6 Project overview</span>
           <button @click="toggleSection('overview')" class="ml-auto text-gray-500 hover:text-gray-700">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            <svg class="w-4 h-4"
+fill="none"
+stroke="currentColor"
+viewBox="0 0 24 24">
+              <path stroke-linecap="round"
+stroke-linejoin="round"
+stroke-width="2"
+d="M19 9l-7 7-7-7" />
             </svg>
           </button>
         </h2>
         <form v-if="activeSections.overview" @submit.prevent="saveSettings" class="space-y-4">
           <div class="flex items-center">
-            <input v-model="form.project_overview_enabled" type="checkbox" id="project_overview" class="mr-2">
+            <input v-model="form.project_overview_enabled"
+type="checkbox"
+id="project_overview"
+class="mr-2">
             <label for="project_overview" class="text-sm">Activate project overview</label>
             <p v-if="errors.project_overview_enabled" class="text-red-500 text-sm mt-1">{{ errors.project_overview_enabled }}</p>
           </div>

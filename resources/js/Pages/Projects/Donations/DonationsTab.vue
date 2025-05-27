@@ -33,11 +33,17 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Amount Min</label>
-              <input v-model="filters.amount_min" type="number" step="0.01" class="w-full p-2 border border-gray-300 rounded-lg" />
+              <input v-model="filters.amount_min"
+type="number"
+step="0.01"
+class="w-full p-2 border border-gray-300 rounded-lg" />
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Amount Max</label>
-              <input v-model="filters.amount_max" type="number" step="0.01" class="w-full p-2 border border-gray-300 rounded-lg" />
+              <input v-model="filters.amount_max"
+type="number"
+step="0.01"
+class="w-full p-2 border border-gray-300 rounded-lg" />
             </div>
             <div class="flex items-end">
               <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Apply Filters</button>
@@ -85,7 +91,8 @@
                   <span :class="{
                     'bg-green-100 text-green-800': donation.status === 'completed',
                     'bg-yellow-100 text-yellow-800': donation.status === 'pending',
-                  }" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                  }"
+class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
                     {{ donation.status }}
                   </span>
                 </td>
@@ -104,11 +111,17 @@
             <form @submit.prevent="sendMassEmail">
               <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Subject</label>
-                <input v-model="emailForm.subject" type="text" class="w-full p-2 border border-gray-300 rounded-lg" required />
+                <input v-model="emailForm.subject"
+type="text"
+class="w-full p-2 border border-gray-300 rounded-lg"
+required />
               </div>
               <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700">Message</label>
-                <textarea v-model="emailForm.message" class="w-full p-2 border border-gray-300 rounded-lg" rows="4" required></textarea>
+                <textarea v-model="emailForm.message"
+class="w-full p-2 border border-gray-300 rounded-lg"
+rows="4"
+required></textarea>
               </div>
               <div class="flex justify-end space-x-4">
                 <button @click="closeEmailModal" type="button" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">Cancel</button>

@@ -4,7 +4,10 @@
       <h2 class="text-xl font-bold mb-4">Add Members as Participants</h2>
       <form @submit.prevent="handleSave">
         <label class="block mb-2 font-medium">Select Members</label>
-        <select v-model="selected" multiple class="input w-full mb-4" size="8">
+        <select v-model="selected"
+multiple
+class="input w-full mb-4"
+size="8">
           <option v-for="member in members" :key="member.id" :value="member.id">
             {{ member.first_name }} {{ member.last_name }} ({{ member.email }})
           </option>

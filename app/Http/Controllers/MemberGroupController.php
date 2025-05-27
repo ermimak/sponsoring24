@@ -20,6 +20,7 @@ class MemberGroupController extends Controller
             return Inertia::render('Members/Groups');
         } catch (\Exception $e) {
             Log::error('Failed to load groups page: ' . $e->getMessage());
+
             return response()->json(['message' => 'Failed to load groups page'], 500);
         }
     }
@@ -34,9 +35,11 @@ class MemberGroupController extends Controller
                     'member_count' => $group->participants()->count(),
                 ];
             });
+
             return response()->json($groups);
         } catch (\Exception $e) {
             Log::error('Failed to load groups data: ' . $e->getMessage());
+
             return response()->json(['message' => 'Failed to load groups data'], 500);
         }
     }
@@ -48,16 +51,18 @@ class MemberGroupController extends Controller
         ]);
 
         $group = MemberGroup::create(['name' => $request->name]);
+
         return response()->json(['message' => 'Group created', 'group' => $group], 201);
     }
 
     public function destroy(MemberGroup $memberGroup)
     {
-        if (!$memberGroup->exists) {
+        if (! $memberGroup->exists) {
             return response()->json(['message' => 'Group not found'], 404);
         }
         $memberGroup->participants()->detach();
         $memberGroup->delete();
+
         return response()->json(['message' => 'Group deleted'], 204);
     }
 }

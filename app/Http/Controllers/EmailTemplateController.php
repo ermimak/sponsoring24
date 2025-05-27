@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\EmailTemplate;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class EmailTemplateController extends Controller
 {
@@ -12,15 +11,17 @@ class EmailTemplateController extends Controller
     {
         $projectId = $request->query('project_id');
 
-        if (!$projectId) {
+        if (! $projectId) {
             return response()->json(['error' => 'Project ID is required'], 400);
         }
 
         try {
             $templates = EmailTemplate::where('project_id', $projectId)->get();
+
             return response()->json(['data' => $templates]);
         } catch (\Exception $e) {
             \Log::error('Failed to fetch email templates: ' . $e->getMessage());
+
             return response()->json(['error' => 'Failed to fetch email templates'], 500);
         }
     }
@@ -44,6 +45,7 @@ class EmailTemplateController extends Controller
         ]);
 
         $template = EmailTemplate::create($data);
+
         return response()->json($template, 201);
     }
 
@@ -70,12 +72,14 @@ class EmailTemplateController extends Controller
         ]);
 
         $emailTemplate->update($data);
+
         return response()->json($emailTemplate);
     }
 
     public function destroy(EmailTemplate $emailTemplate)
     {
         $emailTemplate->delete();
+
         return response()->noContent();
     }
 }

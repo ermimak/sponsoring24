@@ -20,7 +20,10 @@
       <div class="flex flex-col md:flex-row gap-4 mb-4">
         <div class="bg-gray-50 border rounded p-4 w-full md:w-1/4">
           <label class="block text-sm font-medium mb-1">Search</label>
-          <input v-model="search" type="text" class="input w-full mb-2" placeholder="Search" />
+          <input v-model="search"
+type="text"
+class="input w-full mb-2"
+placeholder="Search" />
         </div>
         <div class="flex-1 overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg border">
@@ -43,7 +46,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ member.member_id || 'N/A' }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <button @click="openGroupModal(member)" class="text-indigo-600 hover:text-indigo-900">{{ member.groups.join(', ') || 'None' }}</button>
+                  <button @click="openGroupModal(member)" class="text-indigo-600 hover:text-indigo-900">{{ (member.groups || []).join(', ') || 'None' }}</button>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ member.public_registration ? 'Yes' : 'No' }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">{{ member.email_status || 'OK' }}</td>
@@ -66,7 +69,11 @@
         </div>
       </div>
       <ImportExportModal :show="showImportExport" @close="handleImportExportClose" @import="handleImport" />
-      <GroupModal :show="showGroupModal" :group="editingGroup" :member="editingMember" @save="handleGroupSave" @close="() => showGroupModal = false" />
+      <GroupModal :show="showGroupModal"
+:group="editingGroup"
+:member="editingMember"
+@save="handleGroupSave"
+@close="() => showGroupModal = false" />
       <div v-if="loading" class="p-4 text-center text-gray-500">Loading...</div>
       <div v-if="error" class="p-4 text-center text-red-500">{{ error }}</div>
       <div v-if="message" class="p-4 text-center text-green-500">{{ message }}</div>

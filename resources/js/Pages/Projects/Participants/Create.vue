@@ -17,7 +17,10 @@
                 Select one or more groups to add their members as participants to this project. All members of the selected groups will be added.
               </p>
               <label class="block text-sm font-medium text-gray-700 mb-1">Groups*</label>
-              <select v-model="selectedGroups" multiple class="input w-full" required>
+              <select v-model="selectedGroups"
+multiple
+class="input w-full"
+required>
                 <option v-for="group in groups" :key="group.id" :value="group.id">{{ group.name }}</option>
               </select>
               <p class="text-sm text-gray-600 mt-1">Hold Ctrl (Windows) or Cmd (Mac) to select multiple groups.</p>
@@ -34,7 +37,10 @@
               <button type="button" @click="cancel" class="px-6 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">
                 Cancel
               </button>
-              <button @click="addParticipants" type="submit" class="px-6 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition" :disabled="loading || selectedGroups.length === 0">
+              <button @click="addParticipants"
+type="submit"
+class="px-6 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
+:disabled="loading || selectedGroups.length === 0">
                 {{ loading ? 'Adding...' : 'Add Participants' }}
               </button>
             </div>

@@ -3,7 +3,10 @@
     <h1 class="text-2xl font-bold mb-4">Roles Management</h1>
     <div class="mb-4">
       <form @submit.prevent="createRole">
-        <input v-model="newRole.name" placeholder="Role name" class="border p-2 mr-2" required />
+        <input v-model="newRole.name"
+placeholder="Role name"
+class="border p-2 mr-2"
+required />
         <input v-model="newRole.label" placeholder="Label (optional)" class="border p-2 mr-2" />
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Add Role</button>
       </form>
@@ -43,7 +46,10 @@
         <h3 class="font-semibold mb-1">Assign Permissions</h3>
         <div>
           <label v-for="perm in permissions" :key="perm.id" class="inline-flex items-center mr-3">
-            <input type="checkbox" :value="perm.id" v-model="editingRolePermissionIds" @change="togglePermission(perm.id)" />
+            <input type="checkbox"
+:value="perm.id"
+v-model="editingRolePermissionIds"
+@change="togglePermission(perm.id)" />
             <span class="ml-1">{{ perm.name }}</span>
           </label>
         </div>
