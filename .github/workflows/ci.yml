@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   docker-tests:
     name: Docker Tests
@@ -166,4 +170,5 @@ jobs:
       with:
         name: build-artifacts
         path: build-artifacts
-        retention-days: 7 
+        retention-days: 7
+        github-token: ${{ secrets.GITHUB_TOKEN }} 
