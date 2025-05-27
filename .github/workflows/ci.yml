@@ -149,10 +149,13 @@ jobs:
     - name: Build Assets
       run: npm run build
 
+    - name: List build directory
+      run: ls -la public/build
+
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: build
+        name: build-artifacts
         path: |
           public/build
           vendor
