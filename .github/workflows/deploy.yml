@@ -19,33 +19,23 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Download Build Artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v4
       with:
-        name: build-artifacts
-        path: build-artifacts
-        run-id: ${{ github.event.workflow_run.id }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        name: build
+        path: .
+        run_id: ${{ github.event.workflow_run.id }}
 
-    - name: Verify Downloaded Artifacts
+    - name: Verify Artifacts
       run: |
-        echo "Verifying downloaded artifacts..."
-        if [ ! -d "build-artifacts" ]; then
-          echo "Error: build-artifacts directory not found"
+        if [ ! -d "public/build" ]; then
+          echo "Error: public/build directory not found"
           exit 1
         fi
-        echo "Contents of build-artifacts:"
-        ls -la build-artifacts
-        echo "Contents of build-artifacts/build:"
-        ls -la build-artifacts/build || true
-        echo "Contents of build-artifacts/vendor:"
-        ls -la build-artifacts/vendor || true
-
-    - name: Prepare Deployment Files
-      run: |
-        echo "Preparing deployment files..."
-        mkdir -p public/build
-        cp -r build-artifacts/build/* public/build/
-        cp -r build-artifacts/vendor vendor/
+        if [ ! -d "vendor" ]; then
+          echo "Error: vendor directory not found"
+          exit 1
+        fi
+        echo "Artifacts verified successfully"
 
     - name: Deploy to Production
       uses: appleboy/ssh-action@master
@@ -54,19 +44,35 @@ jobs:
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
+          set -e
           cd /var/www/fundoo
-          echo "Pulling latest changes..."
           git pull origin main
-          echo "Copying artifacts..."
-          mkdir -p public/build vendor
-          cp -r build-artifacts/build/* public/build/
-          cp -r build-artifacts/vendor/* vendor/
-          echo "Optimizing application..."
+          composer install --no-dev --optimize-autoloader
           php artisan optimize
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
-          echo "Restarting services..."
           sudo systemctl restart php8.3-fpm
           sudo systemctl restart nginx
-          echo "Deployment completed successfully!"
+
+    - name: Notify on Success
+      if: success()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_CHANNEL: deployments
+        SLACK_COLOR: good
+        SLACK_TITLE: Deployment Successful
+        SLACK_MESSAGE: 'Deployment to production completed successfully!'
+        SLACK_FOOTER: 'Fundoo Platform'
+
+    - name: Notify on Failure
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_CHANNEL: deployments
+        SLACK_COLOR: danger
+        SLACK_TITLE: Deployment Failed
+        SLACK_MESSAGE: 'Deployment to production failed!'
+        SLACK_FOOTER: 'Fundoo Platform' 

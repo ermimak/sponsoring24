@@ -6,10 +6,6 @@ on:
   pull_request:
     branches: [ main, develop ]
 
-permissions:
-  contents: read
-  packages: write
-
 jobs:
   docker-tests:
     name: Docker Tests
@@ -153,21 +149,19 @@ jobs:
     - name: Build Assets
       run: npm run build
 
-    - name: Verify Build Output
+    - name: List build directory
       run: |
-        echo "Checking build directory structure..."
-        ls -la public/build
-        echo "Checking vendor directory..."
-        ls -la vendor
-        echo "Creating artifact directory..."
-        mkdir -p build-artifacts
-        echo "Copying files to artifact directory..."
-        cp -r public/build build-artifacts/
-        cp -r vendor build-artifacts/
+        echo "Contents of public/build:"
+        ls -la public/build || true
+        echo "Contents of vendor:"
+        ls -la vendor || true
 
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
-        name: build-artifacts
-        path: build-artifacts
-        retention-days: 7 
+        name: build
+        path: |
+          public/build
+          vendor
+        retention-days: 5
+        if-no-files-found: error 
