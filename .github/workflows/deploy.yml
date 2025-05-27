@@ -22,14 +22,28 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: build-artifacts
-        path: .
+        path: build-artifacts
 
-    - name: List downloaded artifacts
+    - name: Verify Downloaded Artifacts
       run: |
-        echo "Contents of public/build:"
-        ls -la public/build || true
-        echo "Contents of vendor:"
-        ls -la vendor || true
+        echo "Verifying downloaded artifacts..."
+        if [ ! -d "build-artifacts" ]; then
+          echo "Error: build-artifacts directory not found"
+          exit 1
+        fi
+        echo "Contents of build-artifacts:"
+        ls -la build-artifacts
+        echo "Contents of build-artifacts/build:"
+        ls -la build-artifacts/build || true
+        echo "Contents of build-artifacts/vendor:"
+        ls -la build-artifacts/vendor || true
+
+    - name: Prepare Deployment Files
+      run: |
+        echo "Preparing deployment files..."
+        mkdir -p public/build
+        cp -r build-artifacts/build/* public/build/
+        cp -r build-artifacts/vendor vendor/
 
     - name: Deploy to Production
       uses: appleboy/ssh-action@master
@@ -39,14 +53,19 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           cd /var/www/fundoo
+          echo "Pulling latest changes..."
           git pull origin main
+          echo "Installing dependencies..."
           composer install --no-dev --optimize-autoloader
+          echo "Optimizing application..."
           php artisan optimize
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
+          echo "Restarting services..."
           sudo systemctl restart php8.3-fpm
           sudo systemctl restart nginx
+          echo "Deployment completed successfully!"
 
     - name: Notify on Success
       if: success()

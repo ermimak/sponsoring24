@@ -149,14 +149,21 @@ jobs:
     - name: Build Assets
       run: npm run build
 
-    - name: List build directory
-      run: ls -la public/build
+    - name: Verify Build Output
+      run: |
+        echo "Checking build directory structure..."
+        ls -la public/build
+        echo "Checking vendor directory..."
+        ls -la vendor
+        echo "Creating artifact directory..."
+        mkdir -p build-artifacts
+        echo "Copying files to artifact directory..."
+        cp -r public/build build-artifacts/
+        cp -r vendor build-artifacts/
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-artifacts
-        path: |
-          public/build
-          vendor
-        retention-days: 5 
+        path: build-artifacts
+        retention-days: 7 
