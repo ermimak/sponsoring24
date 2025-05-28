@@ -149,18 +149,26 @@ jobs:
     - name: Build Assets
       run: npm run build
 
-    - name: List build directory
+    - name: Debug Directory Structure
       run: |
-        echo "Contents of public/build:"
-        ls -la public/build || true
-        echo "Contents of vendor:"
+        echo "Current directory: $(pwd)"
+        echo "Listing all files:"
+        ls -la
+        echo "Listing public directory:"
+        ls -la public || true
+        echo "Listing vendor directory:"
         ls -la vendor || true
+
+    - name: Create Build Directory
+      run: |
+        mkdir -p public/build
+        mkdir -p vendor
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: build
-        path: |
+        name: build-artifacts
+        path: build-artifacts
           public/build
           vendor
         retention-days: 5
