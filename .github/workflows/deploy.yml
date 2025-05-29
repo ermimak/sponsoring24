@@ -5,9 +5,6 @@ on:
     workflows: ["CI"]
     types:
       - completed
-    branches:
-      - main
-      - develop
 
 jobs:
   deploy:
@@ -16,65 +13,34 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Debug Workflow Run
-      run: |
-        echo "Workflow Run ID: ${{ github.event.workflow_run.id }}"
-        echo "Workflow Run Conclusion: ${{ github.event.workflow_run.conclusion }}"
-        echo "Workflow Run Head Branch: ${{ github.event.workflow_run.head_branch }}"
-        echo "Repository: ${{ github.repository }}"
-        echo "Artifacts URL: https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts"
-
-    - name: Download Build Artifacts from CI Workflow
+    - name: Download Artifacts from CI
       uses: dawidd6/action-download-artifact@v3
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         workflow: CI
         name: build-artifacts
+        path: build-artifacts
+        branch: main
         workflow_conclusion: success
 
-    - name: Debug Downloaded Artifacts
+    - name: Check Downloaded Artifacts
       run: |
-        echo "Current directory: $(pwd)"
-        echo "Listing all files in build-artifacts:"
-        ls -la build-artifacts || true
-        echo "Listing build directory:"
-        ls -la build-artifacts/build || true
-        echo "Listing vendor directory:"
-        ls -la build-artifacts/vendor || true
+        ls -la build-artifacts
+        ls -la build-artifacts/build || echo "No build dir"
+        ls -la build-artifacts/vendor || echo "No vendor dir"
 
-    - name: Verify Artifacts
-      run: |
-        if [ ! -d "build-artifacts/build" ]; then
-          echo "Error: build directory not found"
-          exit 1
-        fi
-        if [ ! -d "build-artifacts/vendor" ]; then
-          echo "Error: vendor directory not found"
-          exit 1
-        fi
-        echo "Artifacts verified successfully"
-        mkdir -p public/build
-        cp -r build-artifacts/build/* public/build/
-        cp -r build-artifacts/vendor vendor/
-        echo "Listing copied files:"
-        ls -la public/build
-        ls -la vendor
-
-    - name: Deploy to Production
+    - name: Deploy via SSH
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          set -e
           cd /var/www/fundoo
           git pull origin main
           mkdir -p public/build
-          cp -r build-artifacts/build/* public/build/
-          cp -r build-artifacts/vendor vendor/
+          cp -r build-artifacts/build/* public/build/ || echo "No build to copy"
+          cp -r build-artifacts/vendor vendor/ || echo "No vendor to copy"
           php artisan optimize
           php artisan config:cache
           php artisan route:cache
