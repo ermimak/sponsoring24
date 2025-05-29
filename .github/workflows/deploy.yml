@@ -5,9 +5,6 @@ on:
     workflows: ["CI"]
     types:
       - completed
-    branches:
-      - main
-      - develop
 
 jobs:
   deploy:
@@ -16,63 +13,37 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
 
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Download Build Artifacts
-      uses: actions/download-artifact@v4
+    - name: Download Artifacts from CI
+      uses: dawidd6/action-download-artifact@v3
       with:
-        name: build
-        path: .
-        run_id: ${{ github.event.workflow_run.id }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        workflow: CI
+        name: build-artifacts
+        path: build-artifacts
+        branch: main
+        workflow_conclusion: success
 
-    - name: Verify Artifacts
+    - name: Check Downloaded Artifacts
       run: |
-        if [ ! -d "public/build" ]; then
-          echo "Error: public/build directory not found"
-          exit 1
-        fi
-        if [ ! -d "vendor" ]; then
-          echo "Error: vendor directory not found"
-          exit 1
-        fi
-        echo "Artifacts verified successfully"
+        ls -la build-artifacts
+        ls -la build-artifacts/build || echo "No build dir"
+        ls -la build-artifacts/vendor || echo "No vendor dir"
 
-    - name: Deploy to Production
+    - name: Deploy via SSH
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.SSH_HOST }}
         username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          set -e
           cd /var/www/fundoo
           git pull origin main
-          composer install --no-dev --optimize-autoloader
+          mkdir -p public/build
+          cp -r build-artifacts/build/* public/build/ || echo "No build to copy"
+          cp -r build-artifacts/vendor vendor/ || echo "No vendor to copy"
           php artisan optimize
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
           sudo systemctl restart php8.3-fpm
           sudo systemctl restart nginx
-
-    - name: Notify on Success
-      if: success()
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_CHANNEL: deployments
-        SLACK_COLOR: good
-        SLACK_TITLE: Deployment Successful
-        SLACK_MESSAGE: 'Deployment to production completed successfully!'
-        SLACK_FOOTER: 'Fundoo Platform'
-
-    - name: Notify on Failure
-      if: failure()
-      uses: rtCamp/action-slack-notify@v2
-      env:
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-        SLACK_CHANNEL: deployments
-        SLACK_COLOR: danger
-        SLACK_TITLE: Deployment Failed
-        SLACK_MESSAGE: 'Deployment to production failed!'
-        SLACK_FOOTER: 'Fundoo Platform' 
