@@ -12,29 +12,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker Images
-        run: docker compose --project-name fundoo build
+    - name: Build Docker Images
+      run: docker compose build
 
-      - name: Run Docker Tests
-        run: |
-          docker compose --project-name fundoo up -d
-          docker compose --project-name fundoo exec -T app composer install --no-interaction --prefer-dist
-          docker compose --project-name fundoo exec -T app cp .env.example .env
-          docker compose --project-name fundoo exec -T app php artisan key:generate
-          docker compose --project-name fundoo exec -T app php artisan test
-          docker compose --project-name fundoo exec -T app vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff --allow-risky=yes
-          docker compose --project-name fundoo down
+    - name: Run Docker Tests
+      run: |
+        docker compose up -d
+        docker compose exec -T app composer install --no-interaction --prefer-dist --optimize-autoloader
+        docker compose exec -T app cp .env.example .env
+        docker compose exec -T app php artisan key:generate
+        docker compose exec -T app php artisan test
+        docker compose exec -T app vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.php --dry-run --diff
+        docker compose down
 
   php-tests:
     name: PHP Tests & Linting
     runs-on: ubuntu-latest
     needs: docker-tests
-
+    
     services:
       postgres:
         image: postgres:15
@@ -51,41 +51,40 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, fileinfo
-          coverage: xdebug
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, fileinfo
+        coverage: xdebug
 
-      - name: Copy .env
-        run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
 
-      - name: Install Dependencies
-        run: composer install --no-interaction --prefer-dist
+    - name: Install Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
 
-      - name: Generate key
-        run: php artisan key:generate
+    - name: Generate key
+      run: php artisan key:generate
 
-      - name: Set Directory Permissions
-        run: chmod -R 777 storage bootstrap/cache
+    - name: Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
 
-      - name: Create SQLite Database
-        run: |
-          mkdir -p database
-          touch database/database.sqlite
+    - name: Create Database
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
 
-      - name: Run PHPUnit Tests
-        env:
-          DB_CONNECTION: sqlite
-          DB_DATABASE: database/database.sqlite
-          APP_ENV: testing
-        run: vendor/bin/phpunit
+    - name: Execute tests (via PHPUnit)
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: vendor/bin/phpunit
 
-      - name: PHP CS Fixer
-        run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
+    - name: PHP CS Fixer
+      run: vendor/bin/php-cs-fixer fix --dry-run --diff
 
   js-tests:
     name: JavaScript Tests & Linting
@@ -93,25 +92,25 @@ jobs:
     needs: docker-tests
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
 
-      - name: Install Dependencies
-        run: npm ci
+    - name: Install Dependencies
+      run: npm ci
 
-      - name: Lint
-        run: npm run lint
+    - name: Lint
+      run: npm run lint
 
-      - name: Type Check
-        run: npm run type-check
+    - name: Type Check
+      run: npm run type-check
 
-      - name: Test
-        run: npm run test
+    - name: Test
+      run: npm run test
 
   build:
     name: Build
@@ -120,47 +119,57 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
 
     steps:
-      - uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker Images
-        run: |
-          docker compose -f docker-compose.prod.yml build
-          docker compose -f docker-compose.prod.yml push
+    - name: Build and Push Docker Images
+      run: |
+        docker compose -f docker-compose.prod.yml build
+        docker compose -f docker-compose.prod.yml push
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
 
-      - name: Install Dependencies
-        run: |
-          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-          npm ci
+    - name: Install Dependencies
+      run: |
+        composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --no-dev --optimize-autoloader
+        npm ci
 
-      - name: Build Frontend Assets
-        run: npm run build
+    - name: Build Assets
+      run: npm run build
 
-      - name: Prepare Artifact Directory
-        run: |
-          mkdir -p build-artifacts/build
-          mkdir -p build-artifacts/vendor
-          cp -r public/build/* build-artifacts/build/
-          cp -r vendor/* build-artifacts/vendor/
+    - name: Prepare Artifact Directory
+      run: |
+        mkdir -p build-artifacts/build
+        mkdir -p build-artifacts/vendor
+        cp -r public/build/* build-artifacts/build/
+        cp -r vendor/* build-artifacts/vendor/
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: build-artifacts/
-          retention-days: 5
-          if-no-files-found: error
+    - name: Debug Artifact Directory
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Listing build-artifacts:"
+        ls -la build-artifacts
+        echo "Listing build-artifacts/build:"
+        ls -la build-artifacts/build || true
+        echo "Listing build-artifacts/vendor:"
+        ls -la build-artifacts/vendor || true
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: build-artifacts/
+        retention-days: 5
+        if-no-files-found: error
