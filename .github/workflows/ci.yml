@@ -143,33 +143,33 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --no-dev --optimize-autoloader
         npm ci
 
     - name: Build Assets
       run: npm run build
 
-    - name: Debug Directory Structure
+    - name: Prepare Artifact Directory
+      run: |
+        mkdir -p build-artifacts/build
+        mkdir -p build-artifacts/vendor
+        cp -r public/build/* build-artifacts/build/
+        cp -r vendor/* build-artifacts/vendor/
+
+    - name: Debug Artifact Directory
       run: |
         echo "Current directory: $(pwd)"
-        echo "Listing all files:"
-        ls -la
-        echo "Listing public directory:"
-        ls -la public || true
-        echo "Listing vendor directory:"
-        ls -la vendor || true
-
-    - name: Create Build Directory
-      run: |
-        mkdir -p public/build
-        mkdir -p vendor
+        echo "Listing build-artifacts:"
+        ls -la build-artifacts
+        echo "Listing build-artifacts/build:"
+        ls -la build-artifacts/build || true
+        echo "Listing build-artifacts/vendor:"
+        ls -la build-artifacts/vendor || true
 
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: build-artifacts
-        path: build-artifacts
-          public/build
-          vendor
+        path: build-artifacts/
         retention-days: 5
-        if-no-files-found: error 
+        if-no-files-found: error
