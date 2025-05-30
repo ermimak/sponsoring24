@@ -1,4 +1,4 @@
-FROM php:8.2-fpm
+FROM php:8.2-apache
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -30,23 +30,33 @@ RUN mkdir -p /home/dev/.composer && \
     chown -R dev:dev /home/dev
 
 # Set working directory
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 # Copy existing application directory contents
-COPY . /var/www
+COPY . /var/www/html
 
 # Copy existing application directory permissions
-COPY --chown=www-data:www-data . /var/www
+COPY --chown=www-data:www-data . /var/www/html
 
 # Create storage directory structure and set permissions
-RUN mkdir -p /var/www/storage/framework/{sessions,views,cache} \
-    && mkdir -p /var/www/storage/logs \
-    && mkdir -p /var/www/bootstrap/cache \
-    && chown -R www-data:www-data /var/www/storage \
-    && chown -R www-data:www-data /var/www/bootstrap/cache \
-    && chmod -R 775 /var/www/storage \
-    && chmod -R 775 /var/www/bootstrap/cache
+RUN mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
+    && mkdir -p /var/www/html/storage/logs \
+    && mkdir -p /var/www/html/bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html/storage \
+    && chown -R www-data:www-data /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
 
-# Expose port 9000 and start php-fpm server
-EXPOSE 9000
-CMD ["php-fpm"]
+# Configure Apache
+RUN a2enmod rewrite
+COPY docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+
+# Install dependencies and build assets
+RUN composer install --no-dev --optimize-autoloader
+RUN npm install && npm run build
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache
+CMD ["apache2-foreground"]
