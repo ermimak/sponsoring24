@@ -17,6 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     # Only proceed if the CI workflow was successful and it was on the 'main' branch
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    
+    # Add permissions for the GITHUB_TOKEN to allow downloading artifacts
+    permissions:
+      contents: read # Required to checkout code and potentially access repository content
+      actions: read  # Required to read workflow run metadata and download artifacts
 
     steps:
     - uses: actions/checkout@v4
@@ -39,8 +44,9 @@ jobs:
         path: build-artifacts
         # The run ID of the workflow that produced the artifact. This is crucial for cross-workflow artifact fetching.
         run-id: ${{ github.event.workflow_run.id }}
-        # Provide the GITHUB_TOKEN for authentication to download artifacts from another workflow run.
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # Provide the FUNDOO secret for authentication to download artifacts from another workflow run.
+        # This has been updated from secrets.GITHUB_TOKEN to secrets.FUNDOO based on your provided secrets.
+        github-token: ${{ secrets.FUNDOO }}
       # Do not continue if artifact download fails.
       continue-on-error: false
 
