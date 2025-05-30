@@ -2,9 +2,11 @@ name: Deploy
 
 on:
   workflow_run:
+    # Trigger this workflow when the 'CI' workflow completes
     workflows: ["CI"]
     types:
       - completed
+    # Only run for pushes to main or develop branches in the CI workflow
     branches:
       - main
       - develop
@@ -13,6 +15,7 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
+    # Only proceed if the CI workflow was successful and it was on the 'main' branch
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
 
     steps:
@@ -26,44 +29,23 @@ jobs:
         echo "Repository: ${{ github.repository }}"
         echo "Artifacts URL: https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts"
 
-    - name: Wait for Artifacts
-      run: |
-        max_attempts=30
-        attempt=1
-        while [ $attempt -le $max_attempts ]; do
-          echo "Attempt $attempt of $max_attempts to check for artifacts..."
-          artifacts=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-                          -H "Accept: application/vnd.github.v3+json" \
-                          "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts")
-          
-          if echo "$artifacts" | jq -e '.artifacts | length > 0' > /dev/null; then
-            echo "Artifacts found!"
-            echo "$artifacts" | jq '.artifacts[] | {name: .name, expired: .expired}'
-            exit 0
-          fi
-          
-          echo "No artifacts found yet, waiting..."
-          sleep 10
-          attempt=$((attempt + 1))
-        done
-        
-        echo "Failed to find artifacts after $max_attempts attempts"
-        exit 1
-
     - name: Download Build Artifacts
       id: download-artifacts
       uses: actions/download-artifact@v4
       with:
+        # The name of the artifact to download. This must match the name used in the upload-artifact step in CI.
         name: build-artifacts
+        # The path where the artifact will be downloaded.
         path: build-artifacts
+        # The run ID of the workflow that produced the artifact. This is crucial for cross-workflow artifact fetching.
         run-id: ${{ github.event.workflow_run.id }}
+        # Provide the GITHUB_TOKEN for authentication to download artifacts from another workflow run.
         github-token: ${{ secrets.GITHUB_TOKEN }}
+      # Do not continue if artifact download fails.
       continue-on-error: false
-      env:
-        ACTIONS_RUNTIME_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Debug Artifact Download
+      # Only run this step if the artifact download was successful
       if: steps.download-artifacts.outcome == 'success'
       run: |
         echo "Artifact download status: ${{ steps.download-artifacts.outcome }}"
@@ -76,6 +58,7 @@ jobs:
         ls -la build-artifacts/vendor || echo "vendor directory not found"
 
     - name: Verify Artifact Contents
+      # Only run this step if the artifact download was successful
       if: steps.download-artifacts.outcome == 'success'
       run: |
         if [ ! -d "build-artifacts" ]; then
@@ -101,13 +84,18 @@ jobs:
         script: |
           set -e
           cd /var/www/fundoo
+          # Pull the latest code (optional, as artifacts are used for build, but good for config/db changes)
           git pull origin main
+          # Ensure target directories exist
           mkdir -p public/build
+          # Copy the built assets and vendor files from the downloaded artifacts
           cp -r build-artifacts/build/* public/build/
-          cp -r build-artifacts/vendor vendor/
+          cp -r build-artifacts/vendor/* vendor/
+          # Clear and cache Laravel configurations
           php artisan optimize
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
+          # Restart PHP-FPM and Nginx to apply changes
           sudo systemctl restart php8.3-fpm
           sudo systemctl restart nginx

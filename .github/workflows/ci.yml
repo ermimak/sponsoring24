@@ -116,6 +116,7 @@ jobs:
     name: Build
     needs: [php-tests, js-tests]
     runs-on: ubuntu-latest
+    # Only run build on push to main or develop, after all tests pass
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
 
     steps:
@@ -151,8 +152,10 @@ jobs:
 
     - name: Prepare Artifact Directory
       run: |
+        # Create the artifact directories
         mkdir -p build-artifacts/build
         mkdir -p build-artifacts/vendor
+        # Copy built assets and vendor files into the artifact directories
         cp -r public/build/* build-artifacts/build/
         cp -r vendor/* build-artifacts/vendor/
 
@@ -169,7 +172,11 @@ jobs:
     - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
+        # The name of the artifact. This must match the name used in the download-artifact step.
         name: build-artifacts
+        # The path to the directory containing the artifacts to upload.
         path: build-artifacts/
+        # How many days to retain the artifact.
         retention-days: 5
+        # Fail the workflow if no files are found to upload.
         if-no-files-found: error
