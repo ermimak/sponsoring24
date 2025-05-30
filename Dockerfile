@@ -112,16 +112,19 @@ mkdir -p /var/www/html/public/js\n\
 if [ ! -f .env ]; then\n\
     if [ -f .env.example ]; then\n\
         cp .env.example .env\n\
+        if [ -n "$APP_KEY" ]; then\n\
+            sed -i "s/APP_KEY=/APP_KEY=$APP_KEY/" .env\n\
+        fi\n\
     else\n\
         echo "APP_NAME=Laravel\n\
 APP_ENV=production\n\
-APP_KEY=\n\
+APP_KEY=$APP_KEY\n\
 APP_DEBUG=false\n\
 APP_URL=https://fundoo.onrender.com\n\
 \n\
 LOG_CHANNEL=stack\n\
 LOG_DEPRECATIONS_CHANNEL=null\n\
-LOG_LEVEL=debug\n\
+LOG_LEVEL=error\n\
 \n\
 DB_CONNECTION=pgsql\n\
 DB_HOST=${DB_HOST}\n\
@@ -183,7 +186,11 @@ if [ ! -f /var/www/html/public/build/manifest.json ]; then\n\
 fi\n\
 \n\
 # Run Laravel setup commands\n\
-php artisan key:generate --force\n\
+if [ -z "$APP_KEY" ]; then\n\
+    php artisan key:generate --force\n\
+else\n\
+    echo "APP_KEY is set, skipping key generation"\n\
+fi\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
