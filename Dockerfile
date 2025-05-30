@@ -107,7 +107,7 @@ echo "Setting up Laravel..."\n\
 # Create js directory if it doesn'\''t exist\n\
 mkdir -p /var/www/html/public/js\n\
 \n\
-# Ensure .env exists with correct database configuration\n\
+# Ensure .env exists\n\
 if [ ! -f .env ]; then\n\
     if [ -f .env.example ]; then\n\
         cp .env.example .env\n\
@@ -123,11 +123,11 @@ LOG_DEPRECATIONS_CHANNEL=null\n\
 LOG_LEVEL=debug\n\
 \n\
 DB_CONNECTION=pgsql\n\
-DB_HOST=${POSTGRES_HOST}\n\
-DB_PORT=${POSTGRES_PORT}\n\
-DB_DATABASE=${POSTGRES_DATABASE}\n\
-DB_USERNAME=${POSTGRES_USER}\n\
-DB_PASSWORD=${POSTGRES_PASSWORD}\n\
+DB_HOST=${DB_HOST}\n\
+DB_PORT=${DB_PORT}\n\
+DB_DATABASE=${DB_DATABASE}\n\
+DB_USERNAME=${DB_USERNAME}\n\
+DB_PASSWORD=${DB_PASSWORD}\n\
 \n\
 BROADCAST_DRIVER=log\n\
 CACHE_DRIVER=file\n\
@@ -198,11 +198,25 @@ chmod -R 775 /var/www/html/public/js\n\
 \n\
 # Wait for database to be ready\n\
 echo "Waiting for database connection..."\n\
-while ! pg_isready -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d ${POSTGRES_DATABASE} > /dev/null 2>&1; do\n\
+\n\
+# Wait for database with retry\n\
+max_attempts=30\n\
+attempt=1\n\
+while [ $attempt -le $max_attempts ]; do\n\
+    echo "Attempt $attempt of $max_attempts to connect to database..."\n\
+    if PGPASSWORD=${DB_PASSWORD} psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_DATABASE} -c "\q" > /dev/null 2>&1; then\n\
+        echo "Database is up - executing migrations"\n\
+        break\n\
+    fi\n\
     echo "Database is unavailable - sleeping"\n\
-    sleep 1\n\
+    sleep 2\n\
+    attempt=$((attempt + 1))\n\
 done\n\
-echo "Database is up - executing migrations"\n\
+\n\
+if [ $attempt -gt $max_attempts ]; then\n\
+    echo "Could not connect to database after $max_attempts attempts"\n\
+    exit 1\n\
+fi\n\
 \n\
 # Run migrations\n\
 php artisan migrate --force\n\
