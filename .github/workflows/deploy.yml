@@ -26,49 +26,71 @@ jobs:
         echo "Repository: ${{ github.repository }}"
         echo "Artifacts URL: https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts"
 
-    - name: Check Available Artifacts
+    - name: Wait for Artifacts
       run: |
-        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-             -H "Accept: application/vnd.github.v3+json" \
-             https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts | jq '.artifacts[] | {name: .name, expired: .expired}'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        max_attempts=30
+        attempt=1
+        while [ $attempt -le $max_attempts ]; do
+          echo "Attempt $attempt of $max_attempts to check for artifacts..."
+          artifacts=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                          -H "Accept: application/vnd.github.v3+json" \
+                          "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts")
+          
+          if echo "$artifacts" | jq -e '.artifacts | length > 0' > /dev/null; then
+            echo "Artifacts found!"
+            echo "$artifacts" | jq '.artifacts[] | {name: .name, expired: .expired}'
+            exit 0
+          fi
+          
+          echo "No artifacts found yet, waiting..."
+          sleep 10
+          attempt=$((attempt + 1))
+        done
+        
+        echo "Failed to find artifacts after $max_attempts attempts"
+        exit 1
 
     - name: Download Build Artifacts
+      id: download-artifacts
       uses: actions/download-artifact@v4
       with:
         name: build-artifacts
         path: build-artifacts
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: false
+      env:
+        ACTIONS_RUNTIME_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Debug Downloaded Artifacts
+    - name: Debug Artifact Download
+      if: steps.download-artifacts.outcome == 'success'
       run: |
+        echo "Artifact download status: ${{ steps.download-artifacts.outcome }}"
         echo "Current directory: $(pwd)"
-        echo "Listing all files in build-artifacts:"
-        ls -la build-artifacts || true
-        echo "Listing build directory:"
-        ls -la build-artifacts/build || true
-        echo "Listing vendor directory:"
-        ls -la build-artifacts/vendor || true
+        echo "Listing build-artifacts directory:"
+        ls -la build-artifacts || echo "build-artifacts directory not found"
+        echo "Listing build-artifacts/build directory:"
+        ls -la build-artifacts/build || echo "build directory not found"
+        echo "Listing build-artifacts/vendor directory:"
+        ls -la build-artifacts/vendor || echo "vendor directory not found"
 
-    - name: Verify Artifacts
+    - name: Verify Artifact Contents
+      if: steps.download-artifacts.outcome == 'success'
       run: |
+        if [ ! -d "build-artifacts" ]; then
+          echo "Error: build-artifacts directory not found"
+          exit 1
+        fi
         if [ ! -d "build-artifacts/build" ]; then
-          echo "Error: build directory not found"
+          echo "Error: build directory not found in artifacts"
           exit 1
         fi
         if [ ! -d "build-artifacts/vendor" ]; then
-          echo "Error: vendor directory not found"
+          echo "Error: vendor directory not found in artifacts"
           exit 1
         fi
-        echo "Artifacts verified successfully"
-        mkdir -p public/build
-        cp -r build-artifacts/build/* public/build/
-        cp -r build-artifacts/vendor vendor/
-        echo "Listing copied files:"
-        ls -la public/build
-        ls -la vendor
+        echo "Artifact contents verified successfully"
 
     - name: Deploy to Production
       uses: appleboy/ssh-action@master
