@@ -42,4 +42,4 @@ services:
         - vite.config.js
         - resources/**
         - public/**
-    startCommand: php-fpm 
+    startCommand: /usr/local/bin/start.sh 
