@@ -198,25 +198,11 @@ chmod -R 775 /var/www/html/public/js\n\
 \n\
 # Wait for database to be ready\n\
 echo "Waiting for database connection..."\n\
-\n\
-# Wait for database with retry\n\
-max_attempts=30\n\
-attempt=1\n\
-while [ $attempt -le $max_attempts ]; do\n\
-    echo "Attempt $attempt of $max_attempts to connect to database..."\n\
-    if PGPASSWORD=${DB_PASSWORD} psql -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_DATABASE} -c "\q" > /dev/null 2>&1; then\n\
-        echo "Database is up - executing migrations"\n\
-        break\n\
-    fi\n\
+while ! pg_isready -h ${DB_HOST} -p ${DB_PORT} -U ${DB_USERNAME} -d ${DB_DATABASE} > /dev/null 2>&1; do\n\
     echo "Database is unavailable - sleeping"\n\
-    sleep 2\n\
-    attempt=$((attempt + 1))\n\
+    sleep 1\n\
 done\n\
-\n\
-if [ $attempt -gt $max_attempts ]; then\n\
-    echo "Could not connect to database after $max_attempts attempts"\n\
-    exit 1\n\
-fi\n\
+echo "Database is up - executing migrations"\n\
 \n\
 # Run migrations\n\
 php artisan migrate --force\n\
