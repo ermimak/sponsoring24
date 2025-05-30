@@ -49,7 +49,9 @@ RUN mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Configure Nginx
-RUN mkdir -p /etc/nginx/conf.d && \
+RUN rm -rf /etc/nginx/sites-enabled/default && \
+    rm -rf /etc/nginx/sites-available/default && \
+    mkdir -p /etc/nginx/conf.d && \
     echo 'server {\n\
     listen 0.0.0.0:80;\n\
     server_name _;\n\
@@ -62,8 +64,18 @@ RUN mkdir -p /etc/nginx/conf.d && \
 \n\
     charset utf-8;\n\
 \n\
+    # Handle static files\n\
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {\n\
+        expires max;\n\
+        log_not_found off;\n\
+        access_log off;\n\
+        add_header Cache-Control "public, no-transform";\n\
+        try_files $uri =404;\n\
+    }\n\
+\n\
     location / {\n\
         try_files $uri $uri/ /index.php?$query_string;\n\
+        gzip_static on;\n\
     }\n\
 \n\
     location = /favicon.ico { access_log off; log_not_found off; }\n\
@@ -75,6 +87,8 @@ RUN mkdir -p /etc/nginx/conf.d && \
         fastcgi_pass 127.0.0.1:9000;\n\
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
         include fastcgi_params;\n\
+        fastcgi_buffers 16 16k;\n\
+        fastcgi_buffer_size 32k;\n\
     }\n\
 \n\
     location ~ /\.(?!well-known).* {\n\
@@ -86,16 +100,47 @@ RUN mkdir -p /etc/nginx/conf.d && \
 RUN composer install --no-dev --optimize-autoloader
 RUN npm install && npm run build
 
-# Create startup script with debugging
+# Generate Ziggy routes
+RUN php artisan ziggy:generate
+
+# Create startup script with Laravel setup
 RUN echo '#!/bin/bash\n\
+echo "Setting up Laravel..."\n\
+\n\
+# Generate application key if not exists\n\
+if [ ! -f .env ]; then\n\
+    cp .env.example .env\n\
+fi\n\
+\n\
+# Run Laravel setup commands\n\
+php artisan key:generate --force\n\
+php artisan config:cache\n\
+php artisan route:cache\n\
+php artisan view:cache\n\
+php artisan storage:link\n\
+php artisan migrate --force\n\
+\n\
+# Ensure ziggy.js is generated and in the correct location\n\
+php artisan ziggy:generate\n\
+\n\
+# Set proper permissions\n\
+chown -R www-data:www-data /var/www/html/storage\n\
+chown -R www-data:www-data /var/www/html/bootstrap/cache\n\
+chown -R www-data:www-data /var/www/html/public/js\n\
+chmod -R 775 /var/www/html/storage\n\
+chmod -R 775 /var/www/html/bootstrap/cache\n\
+chmod -R 775 /var/www/html/public/js\n\
+\n\
 echo "Starting Nginx..."\n\
 nginx -t\n\
 service nginx start\n\
+\n\
 echo "Nginx started. Starting PHP-FPM..."\n\
 php-fpm\n\
+\n\
 echo "PHP-FPM started. Both services are running."\n\
 # Keep container running and show logs\n\
-tail -f /var/log/nginx/error.log /var/log/nginx/access.log' > /usr/local/bin/start.sh && \
+tail -f /var/log/nginx/error.log /var/log/nginx/access.log /var/www/html/storage/logs/laravel.log' > /usr/local/bin/start.sh && \
 chmod +x /usr/local/bin/start.sh
 
 # Expose port 80
