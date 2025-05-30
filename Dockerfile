@@ -64,7 +64,6 @@ RUN rm -rf /etc/nginx/sites-enabled/default && \
 \n\
     charset utf-8;\n\
 \n\
-    # Handle static files\n\
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {\n\
         expires max;\n\
         log_not_found off;\n\
@@ -98,7 +97,9 @@ RUN rm -rf /etc/nginx/sites-enabled/default && \
 
 # Install dependencies and build assets
 RUN composer install --no-dev --optimize-autoloader
-RUN npm install && npm run build
+RUN npm install && npm run build || { echo "npm run build failed"; cat /var/www/html/npm-debug.log; exit 1; }
+RUN ls -la /var/www/html/public/build || echo "public/build directory missing"
+RUN cat /var/www/html/public/build/manifest.json || echo "manifest.json missing"
 
 # Create startup script with Laravel setup
 RUN echo '#!/bin/bash\n\
@@ -148,8 +149,8 @@ MAIL_PORT=1025\n\
 MAIL_USERNAME=null\n\
 MAIL_PASSWORD=null\n\
 MAIL_ENCRYPTION=null\n\
-MAIL_FROM_ADDRESS="hello@example.com"\n\
-MAIL_FROM_NAME="${APP_NAME}"\n\
+MAIL_FROM_ADDRESS=\"hello@example.com\"\n\
+MAIL_FROM_NAME=\"${APP_NAME}\"\n\
 \n\
 AWS_ACCESS_KEY_ID=\n\
 AWS_SECRET_ACCESS_KEY=\n\
@@ -165,14 +166,20 @@ PUSHER_PORT=443\n\
 PUSHER_SCHEME=https\n\
 PUSHER_APP_CLUSTER=mt1\n\
 \n\
-VITE_APP_NAME="${APP_NAME}"\n\
-VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"\n\
-VITE_PUSHER_HOST="${PUSHER_HOST}"\n\
-VITE_PUSHER_PORT="${PUSHER_PORT}"\n\
-VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"\n\
-VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"\n\
+VITE_APP_NAME=\"${APP_NAME}\"\n\
+VITE_PUSHER_APP_KEY=\"${PUSHER_APP_KEY}\"\n\
+VITE_PUSHER_HOST=\"${PUSHER_HOST}\"\n\
+VITE_PUSHER_PORT=\"${PUSHER_PORT}\"\n\
+VITE_PUSHER_SCHEME=\"${PUSHER_SCHEME}\"\n\
+VITE_PUSHER_APP_CLUSTER=\"${PUSHER_APP_CLUSTER}\"\n\
 " > .env\n\
     fi\n\
+fi\n\
+\n\
+# Check Vite manifest\n\
+if [ ! -f /var/www/html/public/build/manifest.json ]; then\n\
+    echo "Error: Vite manifest.json not found"\n\
+    exit 1\n\
 fi\n\
 \n\
 # Run Laravel setup commands\n\
