@@ -1,4 +1,4 @@
-FROM php:8.2-apache
+FROM php:8.2-fpm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -47,28 +47,12 @@ RUN mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
 
-# Configure Apache
-RUN a2enmod rewrite
-RUN echo '<VirtualHost *:80>\n\
-    ServerAdmin webmaster@localhost\n\
-    DocumentRoot /var/www/html/public\n\
-\n\
-    <Directory /var/www/html/public>\n\
-        AllowOverride All\n\
-        Require all granted\n\
-        Options Indexes FollowSymLinks\n\
-    </Directory>\n\
-\n\
-    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
-    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
-</VirtualHost>' > /etc/apache2/sites-available/000-default.conf
-
 # Install dependencies and build assets
 RUN composer install --no-dev --optimize-autoloader
 RUN npm install && npm run build
 
-# Expose port 80
-EXPOSE 80
+# Expose port 9000
+EXPOSE 9000
 
-# Start Apache
-CMD ["apache2-foreground"]
+# Start PHP-FPM
+CMD ["php-fpm"]

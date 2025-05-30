@@ -32,4 +32,14 @@ services:
       - key: REDIS_HOST
         sync: false
       - key: REDIS_PORT
-        sync: false 
+        sync: false
+      - key: VITE_APP_URL
+        sync: false
+    buildFilter:
+      paths:
+        - package.json
+        - package-lock.json
+        - vite.config.js
+        - resources/**
+        - public/**
+    startCommand: php-fpm 
