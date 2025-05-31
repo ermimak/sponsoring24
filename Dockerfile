@@ -97,6 +97,7 @@ RUN rm -rf /etc/nginx/sites-enabled/default && \
 
 # Install dependencies and build assets
 RUN composer install --no-dev --optimize-autoloader
+RUN if [ -f artisan ]; then php artisan ziggy:generate; fi
 RUN npm install && npm run build || { echo "npm run build failed"; cat /var/www/html/npm-debug.log; exit 1; }
 RUN ls -la /var/www/html/public/build || echo "public/build directory missing"
 RUN cat /var/www/html/public/build/manifest.json || echo "manifest.json missing"
@@ -220,6 +221,15 @@ echo "Database is up - executing migrations"\n\
 \n\
 # Run migrations\n\
 php artisan migrate --force\n\
+\n\
+# Clear and rebuild Laravel caches\n\
+php artisan config:clear\n\
+php artisan cache:clear\n\
+php artisan view:clear\n\
+php artisan route:clear\n\
+php artisan config:cache\n\
+php artisan route:cache\n\
+php artisan view:cache\n\
 \n\
 echo "Starting Nginx..."\n\
 nginx -t\n\

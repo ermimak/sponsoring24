@@ -3,6 +3,10 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const isLocal = process.env.APP_ENV === 'local' || !process.env.APP_ENV;
+const host = isLocal ? 'localhost' : (process.env.VITE_APP_URL ? new URL(process.env.VITE_APP_URL).hostname : 'localhost');
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -25,8 +29,9 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 5173,
         hmr: {
-            host: 'localhost',
-            protocol: 'ws',
+            host: host,
+            protocol: isProduction ? 'wss' : 'ws',
+            clientPort: isLocal ? 5173 : undefined,
         },
     },
     resolve: {
