@@ -15,6 +15,9 @@ export default defineConfig({
                 'resources/js/app.js',
             ],
             refresh: true,
+            buildDirectory: 'build',
+            publicDirectory: 'public',
+            assetUrl: 'https://fundoo.onrender.com',
         }),
         vue({
             template: {
