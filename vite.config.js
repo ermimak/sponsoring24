@@ -44,9 +44,10 @@ export default defineConfig({
             '~': path.resolve(__dirname, './resources/css'),
             '/vendor/tightenco/ziggy': path.resolve(__dirname, './vendor/tightenco/ziggy/dist'),
             '@fortawesome': '/node_modules/@fortawesome',
+            'ziggy/vue.m': path.resolve(__dirname, './resources/js/ziggy-vue.js'),
         },
     },
     optimizeDeps: {
-        include: ['ziggy/vue.m'],
+        include: ['ziggy-js'],
     },
 });
