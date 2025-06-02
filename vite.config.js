@@ -5,7 +5,8 @@ import path from 'path';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isLocal = process.env.APP_ENV === 'local' || !process.env.APP_ENV;
-const host = isLocal ? 'localhost' : (process.env.VITE_APP_URL ? new URL(process.env.VITE_APP_URL).hostname : 'localhost');
+const host = isLocal ? 'localhost' : 'fundoo.onrender.com';
+const protocol = isLocal ? 'http' : 'https';
 
 export default defineConfig({
     plugins: [
@@ -17,7 +18,7 @@ export default defineConfig({
             refresh: true,
             buildDirectory: 'build',
             publicDirectory: 'public',
-            assetUrl: 'https://fundoo.onrender.com',
+            assetUrl: `${protocol}://${host}`,
         }),
         vue({
             template: {
