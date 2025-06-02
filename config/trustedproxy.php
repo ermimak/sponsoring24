@@ -8,6 +8,5 @@ return [
         Illuminate\Http\Request::HEADER_X_FORWARDED_HOST => 'X_FORWARDED_HOST',
         Illuminate\Http\Request::HEADER_X_FORWARDED_PORT => 'X_FORWARDED_PORT',
         Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO => 'X_FORWARDED_PROTO',
-        Illuminate\Http\Request::HEADER_X_FORWARDED_SSL => 'X_FORWARDED_SSL',
     ],
 ];
