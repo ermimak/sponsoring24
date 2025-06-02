@@ -78,6 +78,7 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('donations', [DonationController::class, 'index'])->name('project.donations.index');
         Route::post('donations/mass-email', [DonationController::class, 'sendMassEmail'])->name('project.donations.massEmail');
         Route::post('donations/bulk-invoice', [DonationController::class, 'bulkInvoice'])->name('project.donations.bulkInvoice');
+        Route::post('donations/{donationId}/send-email', [DonationController::class, 'sendEmail'])->name('project.donations.sendEmail');
     });
     Route::get('/dashboard/projects/{project}/donations', [App\Http\Controllers\DonationController::class, 'fetchDonations'])
     ->name('dashboard.project.donations.fetch');
@@ -128,14 +129,16 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/dashboard/reports', fn () => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
 
     // Participant Routes
-    // Participant Routes
     Route::prefix('dashboard/projects/{projectId}')->group(function () {
         Route::get('/participants', [ParticipantController::class, 'index']);
         Route::post('/participants', [ParticipantController::class, 'addToProject']);
         Route::get('/participants/create', fn ($projectId) => Inertia::render('Projects/Participants/Create', ['projectId' => $projectId]))->name('participants.create');
-        Route::post('/send-mass-email', [ParticipantController::class, 'sendMassEmail']); // Added for mass email
+        Route::post('/participants/mass-email', [ParticipantController::class, 'sendMassEmail'])->name('project.participants.massEmail');
         Route::get('/participants/export', [ParticipantController::class, 'export']); // Added for export
     });
+    
+    // Individual participant email route
+    Route::post('dashboard/participants/{participantId}/send-email', [ParticipantController::class, 'sendEmail'])->name('dashboard.participants.sendEmail');
 
     Route::apiResource('dashboard/email-templates', EmailTemplateController::class)
         ->except(['create', 'edit'])

@@ -133,7 +133,7 @@ d="M3 8l9 6 9-6"/>
         <form @submit.prevent="sendMassEmail">
           <div class="mb-4">
             <label class="block text-sm font-medium mb-1">Select Email Template</label>
-            <select v-model="massEmailForm.template_id" class="input w-full" required>
+            <select v-model="massEmailForm.template_id" @change="handleMassTemplateChange" class="input w-full" required>
               <option value="" disabled>Select a template</option>
               <option v-for="template in emailTemplates" :key="template.id" :value="template.id">
                 {{ template.name }} ({{ template.type }})
@@ -171,7 +171,7 @@ required></textarea>
         <form @submit.prevent="sendEmail">
           <div class="mb-4">
             <label class="block text-sm font-medium mb-1">Select Email Template</label>
-            <select v-model="emailForm.template_id" class="input w-full" required>
+            <select v-model="emailForm.template_id" @change="handleTemplateChange" class="input w-full" required>
               <option value="" disabled>Select a template</option>
               <option v-for="template in emailTemplates" :key="template.id" :value="template.id">
                 {{ template.name }} ({{ template.type }})
@@ -277,7 +277,7 @@ function viewDonationPage(participant) {
 
 function openSendEmailModal(participant) {
   selectedParticipant.value = participant
-  const defaultTemplate = emailTemplates.value.find(t => t.type === 'participant_invitation') || emailTemplates.value[0]
+  const defaultTemplate = emailTemplates.value.find(t => t.type === 'participant')
   emailForm.value = {
     template_id: defaultTemplate?.id || '',
     subject: defaultTemplate?.subject || '',
@@ -286,42 +286,124 @@ function openSendEmailModal(participant) {
   showEmailModal.value = true
 }
 
-function openMassEmailModal() {
-  const defaultTemplate = emailTemplates.value.find(t => t.type === 'mass_participant') || emailTemplates.value[0]
+async function openMassEmailModal() {
+  // Reset form
   massEmailForm.value = {
-    template_id: defaultTemplate?.id || '',
-    subject: defaultTemplate?.subject || '',
-    body: defaultTemplate?.body || ''
+    template_id: '',
+    subject: '',
+    body: ''
   }
-  showMassEmailModal.value = true
-}
-
-async function sendEmail() {
+  
+  // Always fetch templates to ensure we have the latest
   loading.value = true
   error.value = ''
   try {
-    await axios.post(`/dashboard/participants/${selectedParticipant.value.id}/send-email`, {
-      ...emailForm.value,
+    await fetchEmailTemplates()
+    
+    if (emailTemplates.value.length === 0) {
+      error.value = 'No email templates found for this project. Please create at least one template.'
+      return
+    }
+    
+    // Set default template if available
+    const defaultTemplate = emailTemplates.value.find(t => t.type === 'mass_participant') || emailTemplates.value[0]
+    if (defaultTemplate) {
+      massEmailForm.value = {
+        template_id: defaultTemplate.id || '',
+        subject: defaultTemplate.subject || '',
+        body: defaultTemplate.body || ''
+      }
+    }
+    
+    showMassEmailModal.value = true
+  } catch (e) {
+    error.value = 'Failed to load email templates: ' + (e.response?.data?.error || e.message)
+    console.error('Error loading templates:', e)
+  } finally {
+    loading.value = false
+  }
+}
+
+function handleTemplateChange() {
+  if (!emailForm.value.template_id) return
+  
+  try {
+    const template = emailTemplates.value.find(t => t.id === emailForm.value.template_id)
+    if (template) {
+      emailForm.value.subject = template.subject || ''
+      emailForm.value.body = template.body || ''
+    }
+  } catch (error) {
+    console.error('Error loading template:', error)
+  }
+}
+
+function handleMassTemplateChange() {
+  if (!massEmailForm.value.template_id) return
+  
+  try {
+    const template = emailTemplates.value.find(t => t.id === massEmailForm.value.template_id)
+    if (template) {
+      massEmailForm.value.subject = template.subject || ''
+      massEmailForm.value.body = template.body || ''
+    }
+  } catch (error) {
+    console.error('Error loading template:', error)
+  }
+}
+
+async function sendEmail() {
+  if (!emailForm.value.template_id) {
+    error.value = 'Please select an email template.'
+    return
+  }
+  
+  loading.value = true
+  error.value = ''
+  try {
+    const response = await axios.post(route('dashboard.participants.sendEmail', selectedParticipant.value.id), {
+      template_id: emailForm.value.template_id,
+      subject: emailForm.value.subject,
+      body: emailForm.value.body,
       project_id: props.projectId
     })
+    
     showEmailModal.value = false
+    alert('Email sent successfully!')
   } catch (e) {
     error.value = 'Failed to send email: ' + (e.response?.data?.error || e.message)
+    console.error('Error sending email:', e)
   } finally {
     loading.value = false
   }
 }
 
 async function sendMassEmail() {
+  if (!massEmailForm.value.template_id) {
+    error.value = 'Please select an email template.'
+    return
+  }
+  
   loading.value = true
   error.value = ''
   try {
-    await axios.post(`/dashboard/projects/${props.projectId}/send-mass-email`, {
-      ...massEmailForm.value
+    const response = await axios.post(route('project.participants.massEmail', props.projectId), {
+      template_id: massEmailForm.value.template_id,
+      subject: massEmailForm.value.subject,
+      body: massEmailForm.value.body
     })
+    
     showMassEmailModal.value = false
+    
+    // Show success message with details
+    if (response.data.results) {
+      alert(`Mass email sent successfully! ${response.data.results.success} sent, ${response.data.results.failed} failed, ${response.data.results.skipped} skipped.`)
+    } else {
+      alert('Mass email sent successfully!')
+    }
   } catch (e) {
     error.value = 'Failed to send mass email: ' + (e.response?.data?.error || e.message)
+    console.error('Error sending mass email:', e)
   } finally {
     loading.value = false
   }

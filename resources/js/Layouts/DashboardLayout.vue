@@ -6,11 +6,11 @@
         <span class="text-accent">◎</span> fundoo
       </div>
       <nav class="flex-1 py-6 px-2 space-y-2">
-        <SidebarLink icon="users" label="Members" :to="$route('dashboard.members.index')" />
-        <SidebarLink icon="folder" label="Projects" :to="$route('dashboard.projects.index')" />
-        <SidebarLink icon="adjustments" label="Settings" :to="$route('dashboard.settings')" />
-        <SidebarLink icon="lock-closed" label="User management" :to="$route('dashboard.users')" />
-        <SidebarLink icon="currency-dollar" label="Bonus credit" :to="$route('dashboard.bonus')" />
+        <SidebarLink icon="users" label="Members" :to="route('dashboard.members.index')" />
+        <SidebarLink icon="folder" label="Projects" :to="route('dashboard.projects.index')" />
+        <SidebarLink icon="adjustments" label="Settings" :to="route('dashboard.settings')" />
+        <SidebarLink icon="lock-closed" label="User management" :to="route('dashboard.users')" />
+        <SidebarLink icon="currency-dollar" label="Bonus credit" :to="route('dashboard.bonus')" />
       </nav>
       <div class="mt-auto p-4 text-xs text-primary-light">© fundoo 2025</div>
     </aside>

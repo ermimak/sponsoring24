@@ -11,6 +11,7 @@ use App\Models\MemberGroup;
 use App\Models\Participant;
 use App\Models\ParticipantProject;
 use App\Models\Project;
+use App\Services\EmailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -149,25 +150,22 @@ class ParticipantController extends Controller
         try {
             $participant = Participant::findOrFail($participantId);
             $template = EmailTemplate::findOrFail($request->template_id);
-
-            // Replace placeholders in the email body (e.g., {{first_name}})
-            $body = str_replace(
-                ['{{first_name}}', '{{last_name}}', '{{project_id}}'],
-                [$participant->first_name, $participant->last_name, $request->project_id],
-                $request->body
+            $project = Project::findOrFail($request->project_id);
+            
+            $emailService = new EmailService();
+            $success = $emailService->sendToParticipant(
+                $participant,
+                $template,
+                $request->subject,
+                $request->body,
+                ['project_id' => $project->id]
             );
 
-            // Mock email sending logic (replace with actual email sending, e.g., via Laravel Mail)
-            \Log::info('Sending email to ' . $participant->email, [
-                'subject' => $request->subject,
-                'body' => $body,
-                'template' => $template->name,
-            ]);
-
-            // Optionally log the email in a table (e.g., EmailLog) to track emails_sent
-            // EmailLog::create([...]);
-
-            return response()->json(['message' => 'Email sent successfully']);
+            if ($success) {
+                return response()->json(['message' => 'Email sent successfully']);
+            } else {
+                return response()->json(['error' => 'Failed to send email'], 500);
+            }
         } catch (\Exception $e) {
             Log::error('Failed to send email to participant ' . $participantId . ': ' . $e->getMessage());
 
@@ -185,31 +183,20 @@ class ParticipantController extends Controller
 
         try {
             $project = Project::findOrFail($projectId);
-            $participants = Participant::whereHas('projects', function ($query) use ($projectId) {
-                $query->where('project_id', $projectId);
-            })->get();
-
             $template = EmailTemplate::findOrFail($request->template_id);
+            
+            $emailService = new EmailService();
+            $results = $emailService->sendMassEmailToProjectParticipants(
+                $project,
+                $template,
+                $request->subject,
+                $request->body
+            );
 
-            foreach ($participants as $participant) {
-                $body = str_replace(
-                    ['{{first_name}}', '{{last_name}}', '{{project_id}}'],
-                    [$participant->first_name, $participant->last_name, $projectId],
-                    $request->body
-                );
-
-                // Mock email sending logic (replace with actual email sending)
-                \Log::info('Sending mass email to ' . $participant->email, [
-                    'subject' => $request->subject,
-                    'body' => $body,
-                    'template' => $template->name,
-                ]);
-
-                // Optionally log the email in a table (e.g., EmailLog) to track emails_sent
-                // EmailLog::create([...]);
-            }
-
-            return response()->json(['message' => 'Mass email sent successfully']);
+            return response()->json([
+                'message' => 'Mass email sent successfully',
+                'results' => $results
+            ]);
         } catch (\Exception $e) {
             Log::error('Failed to send mass email for project ' . $projectId . ': ' . $e->getMessage());
 
