@@ -23,6 +23,9 @@ use Inertia\Inertia;
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('/projects', fn () => Inertia::render('Projects/Index'))->name('projects.index');
 
+// Test routes (no auth required)
+Route::get('/test-email/{type?}', [ParticipantController::class, 'testTemplateEmail'])->name('test-template-email');
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -105,6 +108,8 @@ Route::middleware(['auth', 'web'])->group(function () {
     })->name('dashboard.members.edit')->where('participant', '[0-9]+');
     Route::post('/dashboard/members/import', [ParticipantController::class, 'import'])->name('dashboard.members.import');
     Route::get('/dashboard/members/export', [ParticipantController::class, 'export'])->name('dashboard.members.export');
+    Route::get('/dashboard/members/test-email', [ParticipantController::class, 'testEmail'])->name('members.test-email');
+    
 
     // Group routes
     Route::get('/dashboard/members/groups', [MemberGroupController::class, 'index'])->name('dashboard.members.groups');
@@ -235,3 +240,5 @@ Route::get('/debug-login', function () {
 
     return redirect()->route('login');
 })->name('debug.login');
+
+

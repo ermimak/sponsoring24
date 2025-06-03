@@ -42,16 +42,42 @@ class EmailService
             ]);
             
             $body = $this->replacePlaceholders($body, [
+                // Participant data
                 'first_name' => $participant->first_name,
                 'last_name' => $participant->last_name,
+                'email' => $participant->email,
+                'member_id' => $participant->member_id,
+                'company' => $participant->company,
+                'address' => $participant->address,
+                'postal_code' => $participant->postal_code,
+                'location' => $participant->location,
+                'country' => $participant->country,
+                'phone' => $participant->phone,
+                
+                // Project data
                 'project_name' => $project->name ?? '',
                 'project_description' => $project->description ?? '',
+                'project_start_date' => $project->start_date ?? '',
+                'project_end_date' => $project->end_date ?? '',
+                
+                // System defaults
+                'currency' => $project->currency ?? 'CHF',
+                'date' => now()->format('d.m.Y'),
             ], $additionalData);
 
             $subject = $this->replacePlaceholders($subject, [
+                // Participant data
                 'first_name' => $participant->first_name,
                 'last_name' => $participant->last_name,
+                'email' => $participant->email,
+                'member_id' => $participant->member_id,
+                
+                // Project data
                 'project_name' => $project->name ?? '',
+                
+                // System defaults
+                'currency' => $project->currency ?? 'CHF',
+                'date' => now()->format('d.m.Y'),
             ], $additionalData);
 
             // Send email using Laravel Mail
@@ -117,44 +143,89 @@ class EmailService
      */
     public function sendToDonation(Donation $donation, EmailTemplate $template, string $subject, string $body, array $additionalData = [])
     {
-        if (!$donation->donor_email) {
+        // Check if we're in test mode (indicated by specific additionalData flag)
+        $isTestMode = isset($additionalData['is_test_mode']) && $additionalData['is_test_mode'] === true;
+        
+        // If not in test mode and donor email is missing, we can't send the email
+        if (!$donation->donor_email && !$isTestMode) {
             Log::warning('Cannot send email to donation without donor email', [
                 'donation_id' => $donation->id,
                 'template_id' => $template->id,
             ]);
             return false;
         }
+        
+        // For test mode, use a default test email if donor_email is missing
+        $recipientEmail = $donation->donor_email;
+        if (!$recipientEmail && $isTestMode) {
+            $recipientEmail = 'test@example.com';
+            Log::info('Using test email for donation in test mode', [
+                'donation_id' => $donation->id,
+                'test_email' => $recipientEmail
+            ]);
+        }
 
         try {
             $project = $template->project;
             $participant = $donation->participant;
             
+            // Replace placeholders in subject first
+            $subject = $this->replacePlaceholders($subject, [
+                'donor_name' => $donation->donor_name ?? 'Donor',
+                'project_name' => $project ? $project->name : config('app.name', 'Fundoo'),
+                'amount' => $donation->amount,
+                'currency' => $donation->currency,
+                'participant_name' => $participant ? $participant->first_name . ' ' . $participant->last_name : 'Participant',
+            ], $additionalData);
+            
             $body = $this->replacePlaceholders($body, [
+                // Donation data
                 'donor_name' => $donation->donor_name,
                 'donor_email' => $donation->donor_email,
+                'donor_address' => $donation->donor_address,
+                'donor_postal_code' => $donation->donor_postal_code,
+                'donor_location' => $donation->donor_location,
+                'donor_country' => $donation->donor_country,
+                'donor_message' => $donation->message,
                 'amount' => $donation->amount,
+                'donation_currency' => $donation->currency,
                 'currency' => $donation->currency,
+                'donation_date' => $donation->created_at->format('d.m.Y'),
+                'donation_id' => $donation->id,
+                'donation_status' => $donation->status,
+                
+                // Participant data
                 'participant_name' => $participant ? $participant->first_name . ' ' . $participant->last_name : '',
+                'participant_first_name' => $participant ? $participant->first_name : '',
+                'participant_last_name' => $participant ? $participant->last_name : '',
+                'participant_email' => $participant ? $participant->email : '',
+                'participant_id' => $participant ? $participant->member_id : '',
+                'first_name' => $participant ? $participant->first_name : '',
+                'last_name' => $participant ? $participant->last_name : '',
+                
+                // Project data
                 'project_name' => $project->name ?? '',
                 'project_description' => $project->description ?? '',
+                'project_start_date' => $project->start_date ?? '',
+                'project_end_date' => $project->end_date ?? '',
+                
+                // System defaults
+                'date' => now()->format('d.m.Y'),
             ], $additionalData);
 
-            $subject = $this->replacePlaceholders($subject, [
-                'donor_name' => $donation->donor_name,
-                'project_name' => $project->name ?? '',
-                'amount' => $donation->amount,
-                'currency' => $donation->currency,
-            ], $additionalData);
-
-            // Send email using Laravel Mail
+            // Build the HTML email
             $htmlContent = $this->buildEmailHtml($body, $template);
-            $to = [$donation->donor_email => $donation->donor_name];
+            
+            // Prepare recipient information
+            $to = [$recipientEmail => $donation->donor_name ?? 'Donor'];
             $replyTo = $template->reply_to ? [$template->reply_to => $template->sender_name ?? config('mail.from.name')] : [];
             
+            // Add regarding prefix to subject if available
             if ($template->regarding) {
                 $subject = $template->regarding . ': ' . $subject;
             }
             
+            // Send the email
             Mail::html($htmlContent, function($message) use ($to, $subject, $replyTo) {
                 $message->to(key($to), current($to));
                 $message->subject($subject);
@@ -166,7 +237,7 @@ class EmailService
             
             Log::info('Email sent to donation supporter', [
                 'donation_id' => $donation->id,
-                'donor_email' => $donation->donor_email,
+                'donor_email' => $recipientEmail,
                 'template_id' => $template->id,
                 'template_type' => $template->type,
             ]);
@@ -305,10 +376,77 @@ class EmailService
      */
     private function replacePlaceholders(string $text, array $standardData = [], array $additionalData = [])
     {
+        // Merge standard data with additional data (additional data takes precedence)
         $data = array_merge($standardData, $additionalData);
         
+        // Map legacy placeholder names to current data keys
+        $legacyMappings = [
+            'participant_first_name' => 'first_name',
+            'participant_last_name' => 'last_name',
+            'participant_email' => 'email',
+            'participant_id' => 'member_id',
+            'participant_company' => 'company',
+            'participant_address' => 'address',
+            'participant_postal_code' => 'postal_code',
+            'participant_location' => 'location',
+            'participant_country' => 'country',
+            'participant_phone' => 'phone',
+        ];
+        
+        // Apply legacy mappings if the target doesn't exist but the source does
+        foreach ($legacyMappings as $legacy => $current) {
+            if (!isset($data[$legacy]) && isset($data[$current])) {
+                $data[$legacy] = $data[$current];
+            }
+        }
+        
+        // Create participant_name if first_name and last_name exist but participant_name doesn't
+        if (!isset($data['participant_name']) && isset($data['first_name'])) {
+            $data['participant_name'] = $data['first_name'];
+            if (isset($data['last_name'])) {
+                $data['participant_name'] .= ' ' . $data['last_name'];
+            }
+        }
+        
+        // Ensure we have default values for common fields if not provided
+        $defaults = [
+            'currency' => 'CHF',
+            'date' => date('d.m.Y'),
+            'project_name' => config('app.name', 'Fundoo'),
+            'first_name' => 'Participant',
+            'last_name' => '',
+            'donor_name' => 'Donor',
+            'amount' => '0.00',
+            'company' => '',
+            'address' => '',
+            'location' => '',
+            'postal_code' => ''
+        ];
+        
+        foreach ($defaults as $key => $defaultValue) {
+            if (!isset($data[$key]) || $data[$key] === null || $data[$key] === '') {
+                $data[$key] = $defaultValue;
+            }
+        }
+        
+        // Handle amount formatting if amount exists
+        if (isset($data['amount']) && is_numeric($data['amount'])) {
+            $data['formatted_amount'] = number_format((float)$data['amount'], 2, '.', '\'');
+        }
+        
+        // Replace all placeholders in the text
         foreach ($data as $key => $value) {
-            $text = str_replace('{{' . $key . '}}', $value, $text);
+            if (is_string($value) || is_numeric($value)) {
+                $text = str_replace('{{' . $key . '}}', $value, $text);
+            }
+        }
+        
+        // Log any remaining placeholders for debugging
+        if (preg_match_all('/\{\{([^}]+)\}\}/', $text, $matches)) {
+            Log::warning('Unresolved email placeholders found', [
+                'placeholders' => $matches[1],
+                'available_data' => array_keys($data)
+            ]);
         }
         
         return $text;
@@ -323,6 +461,15 @@ class EmailService
      */
     private function buildEmailHtml(string $body, EmailTemplate $template)
     {
+        // Set default values for null fields
+        $footer = $template->footer ?? '© ' . date('Y') . ' ' . config('app.name') . '. All rights reserved.';
+        $senderName = $template->sender_name ?? config('mail.from.name', 'Fundoo');
+        $replyTo = $template->reply_to ?? config('mail.from.address', 'noreply@fundoo.app');
+        $regarding = $template->regarding ?? '';
+        $showLogo = $template->show_logo ?? false;
+        $showHeaderImage = $template->show_header_image ?? false;
+        $showPlaceholders = $template->show_placeholders ?? false;
+        
         $html = '<!DOCTYPE html>
         <html>
         <head>
@@ -349,23 +496,24 @@ class EmailService
                     background-color: #f9f9f9;
                     padding: 20px;
                     border-radius: 5px;
+                    margin-bottom: 20px;
                 }
                 .footer {
-                    margin-top: 20px;
+                    text-align: center;
                     font-size: 12px;
                     color: #777;
-                    text-align: center;
+                    padding-top: 10px;
+                    border-top: 1px solid #eee;
+                    margin-top: 20px;
                 }
-                .logo {
-                    max-width: 150px;
+                .regarding {
+                    font-style: italic;
                     margin-bottom: 15px;
+                    color: #555;
                 }
-                .header-image {
-                    width: 100%;
-                    max-height: 200px;
-                    object-fit: cover;
-                    margin-bottom: 15px;
-                    border-radius: 5px;
+                .contact {
+                    margin-top: 15px;
+                    font-size: 12px;
                 }
             </style>
         </head>
@@ -373,29 +521,40 @@ class EmailService
             <div class="container">
                 <div class="header">';
         
-        if ($template->show_logo) {
-            $html .= '<img src="' . config('app.url') . '/images/logo.png" alt="Logo" class="logo">';
+        if ($showLogo) {
+            $html .= '<img src="' . config('app.url') . '/images/logo.png" alt="Logo" style="max-width: 200px;">';
         }
         
-        if ($template->show_header_image && $template->project && $template->project->image_landscape) {
-            $html .= '<img src="' . $template->project->image_landscape . '" alt="Project Header" class="header-image">';
+        if ($showHeaderImage) {
+            $projectImage = $template->project && $template->project->image_landscape ? $template->project->image_landscape : config('app.url') . '/images/header.jpg';
+            $html .= '<img src="' . $projectImage . '" alt="Header" style="max-width: 100%; margin-top: 20px;">';
         }
         
-        $html .= '</div>
-                <div class="content">
-                    ' . $body . '
+        $html .= '</div>';
+        
+        if (!empty($regarding)) {
+            $html .= '<div class="regarding">Regarding: ' . htmlspecialchars($regarding) . '</div>';
+        }
+        
+        $html .= '<div class="content">
+                    ' . nl2br($body) . '
                 </div>
                 <div class="footer">';
         
-        if ($template->footer) {
-            $html .= $template->footer;
-        } else {
-            $html .= '© ' . date('Y') . ' ' . config('app.name') . '. All rights reserved.';
-        }
+        $html .= nl2br($footer);
         
-        if ($template->show_placeholders) {
+        $html .= '<div class="contact">';
+        if (!empty($senderName)) {
+            $html .= htmlspecialchars($senderName) . '<br>';
+        }
+        if (!empty($replyTo)) {
+            $html .= htmlspecialchars($replyTo);
+        }
+        $html .= '</div>';
+        
+        if ($showPlaceholders) {
             $html .= '<div style="margin-top: 15px; padding: 10px; background-color: #f0f0f0; border: 1px dashed #ccc;">
-                <p style="font-size: 11px; color: #666;">Available placeholders: {{first_name}}, {{last_name}}, {{email}}, {{project_name}}, {{project_description}}, {{donor_name}}, {{donor_email}}, {{amount}}, {{currency}}, {{participant_name}}</p>
+                <p style="font-size: 11px; color: #666;">Available placeholders: {{first_name}}, {{last_name}}, {{email}}, {{project_name}}, {{project_description}}, {{donor_name}}, {{donor_email}}, {{amount}}, {{currency}}, {{participant_name}}, {{participant_first_name}}, {{participant_last_name}}, {{date}}, {{landing_page_url}}, {{participant_donation_total}}</p>
             </div>';
         }
         

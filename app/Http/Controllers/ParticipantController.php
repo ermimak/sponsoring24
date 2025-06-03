@@ -204,9 +204,244 @@ class ParticipantController extends Controller
         }
     }
 
+    /**
+     * Test email placeholders
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function testEmail(Request $request)
+    {
+        try {
+            // Get the first participant
+            $participant = Participant::first();
+            
+            if (!$participant) {
+                return response()->json(['error' => 'No participants found'], 404);
+            }
+            
+            // Get the email template
+            $template = \App\Models\EmailTemplate::where('type', 'participant')->first();
+            
+            if (!$template) {
+                return response()->json(['error' => 'No email template found'], 404);
+            }
+            
+            // Get the email service
+            $emailService = app(\App\Services\EmailService::class);
+            
+            // Prepare additional data
+            $additionalData = [
+                'landing_page_url' => url('/landing/' . $participant->id),
+                'participant_donation_total' => number_format($participant->getSalesVolumeAttribute(), 2),
+                'test_placeholder' => 'This is a test placeholder',
+            ];
+            
+            // Send the email
+            $result = $emailService->sendToParticipant(
+                $participant,
+                $template,
+                $template->subject,
+                $template->body,
+                $additionalData
+            );
+            
+            if ($result) {
+                return response()->json(['success' => true, 'message' => 'Test email sent successfully']);
+            } else {
+                return response()->json(['error' => 'Failed to send test email'], 500);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to send test email: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json(['error' => 'Failed to send test email: ' . $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Test email with specific template type
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function testTemplateEmail(Request $request, $type = null)
+    {
+        try {
+            // Get template type from route parameter or request or default to supporter_payment_reminder
+            $templateType = $type ?? $request->input('type', 'supporter_payment_reminder');
+            
+            // Get the first participant
+            $participant = Participant::first();
+            
+            if (!$participant) {
+                return response()->json(['error' => 'No participants found'], 404);
+            }
+            
+            // Get the email template
+            $template = \App\Models\EmailTemplate::where('type', $templateType)->first();
+            
+            if (!$template) {
+                Log::warning('No email template found for type', [
+                    'type' => $templateType,
+                    'available_types' => \App\Models\EmailTemplate::distinct('type')->pluck('type')
+                ]);
+                
+                return response()->json([
+                    'error' => 'No email template found for type: ' . $templateType,
+                    'available_types' => \App\Models\EmailTemplate::distinct('type')->pluck('type')
+                ], 404);
+            }
+            
+            Log::info('Testing email template', [
+                'template_id' => $template->id,
+                'template_type' => $template->type,
+                'template_name' => $template->name,
+                'template_subject' => $template->subject,
+                'template_body' => $template->body,
+                'template_footer' => $template->footer,
+                'template_sender_name' => $template->sender_name,
+                'template_reply_to' => $template->reply_to,
+                'template_regarding' => $template->regarding,
+            ]);
+            
+            // Get the email service
+            $emailService = app(\App\Services\EmailService::class);
+            
+            // Create a test donation if needed
+            $donation = \App\Models\Donation::first();
+            Log::info('Looking for donation', [
+                'found' => $donation ? true : false,
+                'donation_id' => $donation ? $donation->id : null
+            ]);
+            
+            if (!$donation) {
+                try {
+                    // First try to create a donation record in the database
+                    $donation = \App\Models\Donation::create([
+                        'donor_name' => 'Test Donor',
+                        'donor_email' => 'test@example.com',
+                        'amount' => 100,
+                        'currency' => 'CHF',
+                        'participant_id' => $participant->id,
+                        'project_id' => $template->project_id,
+                    ]);
+                    
+                    Log::info('Created new donation', ['donation_id' => $donation->id]);
+                } catch (\Exception $e) {
+                    // If creation fails, use a temporary donation object
+                    Log::warning('Failed to create donation record: ' . $e->getMessage(), [
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    
+                    $donation = new \App\Models\Donation([
+                        'id' => 999999, // Temporary ID
+                        'donor_name' => 'Test Donor',
+                        'donor_email' => 'test@example.com',
+                        'amount' => 100,
+                        'currency' => 'CHF',
+                        'participant_id' => $participant->id,
+                        'project_id' => $template->project_id,
+                    ]);
+                }
+            }
+            
+            // Prepare additional data
+            $additionalData = [
+                'landing_page_url' => url('/landing/' . $participant->id),
+                'participant_donation_total' => number_format($participant->getSalesVolumeAttribute(), 2),
+                'test_placeholder' => 'This is a test placeholder',
+                'date' => date('d.m.Y'),
+                'regarding' => 'Test Email',
+                'is_test_mode' => true, // Flag to indicate this is a test email
+            ];
+            
+            // Send the email based on template type
+            $result = false;
+            
+            Log::info('Sending email with template type', [
+                'template_type' => $template->type,
+                'template_id' => $template->id,
+                'template_name' => $template->name,
+            ]);
+            
+            try {
+                if (in_array($template->type, ['participant', 'mass_participant', 'supporter_payment_reminder'])) {
+                    $result = $emailService->sendToParticipant(
+                        $participant,
+                        $template,
+                        $template->subject,
+                        $template->body,
+                        $additionalData
+                    );
+                    
+                    Log::info('Sent participant email', ['result' => $result]);
+                } else if (in_array($template->type, ['donation', 'mass_donation'])) {
+                    // Log donation data before sending
+                    Log::info('Donation data for email', [
+                        'donation_id' => $donation->id ?? 'unknown',
+                        'donor_name' => $donation->donor_name ?? 'unknown',
+                        'donor_email' => $donation->donor_email ?? 'unknown',
+                        'amount' => $donation->amount ?? 'unknown',
+                        'currency' => $donation->currency ?? 'unknown',
+                    ]);
+                    
+                    $result = $emailService->sendToDonation(
+                        $donation,
+                        $template,
+                        $template->subject,
+                        $template->body,
+                        $additionalData
+                    );
+                    
+                    Log::info('Sent donation email', ['result' => $result]);
+                } else {
+                    Log::warning('Unsupported template type', ['type' => $template->type]);
+                    return response()->json([
+                        'error' => 'Unsupported template type: ' . $template->type,
+                        'supported_types' => ['participant', 'mass_participant', 'supporter_payment_reminder', 'donation', 'mass_donation']
+                    ], 400);
+                }
+            } catch (\Exception $e) {
+                Log::error('Exception while sending email', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'template_type' => $template->type
+                ]);
+                
+                return response()->json([
+                    'error' => 'Exception while sending email: ' . $e->getMessage(),
+                    'template_type' => $template->type
+                ], 500);
+            }
+            
+            if ($result) {
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Test email sent successfully',
+                    'template_type' => $template->type,
+                    'template_name' => $template->name
+                ]);
+            } else {
+                return response()->json(['error' => 'Failed to send test email'], 500);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Failed to send test email: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json(['error' => 'Failed to send test email: ' . $e->getMessage()], 500);
+        }
+    }
+
     public function indexAll(Request $request)
     {
         try {
+            Log::info('Loading members page');
+            
             $query = Participant::with('memberGroups');
             if ($request->has('search')) {
                 $search = $request->input('search');
@@ -221,11 +456,17 @@ class ParticipantController extends Controller
                       ->orWhere('phone', 'ilike', "%{$search}%");
                 });
             }
-            $members = $query->get()->map(function ($m) {
+            
+            Log::info('Fetching members from database');
+            $membersCollection = $query->get();
+            Log::info('Found ' . $membersCollection->count() . ' members');
+            
+            $members = $membersCollection->map(function ($m) {
                 return [
                     'id' => $m->id,
                     'first_name' => $m->first_name,
                     'last_name' => $m->last_name,
+                    'name' => $m->first_name . ' ' . $m->last_name, // Add name field for display
                     'member_id' => $m->member_id,
                     'email' => $m->email,
                     'email_cc' => $m->email_cc,
@@ -242,6 +483,7 @@ class ParticipantController extends Controller
                     'public_registration' => (bool) $m->public_registration,
                     'archived' => (bool) $m->archived,
                     'created_at' => $m->created_at?->toDateTimeString(),
+                    'groups' => $m->memberGroups->pluck('name')->toArray(), // Simplified groups for display
                     'member_groups' => $m->memberGroups->map(function ($g) {
                         return [
                             'id' => $g->id,
@@ -252,14 +494,22 @@ class ParticipantController extends Controller
             })->toArray();
 
             if ($request->wantsJson() || $request->isXmlHttpRequest()) {
+                Log::info('Returning JSON response for members');
                 return response()->json($members);
             }
 
+            Log::info('Rendering Members/Index Inertia page with ' . count($members) . ' members');
             return Inertia::render('Members/Index', ['members' => $members]);
         } catch (\Exception $e) {
             Log::error('Failed to load members: ' . $e->getMessage());
-
-            return response()->json(['message' => 'Failed to load members'], 500);
+            Log::error($e->getTraceAsString());
+            
+            if ($request->wantsJson() || $request->isXmlHttpRequest()) {
+                return response()->json(['message' => 'Failed to load members: ' . $e->getMessage()], 500);
+            }
+            
+            // For web requests, redirect to dashboard with error message
+            return redirect()->route('dashboard')->with('error', 'Failed to load members. Please try again later.');
         }
     }
 

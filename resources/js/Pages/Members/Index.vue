@@ -78,55 +78,115 @@ placeholder="Search" />
       <div v-if="error" class="p-4 text-center text-red-500">{{ error }}</div>
       <div v-if="message" class="p-4 text-center text-green-500">{{ message }}</div>
     </div>
+    <Modal :show="showCreateModal" @close="closeCreateModal">
+      <template #title>Create Member</template>
+      <template #content>
+        <form @submit.prevent="submitCreateForm">
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">First Name</label>
+            <Input type="text" class="input w-full mb-2" v-model="createForm.first_name" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Last Name</label>
+            <Input type="text" class="input w-full mb-2" v-model="createForm.last_name" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Email</label>
+            <Input type="email" class="input w-full mb-2" v-model="createForm.email" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Member ID</label>
+            <Input type="text" class="input w-full mb-2" v-model="createForm.member_id" />
+          </div>
+          <Button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-white">Create</Button>
+        </form>
+      </template>
+    </Modal>
+    <Modal :show="showEditModal" @close="closeEditModal">
+      <template #title>Edit Member</template>
+      <template #content>
+        <form @submit.prevent="submitEditForm">
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">First Name</label>
+            <Input type="text" class="input w-full mb-2" v-model="selectedMember.first_name" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Last Name</label>
+            <Input type="text" class="input w-full mb-2" v-model="selectedMember.last_name" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Email</label>
+            <Input type="email" class="input w-full mb-2" v-model="selectedMember.email" />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium mb-1">Member ID</label>
+            <Input type="text" class="input w-full mb-2" v-model="selectedMember.member_id" />
+          </div>
+          <Button type="submit" class="bg-yellow-400 hover:bg-yellow-500 text-white">Update</Button>
+        </form>
+      </template>
+    </Modal>
   </DashboardLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { Head, Link } from '@inertiajs/vue3';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
-import { router } from '@inertiajs/vue3';
-import ImportExportModal from './ImportExportModal.vue';
-import GroupModal from './GroupModal.vue';
+import Modal from '@/Components/Modal.vue';
+import Button from '@/Components/Button.vue';
+import Input from '@/Components/Input.vue';
+import { route } from '@/ziggy-plugin';
 import axios from 'axios';
 
-const props = defineProps({ members: { type: Array, default: () => [] } });
-const search = ref('');
-const members = ref([]);
-const loading = ref(false);
-const exporting = ref(false);
-const error = ref('');
-const message = ref('');
-const showImportExport = ref(false);
-const showGroupModal = ref(false);
-const editingGroup = ref(null);
-const editingMember = ref(null);
+// Configure axios to use the same protocol as the current page
+axios.defaults.baseURL = window.location.origin;
+// Force HTTP for local development
+if (window.location.hostname === 'localhost') {
+  axios.defaults.baseURL = 'http://localhost';
+}
 
-const filteredMembers = computed(() => {
-  let list = members.value;
-  if (search.value) {
-    const s = search.value.toLowerCase();
-    list = list.filter(m =>
-      (m.name || '').toLowerCase().includes(s) ||
-      (m.member_id || '').toLowerCase().includes(s)
-    );
-  }
-  return list;
+const props = defineProps({
+  members: Array
 });
 
-const redirectToCreate = () => {
-  router.visit('/dashboard/members/create');
-};
+const searchQuery = ref('');
+const showCreateModal = ref(false);
+const showEditModal = ref(false);
+const selectedMember = ref(null);
+const loading = ref(true);
+const error = ref(null);
+const createForm = ref({
+  first_name: '',
+  last_name: '',
+  email: '',
+  member_id: ''
+});
 
-const redirectToGroups = async () => {
-  try {
-    loading.value = true;
-    await router.visit('/dashboard/members/groups', { preserveState: true });
-  } catch (e) {
-    console.error('Failed to navigate to groups:', e);
-    error.value = 'Failed to load groups page. Please try again.';
-  } finally {
-    loading.value = false;
-  }
+onMounted(() => {
+  console.log('Members/Index component mounted');
+  console.log('Members count:', props.members?.length || 0);
+  loading.value = false;
+});
+
+const filteredMembers = computed(() => {
+  if (!props.members) return [];
+  if (!searchQuery.value) return props.members;
+  
+  const query = searchQuery.value.toLowerCase();
+  return props.members.filter(member => {
+    return (
+      (member.first_name && member.first_name.toLowerCase().includes(query)) ||
+      (member.last_name && member.last_name.toLowerCase().includes(query)) ||
+      (member.email && member.email.toLowerCase().includes(query)) ||
+      (member.member_id && member.member_id.toLowerCase().includes(query))
+    );
+  });
+});
+
+function openEditModal(member) {
+  selectedMember.value = { ...member };
+  showEditModal.value = true;
 };
 
 function openImportExport() {
@@ -263,6 +323,13 @@ onMounted(() => {
 
 <style scoped>
 .input {
-  @apply border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.5);
 }
 </style>
