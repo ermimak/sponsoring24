@@ -1,12 +1,16 @@
 <template>
   <a
     :href="typeof to === 'string' ? to : '#'"
-    class="flex items-center px-4 py-2 rounded transition-colors font-medium hover:bg-primary-dark hover:text-accent"
-    :class="{ 'bg-primary-dark text-accent': isActive }"
+    class="flex items-center px-4 py-3 rounded-lg transition-all duration-200 font-medium text-blue-100 hover:bg-white/10 group relative overflow-hidden"
+    :class="{ 'bg-gradient-to-r from-purple-600/80 to-blue-600/80 text-white shadow-md': isActive }"
     @click.prevent="navigate"
   >
-    <i v-if="icon" :class="iconClass" class="mr-3"></i>
-    <span>{{ label }}</span>
+    <div v-if="isActive" class="absolute inset-0 bg-white/5 rounded-lg"></div>
+    <div v-if="icon" class="flex items-center justify-center w-8 h-8 mr-3 rounded-md bg-white/10 group-hover:bg-white/20 transition-colors duration-200 relative">
+      <i :class="iconClass" class="text-blue-200 group-hover:text-white transition-colors duration-200"></i>
+    </div>
+    <span class="relative">{{ label }}</span>
+    <div v-if="isActive" class="absolute right-3 w-1.5 h-8 bg-white rounded-full"></div>
   </a>
 </template>
 
@@ -36,7 +40,8 @@ const iconClass = computed(() => {
     folder: 'fas fa-folder',
     adjustments: 'fas fa-sliders-h',
     'lock-closed': 'fas fa-lock',
-    'currency-dollar': 'fas fa-coins'
+    'currency-dollar': 'fas fa-coins',
+    'chart-bar': 'fas fa-chart-bar'
   }
   return map[props.icon] || props.icon
 })
