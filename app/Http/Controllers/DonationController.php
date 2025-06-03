@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Donation;
+use App\Models\EmailTemplate;
 use App\Models\Project;
+use App\Services\EmailService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -141,37 +143,99 @@ class DonationController extends Controller
         try {
             $request->validate([
                 'donation_ids' => 'required|array',
+                'template_id' => 'required|exists:email_templates,id',
                 'subject' => 'required|string|max:255',
-                'message' => 'required|string',
+                'body' => 'required|string',
             ]);
 
+            $project = Project::findOrFail($projectId);
+            $template = EmailTemplate::findOrFail($request->template_id);
+            $emailService = new EmailService();
+            
             $donations = Donation::whereIn('id', $request->donation_ids)
                 ->where('project_id', $projectId)
                 ->get();
 
+            $results = [
+                'success' => 0,
+                'failed' => 0,
+                'skipped' => 0,
+            ];
+
             foreach ($donations as $donation) {
-                if ($donation->supporter_email) {
-                    Log::info('Sending email to: ' . $donation->supporter_email, [
-                        'subject' => $request->subject,
-                        'message' => $request->message,
-                    ]);
-                    // Example with Laravel Mail (uncomment for production):
-                    Mail::raw($request->message, function ($mail) use ($donation, $request) {
-                        $mail->to($donation->supporter_email)
-                             ->subject($request->subject);
-                    });
+                if (!$donation->donor_email) {
+                    $results['skipped']++;
+                    continue;
+                }
+                
+                $success = $emailService->sendToDonation(
+                    $donation,
+                    $template,
+                    $request->subject,
+                    $request->body
+                );
+                
+                if ($success) {
+                    $results['success']++;
+                } else {
+                    $results['failed']++;
                 }
             }
 
-            return redirect()->back()->with('success', 'Mass email sent successfully.');
+            return response()->json([
+                'message' => 'Mass email sent successfully',
+                'results' => $results
+            ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()->withErrors($e->errors())->withInput();
+            return response()->json(['error' => $e->errors()], 422);
         } catch (\Exception $e) {
             Log::error('Failed to send mass email: ' . $e->getMessage(), [
                 'exception' => $e->getTraceAsString(),
             ]);
 
-            return redirect()->back()->with('error', 'Failed to send mass email.');
+            return response()->json(['error' => 'Failed to send mass email: ' . $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Send an email to a single donation
+     *
+     * @param Request $request
+     * @param int $donationId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function sendEmail(Request $request, $donationId)
+    {
+        $request->validate([
+            'template_id' => 'required|exists:email_templates,id',
+            'subject' => 'required|string',
+            'body' => 'required|string',
+            'project_id' => 'required|exists:projects,id',
+        ]);
+
+        try {
+            $donation = Donation::findOrFail($donationId);
+            $template = EmailTemplate::findOrFail($request->template_id);
+            $project = Project::findOrFail($request->project_id);
+            
+            $emailService = new EmailService();
+            $success = $emailService->sendToDonation(
+                $donation,
+                $template,
+                $request->subject,
+                $request->body,
+                ['project_id' => $project->id]
+            );
+
+            if ($success) {
+                return response()->json(['message' => 'Email sent successfully']);
+            } else {
+                return response()->json(['error' => 'Failed to send email'], 500);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send email to donation ' . $donationId . ': ' . $e->getMessage());
+
+            return response()->json(['error' => 'Failed to send email'], 500);
         }
     }
 

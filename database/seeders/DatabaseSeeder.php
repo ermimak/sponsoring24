@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+use Database\Seeders\MemberGroupSeeder;
+use Database\Seeders\ParticipantSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -51,5 +53,11 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
         $user->assignRole('platform_admin');
+        
+        // Run additional seeders
+        $this->call([
+            MemberGroupSeeder::class,
+            ParticipantSeeder::class,
+        ]);
     }
 }

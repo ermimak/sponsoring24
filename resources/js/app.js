@@ -4,10 +4,17 @@ import '../css/app.css';
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { ZiggyVue, route } from 'ziggy-js'; // Import ZiggyVue and route as named exports
-import { Ziggy } from './ziggy'; // Import Ziggy configuration
+import ZiggyPlugin from './ziggy-plugin';
+import axios from 'axios';
 import i18n from './i18n';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+
+// Configure axios to use the same protocol as the current page
+axios.defaults.baseURL = window.location.origin;
+// Force HTTP for local development
+if (window.location.hostname === 'localhost') {
+  axios.defaults.baseURL = 'http://localhost';
+}
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -17,11 +24,8 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         const app = createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(ZiggyVue, Ziggy) // Integrate ZiggyVue with Ziggy config
+            .use(ZiggyPlugin)
             .use(i18n);
-
-        // Make route available globally
-        app.config.globalProperties.$route = route;
 
         app.mount(el);
     },

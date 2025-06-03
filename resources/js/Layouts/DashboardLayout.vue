@@ -6,11 +6,11 @@
         <span class="text-accent">◎</span> fundoo
       </div>
       <nav class="flex-1 py-6 px-2 space-y-2">
-        <SidebarLink icon="users" label="Members" :to="$route('dashboard.members.index')" />
-        <SidebarLink icon="folder" label="Projects" :to="$route('dashboard.projects.index')" />
-        <SidebarLink icon="adjustments" label="Settings" :to="$route('dashboard.settings')" />
-        <SidebarLink icon="lock-closed" label="User management" :to="$route('dashboard.users')" />
-        <SidebarLink icon="currency-dollar" label="Bonus credit" :to="$route('dashboard.bonus')" />
+        <SidebarLink icon="users" label="Members" to="/dashboard/members" />
+        <SidebarLink icon="folder" label="Projects" :to="route('dashboard.projects.index')" />
+        <SidebarLink icon="adjustments" label="Settings" :to="route('dashboard.settings')" />
+        <SidebarLink icon="lock-closed" label="User management" :to="route('dashboard.users')" />
+        <SidebarLink icon="currency-dollar" label="Bonus credit" :to="route('dashboard.bonus')" />
       </nav>
       <div class="mt-auto p-4 text-xs text-primary-light">© fundoo 2025</div>
     </aside>
@@ -62,6 +62,7 @@ viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 
 import { ref, computed } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import SidebarLink from '@/Components/SidebarLink.vue';
+import { route } from '@/ziggy-plugin';
 
 const page = usePage();
 const user = computed(() => ({
@@ -71,7 +72,7 @@ const user = computed(() => ({
 const currentLocale = ref(page.props.locale || 'de');
 
 function switchLanguage() {
-  router.visit(('/language.switch', { locale: currentLocale.value }), { preserveState: true });
+  router.visit(route('language.switch', { locale: currentLocale.value }), { preserveState: true });
 }
 function logout() {
   router.post('/logout');
