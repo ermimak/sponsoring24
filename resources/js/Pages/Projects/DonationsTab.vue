@@ -89,13 +89,22 @@ class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <a v-if="donation.participant_id"
+              <div class="flex justify-end space-x-2">
+                <button 
+                  v-if="donation.donor_email" 
+                  @click="openSingleEmailModal(donation)" 
+                  class="text-purple-600 hover:text-purple-900" 
+                  title="Send Email">
+                  <i class="fas fa-envelope"></i>
+                </button>
+                <a v-if="donation.participant_id"
 :href="route('donations.preview', { donation: donation.id })"
 target="_blank"
 class="text-purple-600 hover:text-purple-900"
 title="To the invoice page">
-                <i class="fas fa-file-invoice-dollar"></i>
-              </a>
+                  <i class="fas fa-file-invoice-dollar"></i>
+                </a>
+              </div>
             </td>
           </tr>
           <tr v-if="donations.length === 0">
@@ -111,6 +120,15 @@ title="To the invoice page">
         <h2 class="text-xl font-bold mb-4">Send Mass Email</h2>
         <form @submit.prevent="sendMassEmail">
           <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Email Template</label>
+            <select v-model="emailForm.template_id" class="input w-full" required @change="handleTemplateChange">
+              <option value="">Select a template</option>
+              <option v-for="template in emailTemplates" :key="template.id" :value="template.id">
+                {{ template.name }}
+              </option>
+            </select>
+          </div>
+          <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Subject</label>
             <input v-model="emailForm.subject"
 type="text"
@@ -119,14 +137,54 @@ required />
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Message</label>
-            <textarea v-model="emailForm.message"
+            <textarea v-model="emailForm.body"
 class="input w-full"
-rows="4"
+rows="6"
 required></textarea>
           </div>
           <div class="flex justify-end space-x-4">
             <button @click="closeEmailModal" type="button" class="bg-gray-200 text-gray-700 px-4 py-2 rounded">Cancel</button>
-            <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">Send</button>
+            <button type="submit" :disabled="isSending" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded disabled:opacity-50">
+              {{ isSending ? 'Sending...' : 'Send' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Single Email Modal -->
+    <div v-if="showSingleEmailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <h2 class="text-xl font-bold mb-4">Send Email to {{ selectedDonation?.donor_name }}</h2>
+        <form @submit.prevent="sendSingleEmail">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Email Template</label>
+            <select v-model="singleEmailForm.template_id" class="input w-full" required @change="handleSingleTemplateChange">
+              <option value="">Select a template</option>
+              <option v-for="template in emailTemplates" :key="template.id" :value="template.id">
+                {{ template.name }}
+              </option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Subject</label>
+            <input v-model="singleEmailForm.subject"
+type="text"
+class="input w-full"
+required />
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700">Message</label>
+            <textarea v-model="singleEmailForm.body"
+class="input w-full"
+rows="6"
+required></textarea>
+          </div>
+          <div class="flex justify-end space-x-4">
+            <button @click="closeSingleEmailModal" type="button" class="bg-gray-200 text-gray-700 px-4 py-2 rounded">Cancel</button>
+            <button type="submit" :disabled="isSending" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded disabled:opacity-50">
+              {{ isSending ? 'Sending...' : 'Send' }}
+            </button>
           </div>
         </form>
       </div>
@@ -138,6 +196,13 @@ required></textarea>
     </div>
     <div v-if="flashMessage.error" class="fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg">
       {{ flashMessage.error }}
+    </div>
+    <div v-if="flashMessage.loading" class="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg flex items-center">
+      <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      {{ flashMessage.loading }}
     </div>
   </div>
 </template>
@@ -166,16 +231,53 @@ const filters = ref({
 const selectedDonations = ref([])
 const selectAll = ref(false)
 const showEmailModal = ref(false)
+const showSingleEmailModal = ref(false)
+const selectedDonation = ref(null)
+const emailTemplates = ref([])
+const isSending = ref(false)
+
 const emailForm = ref({
+  template_id: '',
   subject: '',
-  message: '',
+  body: '',
 })
+
+const singleEmailForm = ref({
+  template_id: '',
+  subject: '',
+  body: '',
+})
+
 const isGeneratingInvoice = ref(false)
 
-const flashMessage = computed(() => ({
+// Local flash message implementation to replace useToast
+const flashMessage = ref({
   success: page.props.flash?.success || '',
   error: page.props.flash?.error || '',
-}))
+  loading: ''
+})
+
+// Helper functions to show flash messages
+const showSuccessMessage = (message) => {
+  flashMessage.value.success = message
+  setTimeout(() => {
+    flashMessage.value.success = ''
+  }, 5000)
+}
+
+const showErrorMessage = (message) => {
+  flashMessage.value.error = message
+  setTimeout(() => {
+    flashMessage.value.error = ''
+  }, 5000)
+}
+
+const showLoadingMessage = (message) => {
+  flashMessage.value.loading = message
+  setTimeout(() => {
+    flashMessage.value.loading = ''
+  }, 3000)
+}
 
 // Debounce utility
 const debounce = (fn, delay) => {
@@ -183,6 +285,23 @@ const debounce = (fn, delay) => {
   return (...args) => {
     clearTimeout(timeoutId)
     timeoutId = setTimeout(() => fn(...args), delay)
+  }
+}
+
+// Fetch email templates for the project
+const fetchEmailTemplates = async () => {
+  try {
+    console.log('Fetching email templates for project:', props.project.id)
+    const response = await axios.get('/dashboard/email-templates', {
+      params: {
+        project_id: props.project.id,
+      },
+    })
+    console.log('Email templates response:', response.data)
+    emailTemplates.value = response.data.data || response.data
+    console.log('Email templates loaded:', emailTemplates.value.length)
+  } catch (error) {
+    console.error('Error fetching email templates:', error)
   }
 }
 
@@ -228,78 +347,218 @@ function toggleSelectAll() {
   }
 }
 
-function applyFilters() {
-  fetchDonations()
-}
+  const handleTemplateChange = async () => {
+    if (!emailForm.value.template_id) return
+    
+    try {
+      const template = emailTemplates.value.find(t => t.id === emailForm.value.template_id)
+      if (template) {
+        emailForm.value.subject = template.subject || ''
+        emailForm.value.body = template.body || ''
+      }
+    } catch (error) {
+      console.error('Error loading template:', error)
+    }
+  }
 
-function openEmailModal() {
-  showEmailModal.value = true
-}
+  const handleSingleTemplateChange = async () => {
+    if (!singleEmailForm.value.template_id) return
+    
+    try {
+      const template = emailTemplates.value.find(t => t.id === singleEmailForm.value.template_id)
+      if (template) {
+        singleEmailForm.value.subject = template.subject || ''
+        singleEmailForm.value.body = template.body || ''
+      }
+    } catch (error) {
+      console.error('Error loading template:', error)
+    }
+  }
 
-function closeEmailModal() {
-  showEmailModal.value = false
-  emailForm.value.subject = ''
-  emailForm.value.message = ''
-}
+  const openEmailModal = async () => {
+    if (selectedDonations.value.length === 0) {
+      showErrorMessage('Please select at least one donation to send emails')
+      return
+    }
+    
+    // Reset form
+    emailForm.value = {
+      template_id: '',
+      subject: '',
+      body: ''
+    }
+    
+    // Always fetch templates to ensure we have the latest
+    showLoadingMessage('Loading email templates...')
+    await fetchEmailTemplates()
+    
+    if (emailTemplates.value.length === 0) {
+      showErrorMessage('No email templates found for this project. Please create at least one template.')
+    }
+    
+    showEmailModal.value = true
+  }
 
-function sendMassEmail() {
-  router.post(route('project.donations.massEmail', props.project.id), {
-    donation_ids: selectedDonations.value,
-    subject: emailForm.value.subject,
-    message: emailForm.value.message,
-  }, {
-    onSuccess: () => {
+  const closeEmailModal = () => {
+    showEmailModal.value = false
+    emailForm.value = {
+      template_id: '',
+      subject: '',
+      body: ''
+    }
+  }
+
+  const openSingleEmailModal = async (donation) => {
+    selectedDonation.value = donation
+    
+    // Reset form
+    singleEmailForm.value = {
+      template_id: '',
+      subject: '',
+      body: ''
+    }
+    
+    // Always fetch templates to ensure we have the latest
+    showLoadingMessage('Loading email templates...')
+    await fetchEmailTemplates()
+    
+    if (emailTemplates.value.length === 0) {
+      showErrorMessage('No email templates found for this project. Please create at least one template.')
+    }
+    
+    showSingleEmailModal.value = true
+  }
+
+  const closeSingleEmailModal = () => {
+    showSingleEmailModal.value = false
+    selectedDonation.value = null
+    singleEmailForm.value = {
+      template_id: '',
+      subject: '',
+      body: ''
+    }
+  }
+
+  const sendMassEmail = async () => {
+    if (!emailForm.value.template_id) {
+      showErrorMessage('Please select an email template.')
+      setTimeout(() => {
+        flashMessage.value.error = ''
+      }, 3000)
+      return
+    }
+    
+    isSending.value = true
+    try {
+      const response = await axios.post(route('project.donations.massEmail', props.project.id), {
+        donation_ids: selectedDonations.value,
+        template_id: emailForm.value.template_id,
+        subject: emailForm.value.subject,
+        body: emailForm.value.body,
+      })
+
       closeEmailModal()
       selectedDonations.value = []
       selectAll.value = false
-      fetchDonations()
-    },
-    onError: (err) => {
-      console.error('Failed to send mass email:', err);
-      alert('Failed to send mass email.');
+
+      // Flash message
+      showSuccessMessage(`Mass email sent successfully. ${response.data.results.success} sent, ${response.data.results.failed} failed, ${response.data.results.skipped} skipped.`)
+      setTimeout(() => {
+        flashMessage.value.success = ''
+      }, 5000)
+    } catch (error) {
+      console.error('Error sending mass email:', error)
+      showErrorMessage(error.response?.data?.error || 'Failed to send mass email.')
+      setTimeout(() => {
+        flashMessage.value.error = ''
+      }, 5000)
+    } finally {
+      isSending.value = false
     }
-  })
-}
-
-async function generateBulkInvoice() {
-  if (selectedDonations.value.length === 0) return
-
-  isGeneratingInvoice.value = true
-  try {
-    const response = await axios.post(route('project.donations.bulkInvoice', props.project.id), {
-      donation_ids: selectedDonations.value,
-    }, {
-      responseType: 'blob', // Important for handling binary data (PDF)
-    })
-
-    // Create a URL for the PDF blob and trigger download
-    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `bulk_invoice_${props.project.id}_${new Date().toISOString().slice(0, 10)}.pdf`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-
-    // Reset selections and refresh data
-    selectedDonations.value = []
-    selectAll.value = false
-    // No need to refetch, as generating invoice doesn't change donation status in this flow
-    // fetchDonations()
-    alert('Bulk invoice generated successfully!');
-
-  } catch (error) {
-    console.error('Failed to generate bulk invoice:', error)
-    alert('Failed to generate bulk invoice. Please try again.')
-  } finally {
-    isGeneratingInvoice.value = false
   }
-}
+  
+  const sendSingleEmail = async () => {
+    if (!singleEmailForm.value.template_id || !selectedDonation.value) {
+      showErrorMessage('Please select an email template.')
+      setTimeout(() => {
+        flashMessage.value.error = ''
+      }, 3000)
+      return
+    }
+    
+    isSending.value = true
+    try {
+      const response = await axios.post(
+        route('project.donations.sendEmail', { 
+          projectId: props.project.id, 
+          donationId: selectedDonation.value.id 
+        }), 
+        {
+          template_id: singleEmailForm.value.template_id,
+          subject: singleEmailForm.value.subject,
+          body: singleEmailForm.value.body,
+          project_id: props.project.id,
+        }
+      )
+
+      closeSingleEmailModal()
+
+      // Flash message
+      showSuccessMessage('Email sent successfully.')
+      setTimeout(() => {
+        flashMessage.value.success = ''
+      }, 3000)
+    } catch (error) {
+      console.error('Error sending email:', error)
+      showErrorMessage(error.response?.data?.error || 'Failed to send email.')
+      setTimeout(() => {
+        flashMessage.value.error = ''
+      }, 3000)
+    } finally {
+      isSending.value = false
+    }
+  }
+
+  const generateBulkInvoice = async () => {
+    if (selectedDonations.value.length === 0) return
+
+    isGeneratingInvoice.value = true
+    try {
+      const response = await axios.post(route('project.donations.bulkInvoice', props.project.id), {
+        donation_ids: selectedDonations.value,
+      }, {
+        responseType: 'blob', // Important for handling binary data (PDF)
+      })
+
+      // Create a URL for the PDF blob and trigger download
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `bulk_invoice_${props.project.id}_${new Date().toISOString().slice(0, 10)}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      // Reset selections and refresh data
+      selectedDonations.value = []
+      selectAll.value = false
+      // No need to refetch, as generating invoice doesn't change donation status in this flow
+      // fetchDonations()
+      alert('Bulk invoice generated successfully!');
+
+    } catch (error) {
+      console.error('Failed to generate bulk invoice:', error)
+      alert('Failed to generate bulk invoice. Please try again.')
+    } finally {
+      isGeneratingInvoice.value = false
+    }
+  }
 
 onMounted(() => {
   // Always fetch data on mount based on initial filters from props or default
   fetchDonations();
+  fetchEmailTemplates();
 })
 
 // Watch project changes, but avoid infinite loops

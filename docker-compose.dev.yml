@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: fundoo-dev-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    ports:
+      - "${APP_PORT:-80}:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+      - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=${APP_URL:-http://localhost}
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=fundoo
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PHP_MEMORY_LIMIT=512M
+      - PHP_MAX_EXECUTION_TIME=120
+      - PHP_POST_MAX_SIZE=128M
+      - PHP_UPLOAD_MAX_FILESIZE=128M
+    depends_on:
+      - db
+      - redis
+    networks:
+      - fundoo-dev-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: fundoo-dev-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: fundoo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - fundoo-dev-db-data:/var/lib/postgresql/data
+    networks:
+      - fundoo-dev-network
+
+  redis:
+    image: redis:alpine
+    container_name: fundoo-dev-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - fundoo-dev-redis-data:/data
+    networks:
+      - fundoo-dev-network
+
+  node:
+    image: node:20-alpine
+    container_name: fundoo-dev-node
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - /var/www/html/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_APP_URL=${APP_URL:-http://localhost}
+      - HOST=0.0.0.0
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    command: >
+      sh -c "
+        npm install &&
+        if [ ! -d /var/www/html/node_modules/ziggy ]; then
+          echo 'Creating ziggy directory for Vite'
+          mkdir -p /var/www/html/node_modules/ziggy
+          touch /var/www/html/node_modules/ziggy/vue.m.js
+        fi &&
+        npm run dev -- --host 0.0.0.0"
+    networks:
+      - fundoo-dev-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: fundoo-dev-mailhog
+    ports:
+      - "${MAILHOG_PORT:-8025}:8025"
+      - "1025:1025"
+    networks:
+      - fundoo-dev-network
+
+networks:
+  fundoo-dev-network:
+    driver: bridge
+
+volumes:
+  fundoo-dev-db-data:
+  fundoo-dev-redis-data:

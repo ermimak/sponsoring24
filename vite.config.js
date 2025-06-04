@@ -3,11 +3,22 @@ import laravel from 'laravel-vite-plugin';
 import vue from '@vitejs/plugin-vue';
 import path from 'path';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const isLocal = process.env.APP_ENV === 'local' || !process.env.APP_ENV;
+const host = isLocal ? 'localhost' : 'fundoo.onrender.com';
+const protocol = isLocal ? 'http' : 'https';
+
 export default defineConfig({
     plugins: [
         laravel({
-            input: 'resources/js/app.js',
+            input: [
+                'resources/css/app.css',
+                'resources/js/app.js',
+            ],
             refresh: true,
+            buildDirectory: 'build',
+            publicDirectory: 'public',
+            assetUrl: `${protocol}://${host}`,
         }),
         vue({
             template: {
@@ -22,8 +33,9 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 5173,
         hmr: {
-            host: 'localhost',
-            protocol: 'ws',
+            host: host,
+            protocol: isProduction ? 'wss' : 'ws',
+            clientPort: isLocal ? 5173 : undefined,
         },
     },
     resolve: {
@@ -32,9 +44,10 @@ export default defineConfig({
             '~': path.resolve(__dirname, './resources/css'),
             '/vendor/tightenco/ziggy': path.resolve(__dirname, './vendor/tightenco/ziggy/dist'),
             '@fortawesome': '/node_modules/@fortawesome',
+            'ziggy/vue.m': path.resolve(__dirname, './resources/js/ziggy-vue.js'),
         },
     },
     optimizeDeps: {
-        include: ['ziggy/vue.m'],
+        include: ['ziggy-js'],
     },
 });

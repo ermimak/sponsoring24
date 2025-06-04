@@ -2,9 +2,11 @@ name: Deploy
 
 on:
   workflow_run:
+    # Trigger this workflow when the 'CI' workflow completes
     workflows: ["CI"]
     types:
       - completed
+    # Only run for pushes to main or develop branches in the CI workflow
     branches:
       - main
       - develop
@@ -13,7 +15,13 @@ jobs:
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
+    # Only proceed if the CI workflow was successful and it was on the 'main' branch
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    
+    # Add permissions for the GITHUB_TOKEN to allow downloading artifacts
+    permissions:
+      contents: read # Required to checkout code and potentially access repository content
+      actions: read  # Required to read workflow run metadata and download artifacts
 
     steps:
     - uses: actions/checkout@v4
@@ -26,49 +34,52 @@ jobs:
         echo "Repository: ${{ github.repository }}"
         echo "Artifacts URL: https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts"
 
-    - name: Check Available Artifacts
-      run: |
-        curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-             -H "Accept: application/vnd.github.v3+json" \
-             https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/artifacts | jq '.artifacts[] | {name: .name, expired: .expired}'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Download Build Artifacts
+      id: download-artifacts
       uses: actions/download-artifact@v4
       with:
+        # The name of the artifact to download. This must match the name used in the upload-artifact step in CI.
         name: build-artifacts
+        # The path where the artifact will be downloaded.
         path: build-artifacts
+        # The run ID of the workflow that produced the artifact. This is crucial for cross-workflow artifact fetching.
         run-id: ${{ github.event.workflow_run.id }}
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        # Provide the FUNDOO secret for authentication to download artifacts from another workflow run.
+        # This has been updated from secrets.GITHUB_TOKEN to secrets.FUNDOO based on your provided secrets.
+        github-token: ${{ secrets.FUNDOO }}
+      # Do not continue if artifact download fails.
+      continue-on-error: false
 
-    - name: Debug Downloaded Artifacts
+    - name: Debug Artifact Download
+      # Only run this step if the artifact download was successful
+      if: steps.download-artifacts.outcome == 'success'
       run: |
+        echo "Artifact download status: ${{ steps.download-artifacts.outcome }}"
         echo "Current directory: $(pwd)"
-        echo "Listing all files in build-artifacts:"
-        ls -la build-artifacts || true
-        echo "Listing build directory:"
-        ls -la build-artifacts/build || true
-        echo "Listing vendor directory:"
-        ls -la build-artifacts/vendor || true
+        echo "Listing build-artifacts directory:"
+        ls -la build-artifacts || echo "build-artifacts directory not found"
+        echo "Listing build-artifacts/build directory:"
+        ls -la build-artifacts/build || echo "build directory not found"
+        echo "Listing build-artifacts/vendor directory:"
+        ls -la build-artifacts/vendor || echo "vendor directory not found"
 
-    - name: Verify Artifacts
+    - name: Verify Artifact Contents
+      # Only run this step if the artifact download was successful
+      if: steps.download-artifacts.outcome == 'success'
       run: |
+        if [ ! -d "build-artifacts" ]; then
+          echo "Error: build-artifacts directory not found"
+          exit 1
+        fi
         if [ ! -d "build-artifacts/build" ]; then
-          echo "Error: build directory not found"
+          echo "Error: build directory not found in artifacts"
           exit 1
         fi
         if [ ! -d "build-artifacts/vendor" ]; then
-          echo "Error: vendor directory not found"
+          echo "Error: vendor directory not found in artifacts"
           exit 1
         fi
-        echo "Artifacts verified successfully"
-        mkdir -p public/build
-        cp -r build-artifacts/build/* public/build/
-        cp -r build-artifacts/vendor vendor/
-        echo "Listing copied files:"
-        ls -la public/build
-        ls -la vendor
+        echo "Artifact contents verified successfully"
 
     - name: Deploy to Production
       uses: appleboy/ssh-action@master
@@ -79,13 +90,18 @@ jobs:
         script: |
           set -e
           cd /var/www/fundoo
+          # Pull the latest code (optional, as artifacts are used for build, but good for config/db changes)
           git pull origin main
+          # Ensure target directories exist
           mkdir -p public/build
+          # Copy the built assets and vendor files from the downloaded artifacts
           cp -r build-artifacts/build/* public/build/
-          cp -r build-artifacts/vendor vendor/
+          cp -r build-artifacts/vendor/* vendor/
+          # Clear and cache Laravel configurations
           php artisan optimize
           php artisan config:cache
           php artisan route:cache
           php artisan view:cache
+          # Restart PHP-FPM and Nginx to apply changes
           sudo systemctl restart php8.3-fpm
           sudo systemctl restart nginx

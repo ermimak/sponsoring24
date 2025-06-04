@@ -1,0 +1,167 @@
+FROM php:8.2-fpm
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    libpq-dev \
+    postgresql-client \
+    nginx \
+    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Get latest Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Create system user to run Composer and Artisan Commands
+RUN useradd -G www-data,root -u 1000 -d /home/dev dev
+RUN mkdir -p /home/dev/.composer && \
+    chown -R dev:dev /home/dev
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Configure Nginx
+RUN rm -rf /etc/nginx/sites-enabled/default && \
+    rm -rf /etc/nginx/sites-available/default && \
+    mkdir -p /etc/nginx/conf.d && \
+    echo 'server {\n\
+    listen 0.0.0.0:80;\n\
+    server_name _;\n\
+    root /var/www/html/public;\n\
+\n\
+    add_header X-Frame-Options "SAMEORIGIN";\n\
+    add_header X-Content-Type-Options "nosniff";\n\
+\n\
+    index index.php;\n\
+\n\
+    charset utf-8;\n\
+\n\
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {\n\
+        expires max;\n\
+        log_not_found off;\n\
+        access_log off;\n\
+        add_header Cache-Control "public, no-transform";\n\
+        try_files $uri =404;\n\
+    }\n\
+\n\
+    location / {\n\
+        try_files $uri $uri/ /index.php?$query_string;\n\
+        gzip_static on;\n\
+    }\n\
+\n\
+    location = /favicon.ico { access_log off; log_not_found off; }\n\
+    location = /robots.txt  { access_log off; log_not_found off; }\n\
+\n\
+    error_page 404 /index.php;\n\
+\n\
+    location ~ \.php$ {\n\
+        fastcgi_pass 127.0.0.1:9000;\n\
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;\n\
+        include fastcgi_params;\n\
+        fastcgi_buffers 16 16k;\n\
+        fastcgi_buffer_size 32k;\n\
+    }\n\
+\n\
+    location ~ /\.(?!well-known).* {\n\
+        deny all;\n\
+    }\n\
+}' > /etc/nginx/conf.d/default.conf
+
+# Create startup script for development
+RUN echo '#!/bin/bash\n\
+echo "Setting up Laravel development environment..."\n\
+\n\
+# Create js directory if it doesn'\'t exist\n\
+mkdir -p /var/www/html/public/js\n\
+mkdir -p /var/www/html/public/build\n\
+\n\
+# Create storage directory structure and set permissions\n\
+mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \n\
+mkdir -p /var/www/html/storage/logs \n\
+mkdir -p /var/www/html/bootstrap/cache \n\
+chown -R www-data:www-data /var/www/html/storage \n\
+chown -R www-data:www-data /var/www/html/bootstrap/cache \n\
+chmod -R 775 /var/www/html/storage \n\
+chmod -R 775 /var/www/html/bootstrap/cache \n\
+\n\
+# Copy .env.local to .env if it exists, otherwise use .env.example\n\
+if [ -f .env.local ]; then\n\
+    cp .env.local .env\n\
+    echo "Created .env file from .env.local"\n\
+else\n\
+    if [ -f .env.example ]; then\n\
+        cp .env.example .env\n\
+        echo "Created .env file from .env.example"\n\
+    else\n\
+        echo "No .env.example found, creating minimal .env file"\n\
+        echo "APP_NAME=Fundoo\n\
+APP_ENV=local\n\
+APP_KEY=\n\
+APP_DEBUG=true\n\
+APP_URL=http://localhost\n\
+\n\
+LOG_CHANNEL=stack\n\
+LOG_DEPRECATIONS_CHANNEL=null\n\
+LOG_LEVEL=debug\n\
+\n\
+DB_CONNECTION=pgsql\n\
+DB_HOST=db\n\
+DB_PORT=5432\n\
+DB_DATABASE=fundoo\n\
+DB_USERNAME=postgres\n\
+DB_PASSWORD=password" > .env\n\
+    fi\n\
+fi\n\
+\n\
+# Install dependencies\n\
+composer install\n\
+\n\
+# Generate application key if not set\n\
+if grep -q "^APP_KEY=$" .env; then\n\
+    php artisan key:generate --no-interaction --force\n\
+    echo "Generated new application key"\n\
+fi\n\
+\n\
+# Create empty Vite manifest if it doesn\'t exist (for development)\n\
+if [ ! -f /var/www/html/public/build/manifest.json ]; then\n\
+    echo "Creating empty Vite manifest for development"\n\
+    mkdir -p /var/www/html/public/build\n\
+    echo "{}" > /var/www/html/public/build/manifest.json\n\
+fi\n\
+\n\
+# Generate Ziggy routes\n\
+php artisan ziggy:generate\n\
+\n\
+# Create storage link if it doesn\'t exist\n\
+if [ ! -L /var/www/html/public/storage ]; then\n\
+    php artisan storage:link\n\
+fi\n\
+\n\
+# Clear caches\n\
+php artisan config:clear\n\
+php artisan route:clear\n\
+php artisan view:clear\n\
+php artisan cache:clear\n\
+\n\
+# Start PHP-FPM and Nginx\n\
+php-fpm -D && nginx -g "daemon off;"\n\
+' > /usr/local/bin/start-dev.sh
+
+RUN chmod +x /usr/local/bin/start-dev.sh
+
+EXPOSE 80
+
+CMD ["/usr/local/bin/start-dev.sh"]

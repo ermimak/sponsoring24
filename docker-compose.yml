@@ -15,6 +15,7 @@ services:
       - ./docker/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
     environment:
       - APP_ENV=local
+      - APP_URL=${APP_URL:-http://localhost}
       - DB_CONNECTION=pgsql
       - DB_HOST=db
       - DB_PORT=5432
@@ -48,7 +49,7 @@ services:
     container_name: fundoo-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "${PORT:-80}:80"
     volumes:
       - ./:/var/www/html
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
@@ -94,8 +95,8 @@ services:
       - ./:/var/www/html
       - /var/www/html/node_modules
     environment:
-      - NODE_ENV=development
-      - VITE_APP_URL=http://localhost
+      - NODE_ENV=${NODE_ENV:-development}
+      - VITE_APP_URL=${APP_URL:-http://localhost}
     command: >
       bash -c "
         npm install &&

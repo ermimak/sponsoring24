@@ -23,6 +23,9 @@ use Inertia\Inertia;
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('/projects', fn () => Inertia::render('Projects/Index'))->name('projects.index');
 
+// Test routes (no auth required)
+Route::get('/test-email/{type?}', [ParticipantController::class, 'testTemplateEmail'])->name('test-template-email');
+
 // Authentication Routes
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -78,6 +81,7 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('donations', [DonationController::class, 'index'])->name('project.donations.index');
         Route::post('donations/mass-email', [DonationController::class, 'sendMassEmail'])->name('project.donations.massEmail');
         Route::post('donations/bulk-invoice', [DonationController::class, 'bulkInvoice'])->name('project.donations.bulkInvoice');
+        Route::post('donations/{donationId}/send-email', [DonationController::class, 'sendEmail'])->name('project.donations.sendEmail');
     });
     Route::get('/dashboard/projects/{project}/donations', [App\Http\Controllers\DonationController::class, 'fetchDonations'])
     ->name('dashboard.project.donations.fetch');
@@ -104,6 +108,8 @@ Route::middleware(['auth', 'web'])->group(function () {
     })->name('dashboard.members.edit')->where('participant', '[0-9]+');
     Route::post('/dashboard/members/import', [ParticipantController::class, 'import'])->name('dashboard.members.import');
     Route::get('/dashboard/members/export', [ParticipantController::class, 'export'])->name('dashboard.members.export');
+    Route::get('/dashboard/members/test-email', [ParticipantController::class, 'testEmail'])->name('members.test-email');
+    
 
     // Group routes
     Route::get('/dashboard/members/groups', [MemberGroupController::class, 'index'])->name('dashboard.members.groups');
@@ -128,14 +134,16 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/dashboard/reports', fn () => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
 
     // Participant Routes
-    // Participant Routes
     Route::prefix('dashboard/projects/{projectId}')->group(function () {
         Route::get('/participants', [ParticipantController::class, 'index']);
         Route::post('/participants', [ParticipantController::class, 'addToProject']);
         Route::get('/participants/create', fn ($projectId) => Inertia::render('Projects/Participants/Create', ['projectId' => $projectId]))->name('participants.create');
-        Route::post('/send-mass-email', [ParticipantController::class, 'sendMassEmail']); // Added for mass email
+        Route::post('/participants/mass-email', [ParticipantController::class, 'sendMassEmail'])->name('project.participants.massEmail');
         Route::get('/participants/export', [ParticipantController::class, 'export']); // Added for export
     });
+    
+    // Individual participant email route
+    Route::post('dashboard/participants/{participantId}/send-email', [ParticipantController::class, 'sendEmail'])->name('dashboard.participants.sendEmail');
 
     Route::apiResource('dashboard/email-templates', EmailTemplateController::class)
         ->except(['create', 'edit'])
@@ -232,3 +240,5 @@ Route::get('/debug-login', function () {
 
     return redirect()->route('login');
 })->name('debug.login');
+
+
