@@ -392,11 +392,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import Modal from '@/Components/Modal.vue';
 import Button from '@/Components/Button.vue';
 import Input from '@/Components/Input.vue';
+import ImportExportModal from './ImportExportModal.vue';
+import GroupModal from './GroupModal.vue';
 import { route } from '@/ziggy-plugin';
 import axios from 'axios';
 
@@ -408,15 +410,30 @@ if (window.location.hostname === 'localhost') {
 }
 
 const props = defineProps({
-  members: Array
+  members: {
+    type: Array,
+    default: () => []
+  },
+  filters: {
+    type: Object,
+    default: () => ({})
+  }
 });
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters.search || '');
 const showCreateModal = ref(false);
 const showEditModal = ref(false);
+const showImportExport = ref(false);
+const showGroupModal = ref(false);
 const selectedMember = ref(null);
-const loading = ref(true);
+const editingMember = ref(null);
+const editingGroup = ref(null);
+const loading = ref(false);
+const exporting = ref(false);
 const error = ref(null);
+const message = ref('');
+const members = ref([...props.members]);
+
 const createForm = ref({
   first_name: '',
   last_name: '',
@@ -428,17 +445,34 @@ onMounted(() => {
   console.log('Members/Index component mounted');
   console.log('Members count:', props.members?.length || 0);
   loading.value = false;
+  
+  // Initialize members from props if available
+  if (props.members && props.members.length > 0) {
+    members.value = props.members.map(m => ({
+      ...m,
+      name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || 'N/A',
+      member_id: m.member_id || 'N/A',
+      groups: Array.isArray(m.member_groups) ? m.member_groups.map(g => g.name) : [],
+      public_registration: !!m.public_registration,
+      email_status: m.email_status || 'OK',
+      archived: !!m.archived,
+      added: m.created_at ? new Date(m.created_at).toLocaleDateString() : 'N/A',
+    }));
+  } else {
+    fetchMembers();
+  }
 });
 
 const filteredMembers = computed(() => {
-  if (!props.members) return [];
-  if (!searchQuery.value) return props.members;
+  if (!members.value.length) return [];
+  if (!searchQuery.value.trim()) return members.value;
   
-  const query = searchQuery.value.toLowerCase();
-  return props.members.filter(member => {
+  const query = searchQuery.value.toLowerCase().trim();
+  return members.value.filter(member => {
     return (
       (member.first_name && member.first_name.toLowerCase().includes(query)) ||
       (member.last_name && member.last_name.toLowerCase().includes(query)) ||
+      (member.name && member.name.toLowerCase().includes(query)) ||
       (member.email && member.email.toLowerCase().includes(query)) ||
       (member.member_id && member.member_id.toLowerCase().includes(query))
     );
@@ -564,22 +598,25 @@ function handleEditMember(member) {
   router.visit(`/dashboard/members/${member.id}/edit`);
 }
 
-onMounted(() => {
-  if (props.members.length > 0) {
-    members.value = props.members.map(m => ({
-      id: m.id,
-      name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || 'N/A',
-      member_id: m.member_id || 'N/A',
-      groups: Array.isArray(m.member_groups) ? m.member_groups.map(g => g.name) : [],
-      public_registration: !!m.public_registration,
-      email_status: m.email_status || 'OK',
-      archived: !!m.archived,
-      added: m.created_at ? new Date(m.created_at).toLocaleDateString() + ' ' + new Date(m.created_at).toLocaleTimeString().slice(0, 5) : 'N/A',
-    }));
-  } else {
-    fetchMembers();
-  }
-});
+// Function to redirect to groups page
+function redirectToGroups() {
+  router.visit(route('dashboard.members.groups'));
+}
+
+// Function to redirect to create member page
+function redirectToCreate() {
+  router.visit(route('dashboard.members.create'));
+}
+
+// Close modals
+function closeCreateModal() {
+  showCreateModal.value = false;
+}
+
+function closeEditModal() {
+  showEditModal.value = false;
+  selectedMember.value = null;
+}
 </script>
 
 <style scoped>

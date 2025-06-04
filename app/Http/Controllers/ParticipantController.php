@@ -493,13 +493,11 @@ class ParticipantController extends Controller
                 ];
             })->toArray();
 
-            if ($request->wantsJson() || $request->isXmlHttpRequest()) {
-                Log::info('Returning JSON response for members');
-                return response()->json($members);
-            }
-
             Log::info('Rendering Members/Index Inertia page with ' . count($members) . ' members');
-            return Inertia::render('Members/Index', ['members' => $members]);
+            return Inertia::render('Members/Index', [
+                'members' => $members,
+                'filters' => $request->only(['search'])
+            ]);
         } catch (\Exception $e) {
             Log::error('Failed to load members: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
