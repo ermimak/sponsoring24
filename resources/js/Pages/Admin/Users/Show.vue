@@ -15,19 +15,27 @@
                     <div class="p-6 bg-white border-b border-gray-200">
                         <div class="flex justify-between items-center mb-6">
                             <h1 class="text-2xl font-semibold text-gray-800">User Details</h1>
-                            <div v-if="user.approval_status === 'pending'" class="flex space-x-3">
-                                <button @click="showApproveModal = true" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                    Approve
-                                </button>
-                                <button @click="showRejectModal = true" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                    Reject
-                                </button>
-                            </div>
-                            <div v-else-if="user.approval_status === 'approved'" class="px-4 py-2 bg-green-100 text-green-800 rounded-md">
-                                Approved
-                            </div>
-                            <div v-else class="px-4 py-2 bg-red-100 text-red-800 rounded-md">
-                                Rejected
+                            <div class="flex space-x-3">
+                                <Link :href="route('admin.users.activities', user.id)" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    View Activities
+                                </Link>
+                                <div v-if="user.approval_status === 'pending'" class="flex space-x-3">
+                                    <button @click="showApproveModal = true" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        Approve
+                                    </button>
+                                    <button @click="showRejectModal = true" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                        Reject
+                                    </button>
+                                </div>
+                                <div v-else-if="user.approval_status === 'approved'" class="px-4 py-2 bg-green-100 text-green-800 rounded-md">
+                                    Approved
+                                </div>
+                                <div v-else class="px-4 py-2 bg-red-100 text-red-800 rounded-md">
+                                    Rejected
+                                </div>
                             </div>
                         </div>
 

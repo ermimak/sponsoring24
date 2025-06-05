@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Notifications\UserApprovalNotification;
 use App\Notifications\UserRejectionNotification;
+use App\Services\UserActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class UserController extends Controller
@@ -98,6 +100,13 @@ class UserController extends Controller
             // Send approval notification
             $user->notify(new UserApprovalNotification());
             
+            // Log the user approval activity
+            UserActivityService::logAdmin('user_approved', [
+                'admin_id' => Auth::id(),
+                'user_id' => $user->id,
+                'user_email' => $user->email
+            ]);
+            
             DB::commit();
             
             return redirect()->route('admin.users.show', $user->id)
@@ -129,6 +138,14 @@ class UserController extends Controller
             
             // Send rejection notification
             $user->notify(new UserRejectionNotification($validated['rejection_reason']));
+            
+            // Log the user rejection activity
+            UserActivityService::logAdmin('user_rejected', [
+                'admin_id' => Auth::id(),
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'rejection_reason' => $validated['rejection_reason']
+            ]);
             
             DB::commit();
             

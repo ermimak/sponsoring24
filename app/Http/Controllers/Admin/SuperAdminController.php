@@ -137,6 +137,15 @@ class SuperAdminController extends Controller
             $availableProjects = Project::where('public_donation_enabled', true)->get();
         }
         
+        // Format project data to ensure proper display
+        $featuredProjects = $featuredProjects->map(function($project) {
+            return $this->formatProjectData($project);
+        });
+        
+        $availableProjects = $availableProjects->map(function($project) {
+            return $this->formatProjectData($project);
+        });
+        
         return Inertia::render('Admin/Content/FeaturedProjects', [
             'featuredProjects' => $featuredProjects,
             'availableProjects' => $availableProjects,
@@ -146,6 +155,20 @@ class SuperAdminController extends Controller
     /**
      * Update featured projects.
      */
+    /**
+     * Format project data for display in the frontend
+     */
+    private function formatProjectData($project)
+    {
+        return [
+            'id' => $project->id,
+            'title' => $project->name ?? $project->title ?? 'Unnamed Project',
+            'description' => $project->short_description ?? $project->description ?? 'No description available',
+            'image_square' => $project->image_square ?? $project->image ?? null,
+            'featured' => $project->featured ?? false
+        ];
+    }
+
     public function updateFeaturedProjects(Request $request)
     {
         $validated = $request->validate([

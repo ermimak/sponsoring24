@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\UserActivityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
@@ -129,6 +131,19 @@ class UserController extends Controller
             $user->email = $validated['email'];
             $user->password = bcrypt($validated['password']);
             $user->save();
+            
+            // Log user profile update activity
+            $isNewUser = !$request->user_id;
+            $activityType = $isNewUser ? 'user_created' : 'profile_updated';
+            UserActivityService::logProfileUpdate($activityType, [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'name' => $user->name,
+                'updated_by' => Auth::id(),
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'fields_updated' => array_keys($validated)
+            ], Auth::id());
 
             // Handle settings with default values
             if ($user->setting) {
@@ -153,8 +168,33 @@ class UserController extends Controller
                 ]);
             }
 
+            // Store previous roles and permissions for activity logging
+            $previousRoles = $user->roles->pluck('name')->toArray();
+            $previousPermissions = $user->permissions->pluck('name')->toArray();
+            
+            // Sync roles and permissions
             $user->syncRoles($request->roles ?? []);
             $user->syncPermissions($request->permissions ?? []);
+            
+            // Log role and permission changes
+            $newRoles = $user->roles()->get()->pluck('name')->toArray();
+            $newPermissions = $user->permissions()->get()->pluck('name')->toArray();
+            
+            // Only log if there were changes
+            if ($previousRoles != $newRoles || $previousPermissions != $newPermissions) {
+                UserActivityService::logAdmin('user_roles_permissions_updated', [
+                    'user_id' => $user->id,
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'previous_roles' => $previousRoles,
+                    'new_roles' => $newRoles,
+                    'previous_permissions' => $previousPermissions,
+                    'new_permissions' => $newPermissions,
+                    'updated_by' => Auth::id(),
+                    'ip' => request()->ip(),
+                    'user_agent' => request()->userAgent()
+                ], Auth::id());
+            }
 
             Log::info('User ' . ($request->user_id ? 'updated' : 'created') . ' successfully', [
                 'user_id' => $user->id,
@@ -198,8 +238,23 @@ class UserController extends Controller
                 $user->setting->delete();
             }
 
+            // Store user info before deletion for logging
+            $userInfo = [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'name' => $user->name,
+                'roles' => $user->roles->pluck('name')->toArray(),
+                'permissions' => $user->permissions->pluck('name')->toArray(),
+                'deleted_by' => Auth::id(),
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent()
+            ];
+            
             // Delete the user
             $user->delete();
+            
+            // Log user deletion activity
+            UserActivityService::logAdmin('user_deleted', $userInfo, Auth::id());
 
             Log::info('User deleted successfully', [
                 'user_id' => $id,

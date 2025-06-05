@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Services\UserActivityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
@@ -38,6 +40,15 @@ class ProjectController extends Controller
 
         $data['created_by'] = $data['created_by'] ?? auth()->id();
         $project = Project::create($data);
+        
+        // Log project creation activity
+        UserActivityService::logProject('project_created', Auth::id(), [
+            'project_id' => $project->id,
+            'project_name' => $project->name,
+            'language' => $project->language,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent()
+        ]);
 
         return $project;
     }
@@ -94,6 +105,16 @@ class ProjectController extends Controller
         }
 
         $project->update($data);
+        
+        // Log project update activity
+        UserActivityService::logProject('project_updated', Auth::id(), [
+            'project_id' => $project->id,
+            'project_name' => $project->name,
+            'language' => $project->language,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'updated_fields' => array_keys($data)
+        ]);
 
         return response()->json([
             'id' => $project->id,
@@ -127,7 +148,19 @@ class ProjectController extends Controller
             Storage::disk('public')->delete($project->image_square);
         }
 
+        // Store project info before deletion for logging
+        $projectInfo = [
+            'project_id' => $project->id,
+            'project_name' => $project->name,
+            'language' => $project->language,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent()
+        ];
+        
         $project->delete();
+        
+        // Log project deletion activity
+        UserActivityService::logProject('project_deleted', Auth::id(), $projectInfo);
 
         return response()->noContent();
     }

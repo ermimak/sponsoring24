@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Donation;
+use App\Services\UserActivityService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Stripe\PaymentIntent;
 use Stripe\Stripe;
@@ -40,6 +42,19 @@ class PaymentController extends Controller
                 ],
             ]);
 
+            // Log payment intent creation activity
+            if (Auth::check()) {
+                UserActivityService::logPayment('payment_intent_created', Auth::id(), [
+                    'donation_id' => $donation->id,
+                    'project_id' => $donation->project_id,
+                    'amount' => $request->amount,
+                    'currency' => $request->currency,
+                    'payment_intent_id' => $paymentIntent->id,
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent()
+                ]);
+            }
+            
             return response()->json([
                 'clientSecret' => $paymentIntent->client_secret,
             ]);
@@ -84,6 +99,17 @@ class PaymentController extends Controller
                         'payment_id' => $paymentIntent->id,
                         'paid_at' => now(),
                     ]);
+                    
+                    // Log successful payment activity
+                    if ($donation->user_id) {
+                        UserActivityService::logPayment('payment_succeeded', $donation->user_id, [
+                            'donation_id' => $donation->id,
+                            'project_id' => $donation->project_id,
+                            'amount' => $donation->amount,
+                            'currency' => $donation->currency,
+                            'payment_intent_id' => $paymentIntent->id
+                        ]);
+                    }
                 }
 
                 break;
@@ -97,6 +123,18 @@ class PaymentController extends Controller
                         'payment_method' => 'card',
                         'payment_id' => $paymentIntent->id,
                     ]);
+                    
+                    // Log failed payment activity
+                    if ($donation->user_id) {
+                        UserActivityService::logPayment('payment_failed', $donation->user_id, [
+                            'donation_id' => $donation->id,
+                            'project_id' => $donation->project_id,
+                            'amount' => $donation->amount,
+                            'currency' => $donation->currency,
+                            'payment_intent_id' => $paymentIntent->id,
+                            'error' => $paymentIntent->last_payment_error ? $paymentIntent->last_payment_error->message : null
+                        ]);
+                    }
                 }
 
                 break;

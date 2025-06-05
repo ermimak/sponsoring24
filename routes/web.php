@@ -15,6 +15,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
 use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\UserActivityController;
 use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -67,6 +68,9 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('/{project}/edit', [ProjectController::class, 'show'])
             ->name('edit')
             ->where(['project' => '[0-9a-fA-F-]{36}']);
+        Route::put('/{project}/update', [ProjectController::class, 'update'])
+            ->name('update')
+            ->where(['project' => '[0-9a-fA-F-]{36}']);
         Route::post('/{project}/upload-image', [ProjectController::class, 'uploadImage'])
             ->name('uploadImage')
             ->where(['project' => '[0-9a-fA-F-]{36}']);
@@ -75,7 +79,7 @@ Route::middleware(['auth', 'web'])->group(function () {
             ->where(['project' => '[0-9a-fA-F-]{36}']);
     });
     Route::apiResource('dashboard/projects', ProjectController::class)
-        ->except(['index', 'create', 'edit', 'show'])
+        ->except(['index', 'create', 'edit', 'show', 'uploadImage', 'duplicate','update'])
         ->where(['project' => '[0-9a-fA-F-]{36}']);
 
     // Donation
@@ -192,6 +196,11 @@ Route::middleware(['auth', 'web'])->group(function () {
         // Hero Section Management
         Route::get('/content/hero', [SuperAdminController::class, 'heroIndex'])->name('content.hero');
         Route::post('/content/hero', [SuperAdminController::class, 'updateHero'])->name('content.hero.update');
+        
+        // User Activity Tracking
+        Route::get('/user-activities', [UserActivityController::class, 'index'])->name('user-activities.index');
+        Route::get('/user-activities/{activity}', [UserActivityController::class, 'show'])->name('user-activities.show');
+        Route::get('/users/{user}/activities', [UserActivityController::class, 'userActivities'])->name('users.activities');
     });
 
     // Resource Routes

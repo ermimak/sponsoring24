@@ -17,6 +17,9 @@
                             <NavLink :href="route('admin.users.index')" :active="routeIs('Admin/Users')">
                                 Users
                             </NavLink>
+                            <NavLink :href="route('admin.user-activities.index')" :active="routeIs('Admin/UserActivities')">
+                                User Activities
+                            </NavLink>
                             <NavLink :href="route('admin.content.index')" :active="routeIs('Admin/Content')">
                                 Content
                             </NavLink>
@@ -66,6 +69,9 @@
                     </ResponsiveNavLink>
                     <ResponsiveNavLink :href="route('admin.users.index')" :active="routeIs('Admin/Users')">
                         Users
+                    </ResponsiveNavLink>
+                    <ResponsiveNavLink :href="route('admin.user-activities.index')" :active="routeIs('Admin/UserActivities')">
+                        User Activities
                     </ResponsiveNavLink>
                     <ResponsiveNavLink :href="route('admin.content.index')" :active="routeIs('Admin/Content')">
                         Content

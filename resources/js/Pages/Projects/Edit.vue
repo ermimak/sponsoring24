@@ -495,7 +495,7 @@ async function submit() {
       formData.append('image_square', form.value.image_square);
     }
 
-    const updateUrl = route('projects.update', { project: projectId.value });
+    const updateUrl = route('dashboard.projects.update', { project: projectId.value });
 
     await axios.post(updateUrl, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

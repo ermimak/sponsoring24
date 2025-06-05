@@ -81,7 +81,7 @@
         <Modal :show="showCreateModal || showEditModal" @close="closeModal">
             <template #title>{{ showEditModal ? 'Edit News Item' : 'Add News Item' }}</template>
             <template #content>
-                <form @submit.prevent="submitForm" id="newsForm">
+                <form @submit.prevent="submitForm">
                     <div class="mb-4">
                         <InputLabel for="title" value="Title" />
                         <TextInput
@@ -143,14 +143,7 @@
                         </label>
                     </div>
                     
-                    <div class="mt-6 flex justify-end">
-                        <SecondaryButton @click="closeModal" class="mr-3">
-                            Cancel
-                        </SecondaryButton>
-                        <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                            {{ showEditModal ? 'Update' : 'Create' }}
-                        </PrimaryButton>
-                    </div>
+
                 </form>
             </template>
             <template #footer>

@@ -6,6 +6,7 @@ use App\Models\BonusCredit;
 use App\Models\User;
 use App\Notifications\ReferralCodeUsed;
 use App\Notifications\UserPendingNotification;
+use App\Services\UserActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,13 @@ class AuthController extends Controller
         // Log in the user
         Auth::login($user, $request->boolean('remember'));
 
+        // Log the successful login activity
+        UserActivityService::logAuth('login', $user->id, [
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'remember_me' => $request->boolean('remember')
+        ]);
+
         // Regenerate session
         $request->session()->regenerate();
 
@@ -103,6 +111,14 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        // Log the logout activity before logging out
+        if (Auth::check()) {
+            UserActivityService::logAuth('logout', Auth::id(), [
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent()
+            ]);
+        }
+        
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -182,6 +198,13 @@ class AuthController extends Controller
 
                 // Send pending notification to the user
                 $user->notify(new UserPendingNotification());
+                
+                // Log the registration activity
+                UserActivityService::logAuth('registration', $user->id, [
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                    'referral_info' => $referralInfo
+                ]);
                 
                 DB::commit();
                 
