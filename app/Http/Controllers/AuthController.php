@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BonusCredit;
 use App\Models\User;
 use App\Notifications\ReferralCodeUsed;
+use App\Notifications\UserPendingNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -40,6 +41,25 @@ class AuthController extends Controller
                 'email' => trans('auth.failed'),
             ]);
         }
+        
+        // Check if user is approved
+        if ($user->approval_status !== 'approved') {
+            $message = 'Your account is pending approval by an administrator.';
+            
+            if ($user->approval_status === 'rejected') {
+                $message = 'Your account registration has been rejected. Reason: ' . ($user->rejection_reason ?: 'Not specified');
+            }
+            
+            if ($request->wantsJson()) {
+                throw ValidationException::withMessages([
+                    'email' => [$message],
+                ]);
+            }
+            
+            return back()->withErrors([
+                'email' => $message,
+            ]);
+        }
 
         // Log in the user
         Auth::login($user, $request->boolean('remember'));
@@ -71,6 +91,11 @@ class AuthController extends Controller
                     'roles' => $user->getRoleNames()->toArray(),
                 ],
             ]);
+        }
+        
+        // Redirect super admin users to admin dashboard
+        if ($user->hasRole('super-admin')) {
+            return redirect()->route('admin.dashboard')->with('success', 'Welcome back, Super Admin!');
         }
 
         return redirect()->intended(route('dashboard'))->with('success', 'Login successful');
@@ -111,6 +136,7 @@ class AuthController extends Controller
                     'name' => $validated['name'],
                     'email' => $validated['email'],
                     'password' => Hash::make($validated['password']),
+                    'approval_status' => 'pending',
                 ]);
 
                 // Assign the user role
@@ -154,18 +180,23 @@ class AuthController extends Controller
                     }
                 }
 
+                // Send pending notification to the user
+                $user->notify(new UserPendingNotification());
+                
                 DB::commit();
-
-                Auth::login($user);
+                
+                // Don't log in the user automatically, they need approval first
 
                 if ($request->wantsJson()) {
                     return response()->json([
-                        'message' => 'Registration successful',
+                        'message' => 'Registration successful. Your account is pending approval by an administrator.',
                         'referralInfo' => $referralInfo,
                     ]);
                 }
 
-                return redirect()->route('home')->with('referralInfo', $referralInfo);
+                return redirect()->route('home')
+                    ->with('success', 'Registration successful. Your account is pending approval by an administrator.')
+                    ->with('referralInfo', $referralInfo);
             } catch (\Exception $e) {
                 DB::rollBack();
 

@@ -1,5 +1,11 @@
 <template>
     <MainLayout>
+        <!-- Flash Messages -->
+        <div v-if="$page.props.flash?.success" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative max-w-6xl mx-auto mt-4" role="alert">
+            <strong class="font-bold">Success! </strong>
+            <span class="block sm:inline">{{ $page.props.flash.success }}</span>
+        </div>
+
         <!-- Hero Section -->
         <section class="relative bg-white">
             <div class="absolute inset-0">

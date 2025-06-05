@@ -13,6 +13,8 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\Admin\SuperAdminController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -160,6 +162,36 @@ Route::middleware(['auth', 'web'])->group(function () {
 
     Route::middleware('can:manage_permissions')->group(function () {
         Route::get('/dashboard/admin/permissions', fn () => Inertia::render('Dashboard/Permissions'))->name('dashboard.admin.permissions');
+    });
+    
+    // Super Admin Routes
+    Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+        
+        // User Management
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/pending', [AdminUserController::class, 'pending'])->name('users.pending');
+        Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::post('/users/{user}/approve', [AdminUserController::class, 'approve'])->name('users.approve');
+        Route::post('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
+        
+        // Content Management
+        Route::get('/content', [SuperAdminController::class, 'contentIndex'])->name('content.index');
+        
+        // News Management
+        Route::get('/content/news', [SuperAdminController::class, 'newsIndex'])->name('content.news');
+        Route::post('/content/news', [SuperAdminController::class, 'storeNews'])->name('content.news.store');
+        Route::put('/content/news/{news}', [SuperAdminController::class, 'updateNews'])->name('content.news.update');
+        Route::delete('/content/news/{news}', [SuperAdminController::class, 'destroyNews'])->name('content.news.destroy');
+        
+        // Featured Projects Management
+        Route::get('/content/featured-projects', [SuperAdminController::class, 'featuredProjectsIndex'])->name('content.featured-projects');
+        Route::post('/content/featured-projects', [SuperAdminController::class, 'updateFeaturedProjects'])->name('content.featured-projects.update');
+        
+        // Hero Section Management
+        Route::get('/content/hero', [SuperAdminController::class, 'heroIndex'])->name('content.hero');
+        Route::post('/content/hero', [SuperAdminController::class, 'updateHero'])->name('content.hero.update');
     });
 
     // Resource Routes
