@@ -158,11 +158,6 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::apiResource('dashboard/member-groups', MemberGroupController::class)
         ->except(['create', 'edit'])
         ->where(['member_group' => '[0-9]+']);
-    
-    // Admin Routes
-    Route::middleware('can:manage_roles')->group(function () {
-        Route::get('/dashboard/admin/roles', fn () => Inertia::render('Dashboard/Roles'))->name('dashboard.admin.roles');
-    });
 
     Route::middleware('can:manage_permissions')->group(function () {
         Route::get('/dashboard/admin/permissions', fn () => Inertia::render('Dashboard/Permissions'))->name('dashboard.admin.permissions');
@@ -180,18 +175,14 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::post('/users/{user}/approve', [AdminUserController::class, 'approve'])->name('users.approve');
         Route::post('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
         
-        // Content Management
-        Route::get('/content', [SuperAdminController::class, 'contentIndex'])->name('content.index');
-        
-        // News Management
-        Route::get('/content/news', [SuperAdminController::class, 'newsIndex'])->name('content.news');
-        Route::post('/content/news', [SuperAdminController::class, 'storeNews'])->name('content.news.store');
-        Route::put('/content/news/{news}', [SuperAdminController::class, 'updateNews'])->name('content.news.update');
-        Route::delete('/content/news/{news}', [SuperAdminController::class, 'destroyNews'])->name('content.news.destroy');
-        
-        // Featured Projects Management
-        Route::get('/content/featured-projects', [SuperAdminController::class, 'featuredProjectsIndex'])->name('content.featured-projects');
-        Route::post('/content/featured-projects', [SuperAdminController::class, 'updateFeaturedProjects'])->name('content.featured-projects.update');
+        Route::get('/content', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content.index');
+        Route::get('/content/featured-projects', [\App\Http\Controllers\Admin\ContentController::class, 'featuredProjects'])->name('content.featured-projects');
+        Route::post('/content/featured-projects', [\App\Http\Controllers\Admin\ContentController::class, 'updateFeatured'])->name('content.featured-projects.update');
+        Route::get('/dashboard/admin/roles', fn () => Inertia::render('Dashboard/Roles'))->name('dashboard.admin.roles');
+        Route::get('/content/news', [\App\Http\Controllers\Admin\ContentController::class, 'news'])->name('content.news');
+        Route::put('/content/news', [\App\Http\Controllers\Admin\ContentController::class, 'updateNews'])->name('content.news.update');
+        Route::post('/content/news/create', [\App\Http\Controllers\Admin\ContentController::class, 'createNews'])->name('content.news.create');
+        Route::delete('/content/news/{news}', [\App\Http\Controllers\Admin\ContentController::class, 'destroyNews'])->name('content.news.destroy');
         
         // Hero Section Management
         Route::get('/content/hero', [SuperAdminController::class, 'heroIndex'])->name('content.hero');
@@ -254,6 +245,10 @@ Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{to
 Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment');
 
 Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
+
+
+// News show
+Route::get('/content/news/{news}', [\App\Http\Controllers\Admin\ContentController::class, 'showNews'])->name('content.news.show');
 
 // Inertia Routes for Public Pages
 // Route::get('projects/{project}/participants/{participant}/donate', function ($project, $participant) {

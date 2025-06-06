@@ -120,14 +120,9 @@
                     </div>
                     
                     <div class="mb-4">
-                        <InputLabel for="image" value="Image URL" />
-                        <TextInput
-                            id="image"
-                            type="text"
-                            class="mt-1 block w-full"
-                            v-model="form.image_url"
-                            placeholder="https://example.com/image.jpg"
-                        />
+                        <InputLabel for="image_url" value="Image URL" />
+                        <!-- TODO: add image upload -->
+                        <input type="file" @change="onFileChange($event, 'image_url')" />
                         <InputError :message="form.errors.image_url" class="mt-2" />
                     </div>
                     
@@ -209,6 +204,10 @@ const formatDate = (dateString) => {
     return format(new Date(dateString), 'PPP');
 };
 
+const onFileChange = (event, field) => {
+    form[field] = event.target.files[0];
+};
+
 const closeModal = () => {
     showCreateModal.value = false;
     showEditModal.value = false;
@@ -226,16 +225,16 @@ const editNewsItem = (item) => {
     showEditModal.value = true;
 };
 
-const createNewsItem = () => {
-    form.post(route('admin.content.news.store'), {
+const createNewsItem = async () => {
+    form.post(route('admin.content.news.create'), {
         onSuccess: () => {
             closeModal();
         },
     });
 };
 
-const updateNewsItem = () => {
-    form.put(route('admin.content.news.update', currentItem.value.id), {
+const updateNewsItem = async () => {
+    form.put(route('admin.content.news.update'), {
         onSuccess: () => {
             closeModal();
         },

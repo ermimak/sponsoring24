@@ -35,8 +35,8 @@
                                                 </div>
                                             </div>
                                             <div class="flex-grow">
-                                                <h3 class="font-medium">{{ project.title || project.name || 'Unnamed Project' }}</h3>
-                                                <p class="text-sm text-gray-500 truncate">{{ project.description || project.short_description || 'No description available' }}</p>
+                                                <h3 class="font-medium">{{ project.title || project.name['de'] || 'Unnamed Project' }}</h3>
+                                                <p class="text-sm text-gray-500 truncate">{{ project.description['de'] || project.short_description['de'] || 'No description available' }}</p>
                                             </div>
                                         </div>
                                         <div class="mt-3 flex justify-end">
@@ -67,8 +67,8 @@
                                                 </div>
                                             </div>
                                             <div class="flex-grow">
-                                                <h3 class="font-medium">{{ project.title || project.name || 'Unnamed Project' }}</h3>
-                                                <p class="text-sm text-gray-500 truncate">{{ project.description || project.short_description || 'No description available' }}</p>
+                                                <h3 class="font-medium">{{ project.title || project.name['de'] || 'Unnamed Project' }}</h3>
+                                                <p class="text-sm text-gray-500 truncate">{{ project.description['de'] || project.short_description['de'] || 'No description available' }}</p>
                                             </div>
                                         </div>
                                         <div class="mt-3 flex justify-end">

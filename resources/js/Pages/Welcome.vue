@@ -39,7 +39,7 @@
                      :key="n"
                      :src="`/images/partner${n}.png`"
                      alt="Partner logo"
-                     class="h-12 grayscale hover:grayscale-0 transition-all duration-300" />
+                     class="h-12 transition-all duration-300" />
             </div>
         </section>
 
@@ -280,16 +280,30 @@
                     <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">Stay up to date with our latest features, success stories, and sponsoring tips.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div v-for="news in news" :key="news.id" class="bg-white rounded-3xl shadow-xl p-10 flex flex-col gap-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100"> 
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600">
+                                <img :src="news.image_url" alt="News Image" class="w-full object-cover mb-4 rounded-lg">
+
+                            </div>
+                            <h3 class="text-2xl font-bold">{{ news.title }}</h3>
+                            <p class="text-gray-700 text-lg leading-relaxed">{{ news.excerpt }}</p>
+                            <a :href="route('content.news.show', news.id)" class="inline-flex items-center text-emerald-600 font-bold mt-4 group">
+                                Read More
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </a>
+                    </div>
                     <div class="bg-white rounded-3xl shadow-xl p-10 flex flex-col gap-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-100 text-blue-600">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                             </svg>
                         </div>
-                        <h3 class="text-2xl font-bold">Step by Step Guide</h3>
-                        <p class="text-gray-700 text-lg leading-relaxed">Our comprehensive guide to launching successful sponsoring campaigns. Learn how to maximize engagement and reach your fundraising goals with Sponsoring24's powerful tools.</p>
-                        <a href="#" class="inline-flex items-center text-emerald-600 font-bold mt-4 group">
-                            Read the Guide
+                        <h3 class="text-2xl font-bold">Partner Referral Program</h3>
+                        <p class="text-gray-700 text-lg leading-relaxed">Recommend Sponsoring24 to your network and earn rewards through our partner referral program. Help others discover the best sponsoring platform in Switzerland.</p>
+                        <a href="#" class="inline-flex items-center text-blue-600 font-bold mt-4 group">
+                            Join the Program
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
@@ -323,7 +337,7 @@ import MainLayout from '@/Layouts/MainLayout.vue';
 import ProjectCard from '@/Components/ProjectCard.vue';
 import NotificationsPanel from '@/Components/NotificationsPanel.vue';
 import { usePage } from '@inertiajs/vue3';
-
+import {route} from 'ziggy-js';
 const page = usePage();
 const referralInfo = page.props.referralInfo;
 const notifications = page.props.notifications;
@@ -333,4 +347,6 @@ const stats = page.props.stats || {
     donations: 28430448,
     supporters: 563784
 };
+const news = page.props.news || [];
+console.log(news);
 </script>

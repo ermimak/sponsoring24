@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Donation;
+use App\Models\News;
 use App\Models\Project;
 use App\Models\Participant;
 use Illuminate\Http\Request;
@@ -23,13 +24,26 @@ class WelcomeController extends Controller
         $referralInfo = $request->session()->get('referralInfo');
         
         // Get featured projects (limit to 6)
-        $projects = Project::where('public_donation_enabled', true)
+        $projects = Project::where('is_featured', true)
+            ->where('public_donation_enabled', true)
             ->withCount(['participants', 'donations'])
             ->withSum('donations', 'amount')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('featured_order')
             ->take(6)
-            ->get()
-            ->map(function ($project) {
+            ->get();
+            
+        // If no featured projects, get the most recent ones
+        if ($projects->isEmpty()) {
+            $projects = Project::where('public_donation_enabled', true)
+                ->withCount(['participants', 'donations'])
+                ->withSum('donations', 'amount')
+                ->orderBy('created_at', 'desc')
+                ->take(6)
+                ->get();
+        }
+        
+        // Format project data for display
+        $projects = $projects->map(function ($project) {
                 // Handle translatable fields
                 $name = $project->name;
                 if (is_array($name)) {
@@ -49,7 +63,7 @@ class WelcomeController extends Controller
                     'id' => $project->id,
                     'title' => $name,
                     'description' => $description,
-                    'image' => $project->image_landscape ? '/storage/' . $project->image_landscape : '/images/project' . (($project->id % 3) + 1) . '.jpg',
+                    'image' => $project->image_landscape ? $project->image_landscape : $project->image_square,
                     'raised' => $formattedAmount,
                     'participants_count' => $project->participants_count,
                     'donations_count' => $project->donations_count,
@@ -63,11 +77,24 @@ class WelcomeController extends Controller
             'supporters' => DB::table('donations')->distinct('supporter_email')->count('supporter_email')
         ];
 
+        // map news to return 4 items only
+        $news = News::where('is_published', true)->take(3)->get()->map(function ($news) {
+            return [
+                'id' => $news->id,
+                'title' => $news->title,
+                'content' => $news->content,
+                'excerpt' => $news->excerpt,
+                'image_url' => $news->image_url ? '/storage/'.$news->image_url : null,
+                'is_published' => $news->is_published,
+            ];
+        });
+
         return Inertia::render('Welcome', [
             'notifications' => $notifications,
             'referralInfo' => $referralInfo,
             'projects' => $projects,
-            'stats' => $stats
+            'stats' => $stats,
+            'news' => $news
         ]);
     }
 }
