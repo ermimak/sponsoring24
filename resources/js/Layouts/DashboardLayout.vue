@@ -44,6 +44,9 @@
           <slot name="breadcrumbs"></slot>
         </div>
         <div class="flex items-center space-x-4">
+          <!-- Notification Dropdown -->
+          <NotificationDropdown :notifications="notifications" />
+          
           <!-- Language Switcher -->
           <div class="bg-gray-50 rounded-lg flex overflow-hidden border border-gray-200">
             <button 
@@ -84,13 +87,15 @@
 import { ref, computed } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import SidebarLink from '@/Components/SidebarLink.vue';
+import NotificationDropdown from '@/Components/NotificationDropdown.vue';
 import { route } from '@/ziggy-plugin';
 
 const page = usePage();
 const user = computed(() => ({
   name: page.props.auth?.user?.name || page.props.auth?.user?.email,
-  organization: page.props.auth?.user?.organization ,
+  organization: page.props.auth?.user?.organization,
 }));
+const notifications = computed(() => page.props.notifications || []);
 const currentLocale = ref(page.props.locale || 'de');
 
 function switchLanguage() {

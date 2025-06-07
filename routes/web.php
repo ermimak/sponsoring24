@@ -123,6 +123,11 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/dashboard/members/groups', [MemberGroupController::class, 'store'])->name('dashboard.members.groups.store');
     Route::delete('/dashboard/members/groups/{memberGroup}', [MemberGroupController::class, 'destroy'])->name('dashboard.members.groups.destroy')->where('memberGroup', '[0-9]+');
 
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    
     // Other Dashboard Routes
     Route::get('/dashboard/settings', [SettingsController::class, 'index'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [SettingsController::class, 'update'])->name('dashboard.settings.update');
@@ -192,6 +197,11 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('/user-activities', [UserActivityController::class, 'index'])->name('user-activities.index');
         Route::get('/user-activities/{activity}', [UserActivityController::class, 'show'])->name('user-activities.show');
         Route::get('/users/{user}/activities', [UserActivityController::class, 'userActivities'])->name('users.activities');
+        
+        // Admin Notification Routes
+        Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{notification}/mark-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+        Route::post('/notifications/mark-all-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
     });
 
     // Resource Routes

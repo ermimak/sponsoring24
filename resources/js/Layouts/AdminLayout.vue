@@ -29,6 +29,10 @@
                         </div>
                     </div>
                     <div class="hidden sm:flex sm:items-center sm:ml-6">
+                        <!-- Notification Dropdown -->
+                        <div class="mr-3">
+                            <NotificationDropdown :notifications="notifications" />
+                        </div>
                         <div class="ml-3 relative">
                             <Dropdown align="right" width="48">
                                 <template #trigger>
@@ -107,18 +111,25 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import { usePage } from '@inertiajs/vue3';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import NotificationDropdown from '@/Components/NotificationDropdown.vue';
 import { route } from '@/ziggy-plugin';
+
+// Get the page object
+const page = usePage();
+
+// Get notifications from props
+const notifications = computed(() => page.props.notifications || []);
 
 // Helper function to check if current route matches a pattern
 const routeIs = (name) => {
-    const currentComponent = usePage().component.value;
+    const currentComponent = page.component.value;
     return currentComponent && currentComponent.includes(name);
 };
 

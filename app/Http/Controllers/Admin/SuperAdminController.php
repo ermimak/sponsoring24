@@ -16,7 +16,7 @@ class SuperAdminController extends Controller
     /**
      * Display the super admin dashboard.
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $pendingUsers = User::where('approval_status', 'pending')->count();
         $totalUsers = User::count();
@@ -26,11 +26,20 @@ class SuperAdminController extends Controller
             ->take(5)
             ->get();
             
+        // Get latest 10 notifications for the admin
+        $user = $request->user();
+        $notifications = $user->notifications()->latest()->limit(10)->get();
+        
+        // Count unread notifications
+        $unreadCount = $user->unreadNotifications()->count();
+            
         return Inertia::render('Admin/Dashboard', [
             'pendingUsers' => $pendingUsers,
             'totalUsers' => $totalUsers,
             'contentItems' => $contentItems,
             'recentUsers' => $recentUsers,
+            'notifications' => $notifications,
+            'unreadNotificationsCount' => $unreadCount,
         ]);
     }
 

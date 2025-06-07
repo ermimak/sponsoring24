@@ -16,8 +16,10 @@ class WelcomeController extends Controller
     {
         // Get notifications for authenticated users
         $notifications = [];
+        $unreadCount = 0;
         if ($request->user()) {
             $notifications = $request->user()->notifications()->latest()->take(10)->get();
+            $unreadCount = $request->user()->unreadNotifications()->count();
         }
         
         // Get referral info if available
@@ -91,6 +93,7 @@ class WelcomeController extends Controller
 
         return Inertia::render('Welcome', [
             'notifications' => $notifications,
+            'unreadNotificationsCount' => $unreadCount,
             'referralInfo' => $referralInfo,
             'projects' => $projects,
             'stats' => $stats,
