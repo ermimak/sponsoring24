@@ -7,7 +7,9 @@ use App\Models\User;
 use App\Models\News;
 use App\Models\Project;
 use App\Models\Content;
+use App\Notifications\ContentActionNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -85,6 +87,25 @@ class SuperAdminController extends Controller
         $news->published_at = $validated['is_published'] ? now() : null;
         $news->save();
         
+        // Send notification to admin users about new news item
+        $admins = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['admin', 'super-admin']);
+        })->get();
+        
+        foreach ($admins as $admin) {
+            if ($admin->id !== Auth::id()) { // Don't notify the admin who created the news
+                $admin->notify(new ContentActionNotification(
+                    $news,
+                    'news',
+                    'created',
+                    [
+                        'updated_by' => Auth::user()->name,
+                        'is_published' => $validated['is_published']
+                    ]
+                ));
+            }
+        }
+        
         return redirect()->route('admin.content.news')
             ->with('success', 'News item created successfully.');
     }
@@ -102,6 +123,20 @@ class SuperAdminController extends Controller
             'is_published' => 'boolean',
         ]);
         
+        // Track what fields were updated
+        $updatedFields = [];
+        if ($news->title != $validated['title']) $updatedFields[] = 'title';
+        if ($news->excerpt != $validated['excerpt']) $updatedFields[] = 'excerpt';
+        if ($news->content != $validated['content']) $updatedFields[] = 'content';
+        if ($news->image_url != $validated['image_url']) $updatedFields[] = 'image';
+        
+        // Check if publication status changed
+        $statusChanged = $news->is_published != $validated['is_published'];
+        $action = 'updated';
+        if ($statusChanged) {
+            $action = $validated['is_published'] ? 'published' : 'unpublished';
+        }
+        
         // If publishing for the first time, set published_at
         if ($validated['is_published'] && !$news->is_published) {
             $news->published_at = now();
@@ -114,6 +149,26 @@ class SuperAdminController extends Controller
         $news->is_published = $validated['is_published'];
         $news->save();
         
+        // Send notification to admin users about updated news item
+        $admins = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['admin', 'super-admin']);
+        })->get();
+        
+        foreach ($admins as $admin) {
+            if ($admin->id !== Auth::id()) { // Don't notify the admin who updated the news
+                $admin->notify(new ContentActionNotification(
+                    $news,
+                    'news',
+                    $action,
+                    [
+                        'updated_by' => Auth::user()->name,
+                        'updated_fields' => $updatedFields,
+                        'is_published' => $validated['is_published']
+                    ]
+                ));
+            }
+        }
+        
         return redirect()->route('admin.content.news')
             ->with('success', 'News item updated successfully.');
     }
@@ -123,7 +178,36 @@ class SuperAdminController extends Controller
      */
     public function destroyNews(News $news)
     {
+        // Store news data before deletion for notification
+        $newsData = [
+            'id' => $news->id,
+            'title' => $news->title,
+            'excerpt' => $news->excerpt
+        ];
+        
+        // Create a copy of the news for notification
+        $newsCopy = clone $news;
+        
         $news->delete();
+        
+        // Send notification to admin users about deleted news item
+        $admins = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['admin', 'super-admin']);
+        })->get();
+        
+        foreach ($admins as $admin) {
+            if ($admin->id !== Auth::id()) { // Don't notify the admin who deleted the news
+                $admin->notify(new ContentActionNotification(
+                    $newsCopy,
+                    'news',
+                    'deleted',
+                    [
+                        'updated_by' => Auth::user()->name,
+                        'deleted_at' => now()->toDateTimeString()
+                    ]
+                ));
+            }
+        }
         
         return redirect()->route('admin.content.news')
             ->with('success', 'News item deleted successfully.');

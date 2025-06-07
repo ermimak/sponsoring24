@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Donation;
+use App\Models\User;
+use App\Notifications\PaymentReceivedNotification;
 use App\Services\UserActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -100,6 +102,10 @@ class PaymentController extends Controller
                         'paid_at' => now(),
                     ]);
                     
+                    // Load related project and participant
+                    $donation->load(['project', 'participant']);
+                    $project = $donation->project;
+                    
                     // Log successful payment activity
                     if ($donation->user_id) {
                         UserActivityService::logPayment('payment_succeeded', $donation->user_id, [
@@ -109,6 +115,31 @@ class PaymentController extends Controller
                             'currency' => $donation->currency,
                             'payment_intent_id' => $paymentIntent->id
                         ]);
+                    }
+                    
+                    // Send notification to project owner
+                    if ($project && $project->created_by) {
+                        $projectOwner = User::find($project->created_by);
+                        if ($projectOwner) {
+                            $projectOwner->notify(new PaymentReceivedNotification(
+                                $donation, 
+                                $donation->amount, 
+                                $project->name
+                            ));
+                        }
+                    }
+                    
+                    // Send notification to admin users
+                    $admins = User::whereHas('roles', function($query) {
+                        $query->whereIn('name', ['admin', 'super-admin']);
+                    })->get();
+                    
+                    foreach ($admins as $admin) {
+                        $admin->notify(new PaymentReceivedNotification(
+                            $donation, 
+                            $donation->amount, 
+                            $project ? $project->name : null
+                        ));
                     }
                 }
 

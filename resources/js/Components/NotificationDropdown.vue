@@ -61,7 +61,7 @@
       </div>
       
       <div class="py-2 px-4 border-t border-gray-100 text-center">
-        <Link :href="route('notifications.index')" class="text-xs text-blue-600 hover:text-blue-800">
+        <Link :href="route('dashboard.notifications.index')" class="text-xs text-blue-600 hover:text-blue-800">
           View all notifications
         </Link>
       </div>
@@ -162,7 +162,7 @@ const getNotificationMessage = (notification) => {
 
 // Mark notification as read
 const markAsRead = (notification) => {
-  router.post(route('notifications.mark-as-read', { notification: notification.id }), {}, {
+  router.post(route('dashboard.notifications.mark-as-read', { notification: notification.id }), {}, {
     preserveScroll: true,
     onSuccess: () => {
       notification.read_at = new Date().toISOString();
@@ -172,7 +172,7 @@ const markAsRead = (notification) => {
 
 // Mark all notifications as read
 const markAllAsRead = () => {
-  router.post(route('notifications.mark-all-as-read'), {}, {
+  router.post(route('dashboard.notifications.mark-all-as-read'), {}, {
     preserveScroll: true,
     onSuccess: () => {
       props.notifications.forEach(notification => {

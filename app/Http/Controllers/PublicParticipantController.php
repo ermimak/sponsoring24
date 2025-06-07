@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Donation;
 use App\Models\Participant;
 use App\Models\Project;
+use App\Models\User;
+use App\Notifications\NewDonationNotification;
 use Illuminate\Http\Request;
 
 class PublicParticipantController extends Controller
@@ -48,6 +50,21 @@ class PublicParticipantController extends Controller
             'donor_email' => $request->donor_email,
             'status' => 'completed',
         ]);
+
+        // Send notification to project owner
+        $projectOwner = User::find($project->created_by);
+        if ($projectOwner) {
+            $projectOwner->notify(new NewDonationNotification($donation, $project, $participant));
+        }
+        
+        // Send notification to admin users
+        $admins = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['admin', 'super-admin']);
+        })->get();
+        
+        foreach ($admins as $admin) {
+            $admin->notify(new NewDonationNotification($donation, $project, $participant));
+        }
 
         return response()->json(['message' => 'Donation successful', 'data' => $donation], 201);
     }

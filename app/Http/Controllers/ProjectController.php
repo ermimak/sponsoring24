@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\User;
+use App\Notifications\ProjectUpdateNotification;
 use App\Services\UserActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +51,15 @@ class ProjectController extends Controller
             'ip' => request()->ip(),
             'user_agent' => request()->userAgent()
         ]);
+        
+        // Send notification to admin users about new project
+        $admins = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['admin', 'super-admin']);
+        })->get();
+        
+        foreach ($admins as $admin) {
+            $admin->notify(new ProjectUpdateNotification($project, 'created'));
+        }
 
         return $project;
     }
@@ -115,6 +126,18 @@ class ProjectController extends Controller
             'user_agent' => request()->userAgent(),
             'updated_fields' => array_keys($data)
         ]);
+        
+        // Send notification to admin users about project update
+        $admins = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['admin', 'super-admin']);
+        })->get();
+        
+        foreach ($admins as $admin) {
+            $admin->notify(new ProjectUpdateNotification($project, 'updated', [
+                'updated_fields' => array_keys($data),
+                'updated_by' => auth()->user()->name
+            ]));
+        }
 
         return response()->json([
             'id' => $project->id,
@@ -157,10 +180,24 @@ class ProjectController extends Controller
             'user_agent' => request()->userAgent()
         ];
         
+        // Send notification to admin users about project deletion
+        $admins = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['admin', 'super-admin']);
+        })->get();
+        
+        $projectCopy = clone $project; // Create a copy before deletion for notification
+        
         $project->delete();
         
         // Log project deletion activity
         UserActivityService::logProject('project_deleted', Auth::id(), $projectInfo);
+        
+        foreach ($admins as $admin) {
+            $admin->notify(new ProjectUpdateNotification($projectCopy, 'deleted', [
+                'deleted_by' => auth()->user()->name,
+                'deleted_at' => now()->toDateTimeString()
+            ]));
+        }
 
         return response()->noContent();
     }
@@ -182,6 +219,29 @@ class ProjectController extends Controller
             $newTemplate = $template->replicate();
             $newTemplate->project_id = $newProject->id;
             $newTemplate->save();
+        }
+        
+        // Log project duplication activity
+        UserActivityService::logProject('project_duplicated', Auth::id(), [
+            'original_project_id' => $project->id,
+            'original_project_name' => $project->name,
+            'new_project_id' => $newProject->id,
+            'new_project_name' => $newProject->name,
+            'ip' => request()->ip(),
+            'user_agent' => request()->userAgent()
+        ]);
+        
+        // Send notification to admin users about project duplication
+        $admins = User::whereHas('roles', function($query) {
+            $query->whereIn('name', ['admin', 'super-admin']);
+        })->get();
+        
+        foreach ($admins as $admin) {
+            $admin->notify(new ProjectUpdateNotification($newProject, 'duplicated', [
+                'original_project_id' => $project->id,
+                'original_project_name' => $project->name,
+                'duplicated_by' => auth()->user()->name
+            ]));
         }
 
         return $newProject;

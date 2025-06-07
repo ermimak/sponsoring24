@@ -28,7 +28,7 @@
         <!-- Notifications Panel -->
         <section v-if="notifications && notifications.length > 0" class="bg-white py-8">
             <div class="max-w-6xl mx-auto px-4">
-                <NotificationsPanel />
+                <NotificationDropdown />
             </div>
         </section>
 
@@ -335,9 +335,9 @@
 <script setup>
 import MainLayout from '@/Layouts/MainLayout.vue';
 import ProjectCard from '@/Components/ProjectCard.vue';
-import NotificationsPanel from '@/Components/NotificationsPanel.vue';
 import { usePage } from '@inertiajs/vue3';
 import {route} from 'ziggy-js';
+import NotificationDropdown from '@/Components/NotificationDropdown.vue';
 const page = usePage();
 const referralInfo = page.props.referralInfo;
 const notifications = page.props.notifications;

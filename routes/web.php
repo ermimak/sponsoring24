@@ -124,9 +124,9 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::delete('/dashboard/members/groups/{memberGroup}', [MemberGroupController::class, 'destroy'])->name('dashboard.members.groups.destroy')->where('memberGroup', '[0-9]+');
 
     // Notification Routes
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
-    Route::post('/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+    Route::get('/dashboard/notifications', [NotificationController::class, 'index'])->name('dashboard.notifications.index');
+    Route::post('/dashboard/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('dashboard.notifications.mark-as-read');
+    Route::post('/dashboard/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('dashboard.notifications.mark-all-as-read');
     
     // Other Dashboard Routes
     Route::get('/dashboard/settings', [SettingsController::class, 'index'])->name('dashboard.settings');

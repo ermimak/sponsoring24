@@ -68,7 +68,15 @@ const props = defineProps({
   }
 });
 
-const unreadCount = computed(() => props.notifications.filter(n => !n.read_at).length);
+// filter is not function, fix that
+const unreadCount = computed(() => {
+  if (!Array.isArray(props.notifications)) {
+    return 0;
+  }
+  return props.notifications.filter(n => !n.read_at).length;
+});
+
+
 
 // Format date to relative time (e.g. "2 hours ago")
 const formatDate = (dateString) => {
@@ -133,7 +141,7 @@ const getNotificationMessage = (notification) => {
 
 // Mark notification as read
 const markAsRead = (notification) => {
-  router.post(route('notifications.mark-as-read', { notification: notification.id }), {}, {
+  router.post(route('dashboard.notifications.mark-as-read', { notification: notification.id }), {}, {
     preserveScroll: true,
     onSuccess: () => {
       notification.read_at = new Date().toISOString();
@@ -143,7 +151,7 @@ const markAsRead = (notification) => {
 
 // Mark all notifications as read
 const markAllAsRead = () => {
-  router.post(route('notifications.mark-all-as-read'), {}, {
+  router.post(route('dashboard.notifications.mark-all-as-read'), {}, {
     preserveScroll: true,
     onSuccess: () => {
       props.notifications.forEach(notification => {

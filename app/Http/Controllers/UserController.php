@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\UserActionNotification;
 use App\Services\UserActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -144,6 +145,21 @@ class UserController extends Controller
                 'user_agent' => request()->userAgent(),
                 'fields_updated' => array_keys($validated)
             ], Auth::id());
+            
+            // Send notification to admin users about user creation/update
+            $action = $isNewUser ? 'created' : 'updated';
+            $admins = User::whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'super-admin']);
+            })->get();
+            
+            foreach ($admins as $admin) {
+                if ($admin->id !== Auth::id()) { // Don't notify the admin who made the change
+                    $admin->notify(new UserActionNotification($user, $action, [
+                        'updated_fields' => array_keys($validated),
+                        'updated_by' => Auth::user()->name
+                    ]));
+                }
+            }
 
             // Handle settings with default values
             if ($user->setting) {
@@ -194,6 +210,29 @@ class UserController extends Controller
                     'ip' => request()->ip(),
                     'user_agent' => request()->userAgent()
                 ], Auth::id());
+                
+                // Send notification about role change
+                $admins = User::whereHas('roles', function($query) {
+                    $query->whereIn('name', ['admin', 'super-admin']);
+                })->get();
+                
+                foreach ($admins as $admin) {
+                    if ($admin->id !== Auth::id()) { // Don't notify the admin who made the change
+                        $admin->notify(new UserActionNotification($user, 'role_changed', [
+                            'previous_roles' => $previousRoles,
+                            'roles' => $newRoles,
+                            'updated_by' => Auth::user()->name
+                        ]));
+                    }
+                }
+                
+                // Notify the user whose roles were changed
+                if ($user->id !== Auth::id()) {
+                    $user->notify(new UserActionNotification($user, 'role_changed', [
+                        'roles' => $newRoles,
+                        'updated_by' => Auth::user()->name
+                    ]));
+                }
             }
 
             Log::info('User ' . ($request->user_id ? 'updated' : 'created') . ' successfully', [
@@ -250,11 +289,29 @@ class UserController extends Controller
                 'user_agent' => request()->userAgent()
             ];
             
+            // Store user data for notifications before deletion
+            $userCopy = clone $user;
+            
             // Delete the user
             $user->delete();
             
             // Log user deletion activity
             UserActivityService::logAdmin('user_deleted', $userInfo, Auth::id());
+            
+            // Send notification to admin users about user deletion
+            $admins = User::whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'super-admin']);
+            })->get();
+            
+            foreach ($admins as $admin) {
+                if ($admin->id !== Auth::id()) { // Don't notify the admin who made the change
+                    $admin->notify(new UserActionNotification($userCopy, 'deleted', [
+                        'deleted_by' => Auth::user()->name,
+                        'deleted_at' => now()->toDateTimeString(),
+                        'roles' => $userInfo['roles']
+                    ]));
+                }
+            }
 
             Log::info('User deleted successfully', [
                 'user_id' => $id,
