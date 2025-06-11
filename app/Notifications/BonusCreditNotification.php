@@ -89,14 +89,16 @@ class BonusCreditNotification extends Notification implements ShouldQueue
     protected function getSubject()
     {
         switch ($this->action) {
-            case 'created':
-                return 'New Bonus Credit Added';
-            case 'credited':
-                return 'Bonus Credit Processed';
             case 'referral_used':
                 return 'Your Referral Code Was Used';
+            case 'credited':
+                return 'Bonus Credit Processed';
+            case 'created':
+                return 'New Bonus Credit Created';
+            case 'discount_eligible':
+                return 'You Are Eligible for a Discount';
             default:
-                return 'Bonus Credit Update';
+                return 'Bonus Credit Notification';
         }
     }
 
@@ -118,6 +120,10 @@ class BonusCreditNotification extends Notification implements ShouldQueue
             case 'referral_used':
                 $referredName = $this->actionData['referred_name'] ?? 'someone';
                 return "{$referredName} used your referral code. A bonus credit of {$currency} {$amount} has been added to your account.";
+            case 'discount_eligible':
+                $discountAmount = $this->actionData['discount_amount'] ?? '50.00';
+                $referrerName = $this->actionData['referrer_name'] ?? 'A Fundoo user';
+                return "Thanks to {$referrerName}'s referral, you are eligible for a {$currency} {$discountAmount} discount on your first annual Fundoo license. This discount will be automatically applied when you purchase your license.";
             default:
                 return "Your bonus credit of {$currency} {$amount} has been updated.";
         }

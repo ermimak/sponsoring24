@@ -9,9 +9,20 @@
                     Create Account
                 </h1>
                 <p class="text-gray-500 mt-2 text-sm">Join Sponsoring24 and start your journey!</p>
+                
+                <div v-if="hasReferralCode" class="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div class="text-left">
+                        <p class="text-green-800 font-medium">Referral Discount Applied!</p>
+                        <p class="text-green-700 text-sm">You'll receive CHF 50 off your first annual license purchase.</p>
+                    </div>
+                </div>
             </div>
 
             <form @submit.prevent="submit" class="space-y-5">
+                <input v-if="hasReferralCode" type="hidden" v-model="form.referral_code" />
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,17 +180,40 @@
 import { useForm } from '@inertiajs/vue3';
 import AuthLayout from '@/Layouts/AuthLayout.vue';
 import { route } from 'ziggy-js';
+import { computed, onMounted, ref } from 'vue';
+
+// Get referral code from URL if present
+const referralCode = ref('');
+
+onMounted(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('ref')) {
+        referralCode.value = urlParams.get('ref');
+    }
+});
 
 const form = useForm({
     name: '',
     email: '',
     password: '',
     password_confirmation: '',
+    referral_code: referralCode,
+});
+
+const hasReferralCode = computed(() => {
+    return referralCode.value && referralCode.value.length > 0;
 });
 
 const submit = () => {
-    form.post(route('register'), {
-        onFinish: () => form.reset('password', 'password_confirmation'),
-    });
+    // If we have a referral code, use the referral registration endpoint
+    if (hasReferralCode.value) {
+        form.post(route('register.with_referral'), {
+            onFinish: () => form.reset('password', 'password_confirmation'),
+        });
+    } else {
+        form.post(route('register'), {
+            onFinish: () => form.reset('password', 'password_confirmation'),
+        });
+    }
 };
 </script> 

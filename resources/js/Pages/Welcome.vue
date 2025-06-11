@@ -31,6 +31,47 @@
                 <NotificationDropdown />
             </div>
         </section>
+        
+        <!-- Referral Program -->
+        <section class="bg-gradient-to-r from-purple-50 to-blue-50 py-16">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="text-center mb-10">
+                    <span class="inline-block px-4 py-1 bg-purple-100 text-purple-700 font-medium rounded-full mb-4">Special Offer</span>
+                    <h2 class="text-3xl md:text-4xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-blue-700">Join Our Referral Program</h2>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">Share Fundoo with your network and earn rewards!</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center text-center">
+                        <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Earn CHF 100</h3>
+                        <p class="text-gray-600 mb-6">For each new user who signs up using your referral link and purchases an annual license, you'll receive CHF 100 in bonus credits.</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center text-center">
+                        <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-800 mb-4">Your Friends Save CHF 50</h3>
+                        <p class="text-gray-600 mb-6">New users who register with your referral link will receive a CHF 50 discount on their first annual Fundoo license.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-12 text-center">
+                    <p class="text-gray-600 mb-6">Already a user? Log in to your account to find your unique referral link.</p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <a href="/register" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold px-8 py-3 rounded-full shadow-lg transition-all duration-300">Sign Up Now</a>
+                        <a href="/login" class="bg-white hover:bg-gray-100 text-gray-800 font-bold px-8 py-3 rounded-full shadow-lg border border-gray-200 transition-all duration-300">Log In</a>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Partner Logos -->
         <section class="bg-white py-12">

@@ -29,7 +29,9 @@
         <SidebarLink icon="chart-bar" label="Analytics" to="/dashboard/analytics" />
         <SidebarLink icon="adjustments" label="Settings" :to="route('dashboard.settings')" />
         <SidebarLink icon="lock-closed" label="User Management" :to="route('dashboard.users')" />
-        <SidebarLink icon="currency-dollar" label="Bonus Credit" :to="route('dashboard.bonus')" />
+        <SidebarLink icon="currency-dollar" label="Bonus Credit" :to="route('dashboard.bonus.index')" />
+        <SidebarLink icon="share" label="Referrals" :to="route('dashboard.referrals')" />
+        <SidebarLink icon="badge-check" label="License" :to="route('dashboard.license')" />
       </nav>
       <div class="mt-auto p-4 text-xs text-blue-200 border-t border-white/10 flex items-center justify-center">
         <span>© Sponsoring24 2025</span>

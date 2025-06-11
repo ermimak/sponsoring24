@@ -5,11 +5,13 @@ use App\Http\Controllers\BonusCreditController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\MemberGroupController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
@@ -138,9 +140,19 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/dashboard/users', [UserController::class, 'store'])->name('dashboard.users.store');
     Route::delete('/dashboard/users/{id}', [UserController::class, 'destroy'])->name('dashboard.users.destroy');
 
-    Route::get('/dashboard/bonus', [BonusCreditController::class, 'index'])->name('dashboard.bonus');
+    Route::get('/dashboard/bonus', [BonusCreditController::class, 'index'])->name('dashboard.bonus.index');
     Route::post('/register-with-referral', [BonusCreditController::class, 'registerWithReferral'])->name('register.with_referral');
     Route::post('/dashboard/bonus/{bonusCredit}/credit', [BonusCreditController::class, 'creditBonus'])->name('dashboard.bonus.credit');
+
+    // License routes
+    Route::get('/license', [LicenseController::class, 'index'])->name('license.purchase');
+    Route::get('/dashboard/license', [LicenseController::class, 'dashboard'])->name('dashboard.license');
+    Route::post('/license/create-payment-intent', [LicenseController::class, 'createPaymentIntent'])->name('license.create-payment-intent');
+    Route::post('/webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
+    
+    // Referrals
+    Route::get('/dashboard/referrals', [ReferralController::class, 'index'])->name('dashboard.referrals');
+
     Route::get('/dashboard/donations', fn () => Inertia::render('Dashboard/Donations/Index'))->name('dashboard.donations');
     Route::get('/dashboard/reports', fn () => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
 

@@ -90,7 +90,7 @@ class BonusCreditController extends Controller
         }
     }
 
-    // Mark bonus as credited (e.g., after project completion)
+    // Mark bonus as credited (e.g., after project completion or license purchase)
     public function creditBonus(BonusCredit $bonusCredit)
     {
         try {
@@ -102,15 +102,50 @@ class BonusCreditController extends Controller
                 'user_id' => $bonusCredit->user_id,
                 'referred_user_id' => $bonusCredit->referred_user_id,
                 'amount' => $bonusCredit->amount,
+                'referral_code_used' => $bonusCredit->referral_code_used,
             ]);
             
-            // Load the user who receives the bonus credit
-            $user = User::find($bonusCredit->user_id);
-            if ($user) {
-                // Notify the user that their bonus credit has been processed
-                $user->notify(new BonusCreditNotification($bonusCredit, 'credited', [
+            // Load the user who receives the bonus credit (the referrer)
+            $referrer = User::find($bonusCredit->user_id);
+            if ($referrer) {
+                // Notify the referrer that their bonus credit has been processed
+                $referrer->notify(new BonusCreditNotification($bonusCredit, 'credited', [
                     'currency' => 'CHF',
-                    'processed_at' => now()->toDateTimeString()
+                    'processed_at' => now()->toDateTimeString(),
+                    'amount' => $bonusCredit->amount
+                ]));
+                
+                // Here you would typically add the credit to the user's account balance
+                // This could be implemented as a separate table or field in the users table
+                // For now, we'll just log it
+                Log::info('Referral bonus credited to user', [
+                    'user_id' => $referrer->id,
+                    'user_email' => $referrer->email,
+                    'amount' => $bonusCredit->amount,
+                    'currency' => 'CHF',
+                ]);
+            }
+            
+            // Load the referred user to check their status
+            $referredUser = User::find($bonusCredit->referred_user_id);
+            if ($referredUser) {
+                // Ensure the referred user is marked as eligible for discount
+                if (!$referredUser->discount_eligible) {
+                    $referredUser->discount_eligible = true;
+                    $referredUser->save();
+                    
+                    Log::info('User marked as discount eligible', [
+                        'user_id' => $referredUser->id,
+                        'user_email' => $referredUser->email,
+                        'discount_eligible' => true,
+                    ]);
+                }
+                
+                // Notify the referred user about their discount eligibility
+                $referredUser->notify(new BonusCreditNotification($bonusCredit, 'discount_eligible', [
+                    'currency' => 'CHF',
+                    'discount_amount' => 50.00,
+                    'referrer_name' => $referrer ? $referrer->name : 'A Fundoo user'
                 ]));
             }
             
@@ -123,8 +158,11 @@ class BonusCreditController extends Controller
                 $admin->notify(new BonusCreditNotification($bonusCredit, 'credited', [
                     'currency' => 'CHF',
                     'processed_at' => now()->toDateTimeString(),
-                    'user_name' => $user ? $user->name : 'Unknown User',
-                    'user_email' => $user ? $user->email : 'Unknown Email'
+                    'amount' => $bonusCredit->amount,
+                    'user_name' => $referrer ? $referrer->name : 'Unknown User',
+                    'user_email' => $referrer ? $referrer->email : 'Unknown Email',
+                    'referred_user_name' => $referredUser ? $referredUser->name : 'Unknown User',
+                    'referred_user_email' => $referredUser ? $referredUser->email : 'Unknown Email'
                 ]));
             }
 
