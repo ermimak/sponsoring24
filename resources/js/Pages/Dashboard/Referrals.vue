@@ -1,5 +1,5 @@
 <template>
-  <app-layout>
+  <DashboardLayout>
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         {{ $t('Referrals & Earnings') }}
@@ -180,18 +180,18 @@
         </div>
       </div>
     </div>
-  </app-layout>
+  </DashboardLayout>
 </template>
 
 <script>
 import { defineComponent } from 'vue';
-import AppLayout from '@/Layouts/AppLayout.vue';
+import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import { ref } from 'vue';
 import { route } from '@/ziggy-plugin';
 
 export default defineComponent({
   components: {
-    AppLayout,
+    DashboardLayout,
   },
   
   props: {

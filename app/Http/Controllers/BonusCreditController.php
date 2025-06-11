@@ -35,8 +35,10 @@ class BonusCreditController extends Controller
             $referrer = User::where('referral_code', $referralCode)->first();
 
             if ($referrer) {
-                // Create the user (simplified, real logic may differ)
-                $user = User::create($request->only(['name', 'email', 'password']));
+                // Create the user with pending status to require admin approval
+                $userData = $request->only(['name', 'email', 'password']);
+                $userData['status'] = 'pending'; // Ensure user requires admin approval
+                $user = User::create($userData);
                 
                 // Create bonus credit for referrer
                 $bonusCredit = BonusCredit::create([
@@ -45,6 +47,7 @@ class BonusCreditController extends Controller
                     'amount' => 100.00,
                     'status' => 'pending',
                     'referral_code_used' => $referralCode,
+                    'type' => 'referral', // Add type field
                 ]);
 
                 // Log the successful referral
@@ -56,7 +59,7 @@ class BonusCreditController extends Controller
                 ]);
 
                 // Store success message in session
-                Session::flash('success', 'Referral code applied successfully! You will receive bonus credits once your account is verified.');
+                Session::flash('success', 'Registration successful! Your account requires admin approval before you can log in. You will be notified by email once approved.');
                 
                 // Notify referrer about the referral code usage
                 $referrer->notify(new BonusCreditNotification($bonusCredit, 'referral_used', [
@@ -65,6 +68,14 @@ class BonusCreditController extends Controller
                     'currency' => 'CHF',
                     'referral_code' => $referralCode
                 ]));
+                
+                // Notify admin about new user registration requiring approval
+                $admins = User::where('role', 'admin')->get();
+                foreach ($admins as $admin) {
+                    $admin->notify(new \App\Notifications\NewUserRegistration($user));
+                }
+                
+                return redirect()->route('login')->with('status', 'Your account has been created and is pending approval by an administrator.');
             } else {
                 Log::warning('Invalid referral code used', [
                     'referral_code' => $referralCode,
@@ -72,11 +83,8 @@ class BonusCreditController extends Controller
                 ]);
                 
                 Session::flash('error', 'Invalid referral code. Please check and try again.');
+                return redirect()->back();
             }
-
-            // Continue registration flow...
-            return redirect()->route('dashboard')->with('referral_status', $referrer ? 'success' : 'error');
-            
         } catch (\Exception $e) {
             Log::error('Error processing referral code', [
                 'error' => $e->getMessage(),
@@ -85,7 +93,6 @@ class BonusCreditController extends Controller
             ]);
             
             Session::flash('error', 'There was an error processing your referral code. Please try again later.');
-
             return redirect()->back();
         }
     }

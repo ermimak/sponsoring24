@@ -192,6 +192,11 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::post('/users/{user}/approve', [AdminUserController::class, 'approve'])->name('users.approve');
         Route::post('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
         
+        // Referral and Discount Management
+        Route::get('/referrals', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'index'])->name('referrals');
+        Route::post('/referrals/{bonusCredit}/update-status', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'updateStatus'])->name('referrals.update-status');
+        Route::get('/discounts', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'discounts'])->name('discounts');
+        
         Route::get('/content', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content.index');
         Route::get('/content/featured-projects', [\App\Http\Controllers\Admin\ContentController::class, 'featuredProjects'])->name('content.featured-projects');
         Route::post('/content/featured-projects', [\App\Http\Controllers\Admin\ContentController::class, 'updateFeatured'])->name('content.featured-projects.update');
