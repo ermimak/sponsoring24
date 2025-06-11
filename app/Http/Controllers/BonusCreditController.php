@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BonusCredit;
 use App\Models\User;
+use App\Notifications\BonusCreditNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
@@ -57,8 +58,13 @@ class BonusCreditController extends Controller
                 // Store success message in session
                 Session::flash('success', 'Referral code applied successfully! You will receive bonus credits once your account is verified.');
                 
-                // Notify referrer (you can implement your notification system here)
-                // Example: $referrer->notify(new ReferralCodeUsed($user));
+                // Notify referrer about the referral code usage
+                $referrer->notify(new BonusCreditNotification($bonusCredit, 'referral_used', [
+                    'referred_name' => $user->name,
+                    'referred_email' => $user->email,
+                    'currency' => 'CHF',
+                    'referral_code' => $referralCode
+                ]));
             } else {
                 Log::warning('Invalid referral code used', [
                     'referral_code' => $referralCode,
@@ -97,6 +103,30 @@ class BonusCreditController extends Controller
                 'referred_user_id' => $bonusCredit->referred_user_id,
                 'amount' => $bonusCredit->amount,
             ]);
+            
+            // Load the user who receives the bonus credit
+            $user = User::find($bonusCredit->user_id);
+            if ($user) {
+                // Notify the user that their bonus credit has been processed
+                $user->notify(new BonusCreditNotification($bonusCredit, 'credited', [
+                    'currency' => 'CHF',
+                    'processed_at' => now()->toDateTimeString()
+                ]));
+            }
+            
+            // Notify admin users about the bonus credit processing
+            $admins = User::whereHas('roles', function($query) {
+                $query->whereIn('name', ['admin', 'super-admin']);
+            })->get();
+            
+            foreach ($admins as $admin) {
+                $admin->notify(new BonusCreditNotification($bonusCredit, 'credited', [
+                    'currency' => 'CHF',
+                    'processed_at' => now()->toDateTimeString(),
+                    'user_name' => $user ? $user->name : 'Unknown User',
+                    'user_email' => $user ? $user->email : 'Unknown Email'
+                ]));
+            }
 
             // Optionally, trigger invoice logic here
             return back()->with('success', 'Bonus credit has been successfully credited.');

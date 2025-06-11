@@ -46,6 +46,15 @@ class HandleInertiaRequests extends Middleware
             'session_all' => $request->session()->all(),
         ]);
 
+        // Get notifications for authenticated user
+        $notifications = [];
+        $unreadNotificationsCount = 0;
+        
+        if ($user) {
+            $notifications = $user->notifications()->latest()->limit(10)->get();
+            $unreadNotificationsCount = $user->unreadNotifications()->count();
+        }
+        
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $user ? [
@@ -58,6 +67,8 @@ class HandleInertiaRequests extends Middleware
                 ] : null,
             ],
             'locale' => app()->getLocale(),
+            'notifications' => $notifications,
+            'unreadNotificationsCount' => $unreadNotificationsCount,
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),

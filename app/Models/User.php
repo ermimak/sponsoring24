@@ -39,6 +39,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(BonusCredit::class, 'user_id');
     }
+    
+    public function activities()
+    {
+        return $this->hasMany(UserActivity::class, 'user_id');
+    }
 
     protected static function boot()
     {

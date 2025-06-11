@@ -5,12 +5,7 @@
                 <div class="flex justify-between h-16">
                     <div class="flex">
                         <div class="flex-shrink-0 flex items-center">
-                            <a href="/" class="text-xl font-bold text-gray-800">Fundoo</a>
-                        </div>
-                        <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-                            <a href="/projects" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                                Projects
-                            </a>
+                            <a href="/" class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600 transition-all duration-300">Sponsoring24</a>
                         </div>
                     </div>
                     <div class="flex items-center">
@@ -51,7 +46,7 @@
         <footer class="bg-white shadow-sm mt-8">
             <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
                 <p class="text-center text-gray-500 text-sm">
-                    © {{ new Date().getFullYear() }} Fundoo. All rights reserved.
+                    © {{ new Date().getFullYear() }} Sponsoring24. All rights reserved.
                 </p>
             </div>
         </footer>

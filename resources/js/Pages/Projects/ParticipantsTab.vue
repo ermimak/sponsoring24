@@ -1,121 +1,133 @@
 <template>
   <div>
-    <div class="flex justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Participants {{ participants.length }} entries</h2>
-      <div class="flex space-x-2">
-        <button @click="openMassEmailModal" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded flex items-center" title="Mass Email">
-          <svg class="w-4 h-4 mr-1"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M3 8l9-6 9 6v12a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-            <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M3 8l9 6 9-6"/>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 flex items-center">
+        Participants 
+        <span class="ml-2 text-gray-700 text-lg font-normal">({{ participants.length }} total)</span>
+      </h2>
+      <div class="flex flex-wrap gap-3">
+        <button 
+          @click="openMassEmailModal" 
+          class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center shadow-sm"
+          title="Mass Email"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
           </svg>
-          Mass email
+          Mass Email
         </button>
-        <button @click="exportParticipants" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded flex items-center" title="Export">
-          <svg class="w-4 h-4 mr-1"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-            <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+        <button 
+          @click="exportParticipants" 
+          class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 flex items-center shadow-sm"
+          title="Export"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
           Export
         </button>
-        <button @click="navigateToAddPage" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">
-          Add
+        <button 
+          @click="navigateToAddPage" 
+          class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg text-white hover:from-purple-700 hover:to-blue-700 transition-colors duration-200 flex items-center shadow-sm"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Add Participant
         </button>
       </div>
     </div>
-    <p class="text-gray-600 mb-4">
-      Members must be participants in a project to be able to collect donations. They can be added to the project individually or in groups.
+    <p class="text-gray-600 mb-6 max-w-3xl">
+      Members must be participants in a campaign to be able to collect donations. They can be added to the campaign individually or in groups.
     </p>
-    <div class="flex flex-col md:flex-row gap-4 mb-4">
-      <div class="bg-gray-50 border rounded p-4 w-full md:w-1/3">
-        <h3 class="font-semibold mb-2">Filter</h3>
-        <label class="block text-sm font-medium mb-1">Search</label>
-        <input v-model="search"
-type="text"
-class="input w-full mb-2"
-placeholder="Search" />
-        <label class="flex items-center">
-          <input type="checkbox" v-model="allGroups" class="mr-2" /> All groups
-        </label>
+    <div class="flex flex-col md:flex-row gap-6 mb-6">
+      <div class="bg-white shadow-sm rounded-xl p-5 w-full md:w-1/3 border border-gray-100">
+        <div class="flex items-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+          </svg>
+          <h3 class="font-semibold text-gray-800 text-lg">Filter Participants</h3>
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Search by name or email</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input 
+              v-model="search"
+              type="text"
+              class="w-full pl-10 p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Search participants" 
+            />
+          </div>
+        </div>
+        <div class="flex items-center mb-2">
+          <input 
+            type="checkbox" 
+            v-model="allGroups" 
+            id="allGroups"
+            class="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" 
+          />
+          <label for="allGroups" class="ml-2 text-sm text-gray-700">Show all groups</label>
+        </div>
       </div>
-      <div class="flex-1 overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 bg-white rounded-lg border">
-          <thead class="bg-gray-50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Participant</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Supporters</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sales volume</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Emails</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      <div class="flex-1 overflow-x-auto bg-white shadow-sm rounded-xl border border-gray-100">
+        <table class="min-w-full divide-y divide-gray-100">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Participant</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Supporters</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Revenue</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Emails</th>
+              <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="participant in filteredParticipants" :key="participant.id">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <Link :href="`/dashboard/members/${participant.id}/edit`" class="text-indigo-600 hover:text-indigo-900">
+          <tbody class="bg-white divide-y divide-gray-100">
+            <tr v-for="participant in filteredParticipants" :key="participant.id" class="hover:bg-gray-50 transition-colors duration-150">
+              <td class="px-6 py-5 whitespace-nowrap">
+                <Link :href="`/dashboard/members/${participant.id}/edit`" class="text-blue-600 font-medium hover:text-blue-800 transition-colors duration-200">
                   {{ participant.first_name }} {{ participant.last_name }}
                 </Link>
-                <p class="text-sm text-gray-500">{{ participant.email }}</p>
-                <span v-if="participant.landing_page_opened" class="text-green-600 text-xs">Landing page opened</span>
+                <p class="text-sm text-gray-500 mt-1">{{ participant.email }}</p>
+                <span v-if="participant.landing_page_opened" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">Landing page opened</span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ participant.supporters }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ participant.sales_volume }}</td>
-              <td class="px-6 py-4 whitespace-nowrap">{{ participant.emails }}</td>
-              <td class="px-6 py-4 whitespace-nowrap flex space-x-2">
-                <button @click="viewLandingPage(participant)" class="text-purple-600 hover:text-purple-800 flex items-center" title="To the participant landing page">
-                  <svg class="w-4 h-4 mr-1"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                  </svg>
-                </button>
-                <button @click="viewDonationPage(participant)" class="text-purple-600 hover:text-purple-800 flex items-center" title="Public Donation Page">
-                  <svg class="w-4 h-4 mr-1"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M12 8c-1.657 0-3 1.343-3 3v2h6v-2c0-1.657-1.343-3-3-3zm0-4a7 7 0 00-7 7v2h2v-2a5 5 0 0110 0v2h2v-2a7 7 0 00-7-7z"/>
-                  </svg>
-                </button>
-                <button @click="openSendEmailModal(participant)" class="text-purple-600 hover:text-purple-800 flex items-center" title="Send Email">
-                  <svg class="w-4 h-4 mr-1"
-fill="none"
-stroke="currentColor"
-viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M3 8l9-6 9 6v12a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-                    <path stroke-linecap="round"
-stroke-linejoin="round"
-stroke-width="2"
-d="M3 8l9 6 9-6"/>
-                  </svg>
-                </button>
+              <td class="px-6 py-5 whitespace-nowrap font-medium">{{ participant.supporters }}</td>
+              <td class="px-6 py-5 whitespace-nowrap font-medium">€ {{ participant.sales_volume }}</td>
+              <td class="px-6 py-5 whitespace-nowrap">{{ participant.emails }}</td>
+              <td class="px-6 py-5 whitespace-nowrap">
+                <div class="flex gap-3">
+                  <button 
+                    @click="viewLandingPage(participant)" 
+                    class="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1.5 rounded-md hover:bg-blue-50" 
+                    title="View landing page"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                  <button 
+                    @click="viewDonationPage(participant)" 
+                    class="text-purple-600 hover:text-purple-800 transition-colors duration-200 p-1.5 rounded-md hover:bg-purple-50" 
+                    title="View donation page"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v2h6v-2c0-1.657-1.343-3-3-3zm0-4a7 7 0 00-7 7v2h2v-2a5 5 0 0110 0v2h2v-2a7 7 0 00-7-7z" />
+                    </svg>
+                  </button>
+                  <button 
+                    @click="openSendEmailModal(participant)" 
+                    class="text-emerald-600 hover:text-emerald-800 transition-colors duration-200 p-1.5 rounded-md hover:bg-emerald-50" 
+                    title="Send email"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                    </svg>
+                  </button>
+                </div>
               </td>
             </tr>
             <tr v-if="filteredParticipants.length === 0">
@@ -127,78 +139,180 @@ d="M3 8l9 6 9-6"/>
     </div>
 
     <!-- Mass Email Modal -->
-    <div v-if="showMassEmailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
-        <h2 class="text-xl font-bold mb-4">Send Mass Email</h2>
-        <form @submit.prevent="sendMassEmail">
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Select Email Template</label>
-            <select v-model="massEmailForm.template_id" @change="handleMassTemplateChange" class="input w-full" required>
-              <option value="" disabled>Select a template</option>
-              <option v-for="template in emailTemplates" :key="template.id" :value="template.id">
-                {{ template.name }} ({{ template.type }})
-              </option>
-            </select>
+    <div v-if="showMassEmailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+      <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg border border-gray-100">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">Send Mass Email</h2>
+          <button 
+            @click="showMassEmailModal = false" 
+            class="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            type="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form @submit.prevent="sendMassEmail" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Select Email Template</label>
+            <div class="relative">
+              <select 
+                v-model="massEmailForm.template_id" 
+                @change="handleMassTemplateChange" 
+                class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 appearance-none pr-10" 
+                required
+              >
+                <option value="" disabled>Select a template</option>
+                <option v-for="template in emailTemplates" :key="template.id" :value="template.id">
+                  {{ template.name }} ({{ template.type }})
+                </option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Subject</label>
-            <input v-model="massEmailForm.subject"
-type="text"
-class="input w-full"
-required />
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+            <input 
+              v-model="massEmailForm.subject"
+              type="text"
+              class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              required 
+            />
           </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Message</label>
-            <textarea v-model="massEmailForm.body"
-class="input w-full"
-rows="5"
-required></textarea>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+            <textarea 
+              v-model="massEmailForm.body"
+              class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              rows="5"
+              required
+            ></textarea>
           </div>
-          <div class="flex gap-2 justify-end">
-            <button type="button" @click="showMassEmailModal = false" class="bg-gray-200 text-gray-700 px-4 py-2 rounded">Cancel</button>
-            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded" :disabled="loading">Send</button>
+          <div class="flex gap-3 justify-end pt-2">
+            <button 
+              type="button" 
+              @click="showMassEmailModal = false" 
+              class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 shadow-sm"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg text-white hover:from-purple-700 hover:to-blue-700 transition-colors duration-200 shadow-sm" 
+              :disabled="loading"
+            >
+              <span v-if="!loading">Send Emails</span>
+              <span v-else class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Sending...
+              </span>
+            </button>
           </div>
         </form>
-        <div v-if="loading" class="text-gray-500 mt-2">Sending...</div>
-        <div v-if="error" class="text-red-600 mt-2">{{ error }}</div>
+        <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-start">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{{ error }}</span>
+        </div>
       </div>
     </div>
 
     <!-- Send Email Modal -->
-    <div v-if="showEmailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
-        <h2 class="text-xl font-bold mb-4">Send Email to {{ selectedParticipant?.first_name }} {{ selectedParticipant?.last_name }}</h2>
-        <form @submit.prevent="sendEmail">
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Select Email Template</label>
-            <select v-model="emailForm.template_id" @change="handleTemplateChange" class="input w-full" required>
-              <option value="" disabled>Select a template</option>
-              <option v-for="template in emailTemplates" :key="template.id" :value="template.id">
-                {{ template.name }} ({{ template.type }})
-              </option>
-            </select>
+    <div v-if="showEmailModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+      <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-lg border border-gray-100">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">
+            Email to {{ selectedParticipant?.first_name }} {{ selectedParticipant?.last_name }}
+          </h2>
+          <button 
+            @click="showEmailModal = false" 
+            class="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            type="button"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form @submit.prevent="sendEmail" class="space-y-5">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Select Email Template</label>
+            <div class="relative">
+              <select 
+                v-model="emailForm.template_id" 
+                @change="handleTemplateChange" 
+                class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 appearance-none pr-10" 
+                required
+              >
+                <option value="" disabled>Select a template</option>
+                <option v-for="template in emailTemplates" :key="template.id" :value="template.id">
+                  {{ template.name }} ({{ template.type }})
+                </option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
           </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Subject</label>
-            <input v-model="emailForm.subject"
-type="text"
-class="input w-full"
-required />
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+            <input 
+              v-model="emailForm.subject"
+              type="text"
+              class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              required 
+            />
           </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium mb-1">Message</label>
-            <textarea v-model="emailForm.body"
-class="input w-full"
-rows="5"
-required></textarea>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+            <textarea 
+              v-model="emailForm.body"
+              class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+              rows="5"
+              required
+            ></textarea>
           </div>
-          <div class="flex gap-2 justify-end">
-            <button type="button" @click="showEmailModal = false" class="bg-gray-200 text-gray-700 px-4 py-2 rounded">Cancel</button>
-            <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded" :disabled="loading">Send</button>
+          <div class="flex gap-3 justify-end pt-2">
+            <button 
+              type="button" 
+              @click="showEmailModal = false" 
+              class="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200 shadow-sm"
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              class="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg text-white hover:from-purple-700 hover:to-blue-700 transition-colors duration-200 shadow-sm" 
+              :disabled="loading"
+            >
+              <span v-if="!loading">Send Email</span>
+              <span v-else class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Sending...
+              </span>
+            </button>
           </div>
         </form>
-        <div v-if="loading" class="text-gray-500 mt-2">Sending...</div>
-        <div v-if="error" class="text-red-600 mt-2">{{ error }}</div>
+        <div v-if="error" class="mt-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-start">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>{{ error }}</span>
+        </div>
       </div>
     </div>
   </div>

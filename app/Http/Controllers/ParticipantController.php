@@ -11,12 +11,15 @@ use App\Models\MemberGroup;
 use App\Models\Participant;
 use App\Models\ParticipantProject;
 use App\Models\Project;
+use App\Models\User;
+use App\Notifications\NewDonationNotification;
 use App\Services\EmailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
@@ -493,13 +496,11 @@ class ParticipantController extends Controller
                 ];
             })->toArray();
 
-            if ($request->wantsJson() || $request->isXmlHttpRequest()) {
-                Log::info('Returning JSON response for members');
-                return response()->json($members);
-            }
-
             Log::info('Rendering Members/Index Inertia page with ' . count($members) . ' members');
-            return Inertia::render('Members/Index', ['members' => $members]);
+            return Inertia::render('Members/Index', [
+                'members' => $members,
+                'filters' => $request->only(['search'])
+            ]);
         } catch (\Exception $e) {
             Log::error('Failed to load members: ' . $e->getMessage());
             Log::error($e->getTraceAsString());
@@ -852,6 +853,21 @@ class ParticipantController extends Controller
                     'supporter_email' => $email,
                     'confirmation_token' => $confirmation_token,
                 ]);
+                
+                // Send notification to project owner
+                $projectOwner = User::find($project->created_by);
+                if ($projectOwner) {
+                    $projectOwner->notify(new NewDonationNotification($donation, $project, $participant));
+                }
+                
+                // Send notification to admin users
+                $admins = User::whereHas('roles', function($query) {
+                    $query->whereIn('name', ['admin', 'super-admin']);
+                })->get();
+                
+                foreach ($admins as $admin) {
+                    $admin->notify(new NewDonationNotification($donation, $project, $participant));
+                }
 
                 $request->session()->forget('donation_data');
 

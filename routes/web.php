@@ -13,6 +13,9 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
+use App\Http\Controllers\Admin\SuperAdminController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\UserActivityController;
 use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -65,6 +68,9 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('/{project}/edit', [ProjectController::class, 'show'])
             ->name('edit')
             ->where(['project' => '[0-9a-fA-F-]{36}']);
+        Route::put('/{project}/update', [ProjectController::class, 'update'])
+            ->name('update')
+            ->where(['project' => '[0-9a-fA-F-]{36}']);
         Route::post('/{project}/upload-image', [ProjectController::class, 'uploadImage'])
             ->name('uploadImage')
             ->where(['project' => '[0-9a-fA-F-]{36}']);
@@ -73,7 +79,7 @@ Route::middleware(['auth', 'web'])->group(function () {
             ->where(['project' => '[0-9a-fA-F-]{36}']);
     });
     Route::apiResource('dashboard/projects', ProjectController::class)
-        ->except(['index', 'create', 'edit', 'show'])
+        ->except(['index', 'create', 'edit', 'show', 'uploadImage', 'duplicate','update'])
         ->where(['project' => '[0-9a-fA-F-]{36}']);
 
     // Donation
@@ -117,6 +123,11 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/dashboard/members/groups', [MemberGroupController::class, 'store'])->name('dashboard.members.groups.store');
     Route::delete('/dashboard/members/groups/{memberGroup}', [MemberGroupController::class, 'destroy'])->name('dashboard.members.groups.destroy')->where('memberGroup', '[0-9]+');
 
+    // Notification Routes
+    Route::get('/dashboard/notifications', [NotificationController::class, 'index'])->name('dashboard.notifications.index');
+    Route::post('/dashboard/notifications/{notification}/mark-as-read', [NotificationController::class, 'markAsRead'])->name('dashboard.notifications.mark-as-read');
+    Route::post('/dashboard/notifications/mark-all-as-read', [NotificationController::class, 'markAllAsRead'])->name('dashboard.notifications.mark-all-as-read');
+    
     // Other Dashboard Routes
     Route::get('/dashboard/settings', [SettingsController::class, 'index'])->name('dashboard.settings');
     Route::post('/dashboard/settings', [SettingsController::class, 'update'])->name('dashboard.settings.update');
@@ -152,14 +163,45 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::apiResource('dashboard/member-groups', MemberGroupController::class)
         ->except(['create', 'edit'])
         ->where(['member_group' => '[0-9]+']);
-    
-    // Admin Routes
-    Route::middleware('can:manage_roles')->group(function () {
-        Route::get('/dashboard/admin/roles', fn () => Inertia::render('Dashboard/Roles'))->name('dashboard.admin.roles');
-    });
 
     Route::middleware('can:manage_permissions')->group(function () {
         Route::get('/dashboard/admin/permissions', fn () => Inertia::render('Dashboard/Permissions'))->name('dashboard.admin.permissions');
+    });
+    
+    // Super Admin Routes
+    Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+        
+        // User Management
+        Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
+        Route::get('/users/pending', [AdminUserController::class, 'pending'])->name('users.pending');
+        Route::get('/users/{user}', [AdminUserController::class, 'show'])->name('users.show');
+        Route::post('/users/{user}/approve', [AdminUserController::class, 'approve'])->name('users.approve');
+        Route::post('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
+        
+        Route::get('/content', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content.index');
+        Route::get('/content/featured-projects', [\App\Http\Controllers\Admin\ContentController::class, 'featuredProjects'])->name('content.featured-projects');
+        Route::post('/content/featured-projects', [\App\Http\Controllers\Admin\ContentController::class, 'updateFeatured'])->name('content.featured-projects.update');
+        Route::get('/dashboard/admin/roles', fn () => Inertia::render('Dashboard/Roles'))->name('dashboard.admin.roles');
+        Route::get('/content/news', [\App\Http\Controllers\Admin\ContentController::class, 'news'])->name('content.news');
+        Route::put('/content/news', [\App\Http\Controllers\Admin\ContentController::class, 'updateNews'])->name('content.news.update');
+        Route::post('/content/news/create', [\App\Http\Controllers\Admin\ContentController::class, 'createNews'])->name('content.news.create');
+        Route::delete('/content/news/{news}', [\App\Http\Controllers\Admin\ContentController::class, 'destroyNews'])->name('content.news.destroy');
+        
+        // Hero Section Management
+        Route::get('/content/hero', [SuperAdminController::class, 'heroIndex'])->name('content.hero');
+        Route::post('/content/hero', [SuperAdminController::class, 'updateHero'])->name('content.hero.update');
+        
+        // User Activity Tracking
+        Route::get('/user-activities', [UserActivityController::class, 'index'])->name('user-activities.index');
+        Route::get('/user-activities/{activity}', [UserActivityController::class, 'show'])->name('user-activities.show');
+        Route::get('/users/{user}/activities', [UserActivityController::class, 'userActivities'])->name('users.activities');
+        
+        // Admin Notification Routes
+        Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+        Route::post('/notifications/{notification}/mark-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
+        Route::post('/notifications/mark-all-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
     });
 
     // Resource Routes
@@ -213,6 +255,10 @@ Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{to
 Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment');
 
 Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
+
+
+// News show
+Route::get('/content/news/{news}', [\App\Http\Controllers\Admin\ContentController::class, 'showNews'])->name('content.news.show');
 
 // Inertia Routes for Public Pages
 // Route::get('projects/{project}/participants/{participant}/donate', function ($project, $participant) {
