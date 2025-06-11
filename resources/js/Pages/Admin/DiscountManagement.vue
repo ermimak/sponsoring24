@@ -20,7 +20,8 @@
           </div>
           <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
             <div class="text-gray-500 text-sm font-medium">Average Discount</div>
-            <div class="text-3xl font-bold text-green-600">CHF {{ stats.averageDiscount.toFixed(2) }}</div>
+            <div v-if="stats.averageDiscount !== null" class="text-3xl font-bold text-green-600">CHF {{ stats.averageDiscount.toFixed(2) }}</div>
+            <div v-else class="text-3xl font-bold text-gray-500">N/A</div>
           </div>
         </div>
 

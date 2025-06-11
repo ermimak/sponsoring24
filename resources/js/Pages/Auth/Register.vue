@@ -22,7 +22,12 @@
             </div>
 
             <form @submit.prevent="submit" class="space-y-5">
-                <input v-if="hasReferralCode" type="hidden" v-model="form.referral_code" />
+                <!-- Always include the referral code field, even if empty -->
+                <input type="hidden" v-model="form.referral_code" />
+                <!-- Debug info for referral code (remove in production) -->
+                <div v-if="hasReferralCode" class="mb-4 text-xs bg-blue-50 p-2 rounded">
+                    <p>Debug: Using referral code: {{ referralCode }}</p>
+                </div>
                 <div>
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -189,7 +194,10 @@ onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('ref')) {
         referralCode.value = urlParams.get('ref');
+    } else if (urlParams.has('referral_code')) {
+        referralCode.value = urlParams.get('referral_code');
     }
+    console.log('Referral code from URL:', referralCode.value);
 });
 
 const form = useForm({
@@ -197,7 +205,16 @@ const form = useForm({
     email: '',
     password: '',
     password_confirmation: '',
-    referral_code: referralCode,
+    referral_code: '',
+});
+
+// Update the form's referral code when the ref changes
+onMounted(() => {
+    // Set the form's referral code after it's been read from URL
+    setTimeout(() => {
+        form.referral_code = referralCode.value;
+        console.log('Form referral code set to:', form.referral_code);
+    }, 0);
 });
 
 const hasReferralCode = computed(() => {
@@ -207,12 +224,24 @@ const hasReferralCode = computed(() => {
 const submit = () => {
     // If we have a referral code, use the referral registration endpoint
     if (hasReferralCode.value) {
+        console.log('Submitting with referral code:', form.referral_code);
+        
+        // Ensure the form has the latest referral code value
+        form.referral_code = referralCode.value;
+        
         form.post(route('register.with_referral'), {
             onFinish: () => form.reset('password', 'password_confirmation'),
+            onError: (errors) => {
+                console.error('Registration errors:', errors);
+            }
         });
     } else {
+        console.log('Submitting without referral code');
         form.post(route('register'), {
             onFinish: () => form.reset('password', 'password_confirmation'),
+            onError: (errors) => {
+                console.error('Registration errors:', errors);
+            }
         });
     }
 };

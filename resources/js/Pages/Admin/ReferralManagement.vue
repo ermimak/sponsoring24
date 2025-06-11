@@ -24,7 +24,7 @@
           </div>
           <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
             <div class="text-gray-500 text-sm font-medium">Total Amount Credited</div>
-            <div class="text-3xl font-bold text-blue-600">CHF {{ stats.totalAmount.toFixed(2) }}</div>
+            <div class="text-3xl font-bold text-blue-600">CHF {{ stats.totalAmount ? Number(stats.totalAmount).toFixed(2) : '0.00' }}</div>
           </div>
         </div>
 
@@ -105,8 +105,8 @@
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                       <div>
-                        <div class="text-sm font-medium text-gray-900">{{ referral.referredUser.name }}</div>
-                        <div class="text-sm text-gray-500">{{ referral.referredUser.email }}</div>
+                        <div class="text-sm font-medium text-gray-900">{{ referral.referredUser ? referral.referredUser.name : 'N/A' }}</div>
+                        <div class="text-sm text-gray-500">{{ referral.referredUser ? referral.referredUser.email : 'N/A' }}</div>
                       </div>
                     </div>
                   </td>
@@ -114,7 +114,7 @@
                     <div class="text-sm text-gray-900">{{ formatDate(referral.created_at) }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">CHF {{ referral.amount.toFixed(2) }}</div>
+                    <div class="text-sm text-gray-900">CHF {{ referral.amount ? Number(referral.amount).toFixed(2) : '0.00' }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
                     <span :class="getStatusClass(referral.status)">

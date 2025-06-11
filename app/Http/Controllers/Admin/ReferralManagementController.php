@@ -55,7 +55,7 @@ class ReferralManagementController extends Controller
             
         // Get monthly referral trends
         $monthlyTrends = BonusCredit::where('type', 'referral')
-            ->select(DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'), DB::raw('count(*) as count'))
+            ->select(DB::raw('to_char(created_at, \'YYYY-MM\') as month'), DB::raw('count(*) as count'))
             ->groupBy('month')
             ->orderBy('month', 'desc')
             ->limit(12)

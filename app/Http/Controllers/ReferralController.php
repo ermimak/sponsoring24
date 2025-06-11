@@ -46,6 +46,7 @@ class ReferralController extends Controller
                 : 0,
         ];
         
+        
         return Inertia::render('Dashboard/Referrals', [
             'user' => $user,
             'referrals' => $referrals,

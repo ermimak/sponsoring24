@@ -37,7 +37,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/register-with-referral', [AuthController::class, 'register'])->name('register.with_referral');
+    Route::post('/register-with-referral', [BonusCreditController::class, 'registerWithReferral'])->name('register.with_referral');
 });
 
 // Language Routes
@@ -141,7 +141,6 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::delete('/dashboard/users/{id}', [UserController::class, 'destroy'])->name('dashboard.users.destroy');
 
     Route::get('/dashboard/bonus', [BonusCreditController::class, 'index'])->name('dashboard.bonus.index');
-    Route::post('/register-with-referral', [BonusCreditController::class, 'registerWithReferral'])->name('register.with_referral');
     Route::post('/dashboard/bonus/{bonusCredit}/credit', [BonusCreditController::class, 'creditBonus'])->name('dashboard.bonus.credit');
 
     // License routes
@@ -219,6 +218,13 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{notification}/mark-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
         Route::post('/notifications/mark-all-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+
+        // Referral and Discount Management Routes
+        Route::get('/referrals', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'index'])->name('referrals.index');
+        Route::post('/referrals/{bonusCredit}/update-status', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'updateStatus'])->name('referrals.update-status');
+        Route::get('/discounts', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'discounts'])->name('discounts.index');
+        Route::post('/discounts/{bonusCredit}/update-status', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'updateDiscountStatus'])->name('discounts.update-status');
+
     });
 
     // Resource Routes
