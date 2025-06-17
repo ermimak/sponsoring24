@@ -163,7 +163,7 @@
                     <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">Explore our most impactful sponsoring campaigns and see how Sponsoring24 helps organizations achieve their goals.</p>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <ProjectCard v-for="project in projects" :key="project.id" :project="project" />
+                    <ProjectCard v-if="projects" v-for="project in projects" :key="project.id" :project="project" />
                 </div>
                 <div class="text-center mt-16">
                     <a href="#" class="inline-block bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">Explore All Campaigns</a>

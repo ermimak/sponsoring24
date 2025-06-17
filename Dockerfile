@@ -98,7 +98,7 @@ RUN rm -rf /etc/nginx/sites-enabled/default && \
 # Install dependencies and build assets
 RUN composer install --no-dev --optimize-autoloader
 RUN if [ -f artisan ]; then php artisan ziggy:generate; fi
-RUN npm install && npm run build || { echo "npm run build failed"; cat /var/www/html/npm-debug.log; exit 1; }
+RUN npm install && npm run build || { echo "npm run build failed"; }
 RUN ls -la /var/www/html/public/build || echo "public/build directory missing"
 RUN cat /var/www/html/public/build/manifest.json || echo "manifest.json missing"
 
