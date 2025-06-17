@@ -47,7 +47,7 @@ class ReferralCodeUsed extends Notification implements ShouldQueue
                 ->line('Your referral code was used by ' . $this->referredUser->name . ' to register.')
                 ->line('You will receive ' . number_format($this->bonusAmount, 2) . ' CHF in bonus credits once their account is verified.')
                 ->line('You can track your bonus credits in your dashboard.')
-                ->action('View Bonus Credits', route('dashboard.bonus'))
+                ->action('View Bonus Credits', route('dashboard.bonus.index'))
                 ->line('Thank you for helping grow our community!');
         } catch (\Exception $e) {
             Log::error('Error sending referral notification email', [

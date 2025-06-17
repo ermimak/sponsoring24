@@ -628,6 +628,103 @@
         </form>
       </div>
 
+      <!-- Referral Program Section -->
+      <div class="bg-white shadow-md rounded-xl p-6 mb-6 border border-gray-200">
+        <h2 class="text-xl font-bold flex items-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+          </svg>
+          <span>Referral Program</span>
+          <button @click="toggleSection('referral')" class="ml-auto text-gray-500 hover:text-purple-600 transition-colors duration-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </h2>
+        <div v-if="activeSections.referral" class="space-y-6">
+          <div class="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-100 mb-2">
+            <p class="text-sm text-gray-700">
+              <span class="font-medium">Share your referral link:</span> When someone signs up using your link and purchases an annual license, you'll earn CHF 100 in bonus credits, and they'll get CHF 50 off their first annual license.
+            </p>
+          </div>
+          
+          <div class="space-y-3">
+            <label class="block text-sm font-medium text-gray-700">Your Referral Link</label>
+            <div class="flex items-center">
+              <input 
+                type="text" 
+                readonly 
+                :value="referralLink" 
+                class="flex-grow px-4 py-2.5 rounded-l-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200 bg-gray-50" 
+              />
+              <button 
+                @click="copyReferralLink" 
+                type="button"
+                class="px-4 py-2.5 bg-purple-600 text-white rounded-r-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200 flex items-center"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                Copy
+              </button>
+            </div>
+            <p v-if="linkCopied" class="text-green-600 text-sm mt-1 flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Link copied to clipboard!
+            </p>
+          </div>
+          
+          <div class="space-y-3 mt-4">
+            <label class="block text-sm font-medium text-gray-700">Share on Social Media</label>
+            <div class="flex flex-wrap gap-3">
+              <a 
+                :href="`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`"
+                target="_blank"
+                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
+              >
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+                </svg>
+                Facebook
+              </a>
+              <a 
+                :href="`https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join Fundoo and get CHF 50 off your first annual license!')}`"
+                target="_blank"
+                class="inline-flex items-center px-4 py-2 bg-blue-400 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-600 focus:outline-none focus:border-blue-600 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
+              >
+                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                </svg>
+                Twitter
+              </a>
+              <a 
+                :href="`mailto:?subject=${encodeURIComponent('Join Fundoo and save CHF 50')}&body=${encodeURIComponent('I thought you might be interested in Fundoo. Sign up using my referral link and get CHF 50 off your first annual license: ' + referralLink)}`"
+                class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-800 focus:outline-none focus:border-gray-800 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Email
+              </a>
+            </div>
+          </div>
+          
+          <div class="mt-6">
+            <a 
+              :href="route('dashboard.referrals')" 
+              class="inline-flex items-center px-4 py-2 bg-purple-100 border border-transparent rounded-md font-medium text-sm text-purple-700 hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors duration-200"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              View Referral Statistics
+            </a>
+          </div>
+        </div>
+      </div>
+      
       <!-- Project Overview Section -->
       <div class="bg-white shadow-md rounded-xl p-6 mb-6 border border-gray-200">
         <h2 class="text-xl font-bold flex items-center text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-4">
@@ -703,7 +800,26 @@ const props = defineProps({
   settings: Object,
 })
 
-const page = usePage()
+const user = usePage().props.auth.user
+const referralLink = computed(() => {
+  return `${window.location.origin}/register?ref=${user.id}`
+})
+
+const linkCopied = ref(false)
+
+const copyReferralLink = () => {
+  navigator.clipboard.writeText(referralLink.value)
+    .then(() => {
+      linkCopied.value = true
+      setTimeout(() => {
+        linkCopied.value = false
+      }, 3000)
+    })
+    .catch(err => {
+      console.error('Failed to copy link: ', err)
+    })
+}
+
 const form = ref({
   organization_name: props.settings?.organization_name || '',
   contact_title: props.settings?.contact_title || 'Mister',
@@ -745,13 +861,14 @@ const activeSections = ref({
   billing: true,
   bank: true,
   password: true,
+  referral: false,
   overview: true,
 })
 
 const errors = ref({})
 const flashMessage = computed(() => ({
-  success: page.props.flash?.success || '',
-  error: page.props.flash?.error || '',
+  success: usePage().props.flash?.success || '',
+  error: usePage().props.flash?.error || '',
 }))
 
 function toggleSection(section) {

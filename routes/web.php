@@ -5,11 +5,13 @@ use App\Http\Controllers\BonusCreditController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\EmailTemplateController;
 use App\Http\Controllers\LanguageController;
+use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\MemberGroupController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ParticipantController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WelcomeController;
@@ -35,7 +37,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/register-with-referral', [AuthController::class, 'register'])->name('register.with_referral');
+    Route::post('/register-with-referral', [BonusCreditController::class, 'registerWithReferral'])->name('register.with_referral');
 });
 
 // Language Routes
@@ -138,9 +140,18 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/dashboard/users', [UserController::class, 'store'])->name('dashboard.users.store');
     Route::delete('/dashboard/users/{id}', [UserController::class, 'destroy'])->name('dashboard.users.destroy');
 
-    Route::get('/dashboard/bonus', [BonusCreditController::class, 'index'])->name('dashboard.bonus');
-    Route::post('/register-with-referral', [BonusCreditController::class, 'registerWithReferral'])->name('register.with_referral');
+    Route::get('/dashboard/bonus', [BonusCreditController::class, 'index'])->name('dashboard.bonus.index');
     Route::post('/dashboard/bonus/{bonusCredit}/credit', [BonusCreditController::class, 'creditBonus'])->name('dashboard.bonus.credit');
+
+    // License routes
+    Route::get('/license', [LicenseController::class, 'index'])->name('license.purchase');
+    Route::get('/dashboard/license', [LicenseController::class, 'dashboard'])->name('dashboard.license');
+    Route::post('/license/create-payment-intent', [LicenseController::class, 'createPaymentIntent'])->name('license.create-payment-intent');
+    Route::post('/webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
+    
+    // Referrals
+    Route::get('/dashboard/referrals', [ReferralController::class, 'index'])->name('dashboard.referrals');
+
     Route::get('/dashboard/donations', fn () => Inertia::render('Dashboard/Donations/Index'))->name('dashboard.donations');
     Route::get('/dashboard/reports', fn () => Inertia::render('Dashboard/Reports/Index'))->name('dashboard.reports');
 
@@ -180,6 +191,11 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::post('/users/{user}/approve', [AdminUserController::class, 'approve'])->name('users.approve');
         Route::post('/users/{user}/reject', [AdminUserController::class, 'reject'])->name('users.reject');
         
+        // Referral and Discount Management
+        Route::get('/referrals', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'index'])->name('referrals');
+        Route::post('/referrals/{bonusCredit}/update-status', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'updateStatus'])->name('referrals.update-status');
+        Route::get('/discounts', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'discounts'])->name('discounts');
+        
         Route::get('/content', [\App\Http\Controllers\Admin\ContentController::class, 'index'])->name('content.index');
         Route::get('/content/featured-projects', [\App\Http\Controllers\Admin\ContentController::class, 'featuredProjects'])->name('content.featured-projects');
         Route::post('/content/featured-projects', [\App\Http\Controllers\Admin\ContentController::class, 'updateFeatured'])->name('content.featured-projects.update');
@@ -202,6 +218,13 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
         Route::post('/notifications/{notification}/mark-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.mark-as-read');
         Route::post('/notifications/mark-all-as-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-as-read');
+
+        // Referral and Discount Management Routes
+        Route::get('/referrals', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'index'])->name('referrals.index');
+        Route::post('/referrals/{bonusCredit}/update-status', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'updateStatus'])->name('referrals.update-status');
+        Route::get('/discounts', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'discounts'])->name('discounts.index');
+        Route::post('/discounts/{bonusCredit}/update-status', [\App\Http\Controllers\Admin\ReferralManagementController::class, 'updateDiscountStatus'])->name('discounts.update-status');
+
     });
 
     // Resource Routes

@@ -174,6 +174,10 @@ class AuthController extends Controller
                             'referral_code_used' => $referralCode,
                         ]);
 
+                        // Mark the new user as eligible for discount
+                        $user->discount_eligible = true;
+                        $user->save();
+
                         // Send notification to referrer
                         $referrer->notify(new ReferralCodeUsed($user, $bonusCredit->amount));
                         
@@ -181,11 +185,13 @@ class AuthController extends Controller
                             'referrer_id' => $referrer->id,
                             'referred_user_id' => $user->id,
                             'bonus_credit_id' => $bonusCredit->id,
+                            'discount_eligible' => true,
                         ]);
 
                         $referralInfo = [
                             'success' => true,
                             'code' => $referralCode,
+                            'discount_eligible' => true,
                         ];
                     } else {
                         $referralInfo = [

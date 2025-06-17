@@ -99,7 +99,7 @@
       </div>
 
       <div class="lg:col-span-1">
-        <NotificationsPanel />
+        <NotificationDropdown />
       </div>
     </div>
   </AppLayout>
@@ -107,5 +107,5 @@
 
 <script setup>
 import AppLayout from '@/Layouts/AppDashboardLayout.vue';
-import NotificationsPanel from '@/Components/NotificationsPanel.vue';
+import NotificationDropdown from '@/Components/NotificationDropdown.vue';
 </script> 

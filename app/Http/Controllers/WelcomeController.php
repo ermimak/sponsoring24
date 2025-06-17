@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\Participant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 class WelcomeController extends Controller
@@ -17,6 +18,9 @@ class WelcomeController extends Controller
         // Get notifications for authenticated users
         $notifications = [];
         $unreadCount = 0;
+        $projects = [];
+        $stats = [];
+        $news = [];
         if ($request->user()) {
             $notifications = $request->user()->notifications()->latest()->take(10)->get();
             $unreadCount = $request->user()->unreadNotifications()->count();
@@ -24,16 +28,31 @@ class WelcomeController extends Controller
         
         // Get referral info if available
         $referralInfo = $request->session()->get('referralInfo');
-        
-        // Get featured projects (limit to 6)
-        $projects = Project::where('is_featured', true)
+
+        // Check if Project table exists
+        if (!Schema::hasTable('projects')) {
+            return Inertia::render('Welcome', [
+                'notifications' => $notifications,
+                'unreadNotificationsCount' => $unreadCount,
+                'referralInfo' => $referralInfo,
+                'projects' => $projects,
+                'stats' => $stats,
+                'news' => $news
+            ]);
+        }
+
+        // Check if there is no project
+        if (Project::count() == 0) {
+            $projects = [];
+        } else {
+            $projects = Project::where('is_featured', true)
             ->where('public_donation_enabled', true)
             ->withCount(['participants', 'donations'])
             ->withSum('donations', 'amount')
             ->orderBy('featured_order')
             ->take(6)
             ->get();
-            
+        }    
         // If no featured projects, get the most recent ones
         if ($projects->isEmpty()) {
             $projects = Project::where('public_donation_enabled', true)

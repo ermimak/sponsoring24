@@ -20,6 +20,12 @@
                             <NavLink :href="route('admin.user-activities.index')" :active="routeIs('Admin/UserActivities')">
                                 User Activities
                             </NavLink>
+                            <NavLink :href="route('admin.referrals.index')" :active="routeIs('Admin/ReferralManagement')">
+                                Referrals
+                            </NavLink>
+                            <NavLink :href="route('admin.discounts.index')" :active="routeIs('Admin/DiscountManagement')">
+                                Discounts
+                            </NavLink>
                             <NavLink :href="route('admin.content.index')" :active="routeIs('Admin/Content')">
                                 Content
                             </NavLink>
@@ -76,6 +82,12 @@
                     </ResponsiveNavLink>
                     <ResponsiveNavLink :href="route('admin.user-activities.index')" :active="routeIs('Admin/UserActivities')">
                         User Activities
+                    </ResponsiveNavLink>
+                    <ResponsiveNavLink :href="route('admin.referrals.index')" :active="routeIs('Admin/ReferralManagement')">
+                        Referrals
+                    </ResponsiveNavLink>
+                    <ResponsiveNavLink :href="route('admin.discounts.index')" :active="routeIs('Admin/DiscountManagement')">
+                        Discounts
                     </ResponsiveNavLink>
                     <ResponsiveNavLink :href="route('admin.content.index')" :active="routeIs('Admin/Content')">
                         Content
