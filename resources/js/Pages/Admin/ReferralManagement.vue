@@ -55,7 +55,7 @@
                     <div class="text-sm text-gray-900">{{ referrer.referral_count }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">CHF {{ referrer.total_earned.toFixed(2) }}</div>
+                    <div class="text-sm text-gray-900">CHF {{ referrer.total_earned }}</div>
                   </td>
                 </tr>
               </tbody>
