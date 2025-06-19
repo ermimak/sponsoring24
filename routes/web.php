@@ -147,6 +147,7 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/license', [LicenseController::class, 'index'])->name('license.purchase');
     Route::get('/dashboard/license', [LicenseController::class, 'dashboard'])->name('dashboard.license');
     Route::post('/license/create-payment-intent', [LicenseController::class, 'createPaymentIntent'])->name('license.create-payment-intent');
+    Route::get('/license/success', [LicenseController::class, 'success'])->name('license.success');
     Route::post('/webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
     
     // Referrals

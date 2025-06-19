@@ -100,13 +100,30 @@ class LicenseController extends Controller
      */
     public function createPaymentIntent(Request $request)
     {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+        
+        // Check if user already has an active license
+        $hasActiveLicense = License::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->exists();
+            
+        if ($hasActiveLicense) {
+            return response()->json(['error' => 'User already has an active license'], 400);
+        }
+        
         try {
-            $user = Auth::user();
-            $discountEligible = $user->discount_eligible && !$user->discount_used;
+            // Check if user is eligible for a discount
+            $discountEligible = $request->input('apply_discount') && $user->discount_eligible && !$user->discount_used;
+            
+            // Calculate license price with discount if applicable
             $licensePrice = $discountEligible ? self::ANNUAL_LICENSE_PRICE - self::REFERRAL_DISCOUNT : self::ANNUAL_LICENSE_PRICE;
             
             // Create a PaymentIntent with the license amount and currency
-            $paymentIntent = PaymentIntent::create([
+            $paymentIntentData = [
                 'amount' => $licensePrice * 100, // Convert to cents
                 'currency' => 'chf',
                 'metadata' => [
@@ -115,36 +132,83 @@ class LicenseController extends Controller
                     'discount_applied' => $discountEligible ? 'yes' : 'no',
                     'discount_amount' => $discountEligible ? self::REFERRAL_DISCOUNT : 0,
                 ],
-                'automatic_payment_methods' => [
-                    'enabled' => true,
-                ],
+                'payment_method_types' => ['card'],
+            ];
+            
+            // Check if we're in a development environment and use test mode if needed
+            if (app()->environment('local', 'development', 'testing')) {
+                // Set Stripe API key for test mode
+                \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+                
+                // Add test clock if available (for testing specific scenarios)
+                if (config('services.stripe.test_clock_id')) {
+                    $paymentIntentData['test_clock'] = config('services.stripe.test_clock_id');
+                }
+            }
+            
+            // Create the payment intent with a timeout to avoid long waits
+            $paymentIntent = PaymentIntent::create($paymentIntentData, [
+                'timeout' => 10, // Reduce timeout to 10 seconds in case of network issues
             ]);
 
             // Log payment intent creation activity
             UserActivityService::logPayment('license_payment_intent_created', $user->id, [
+                'payment_intent_id' => $paymentIntent->id,
                 'amount' => $licensePrice,
-                'currency' => 'CHF',
                 'discount_applied' => $discountEligible,
-                'discount_amount' => $discountEligible ? self::REFERRAL_DISCOUNT : 0,
             ]);
-
+            
             return response()->json([
                 'clientSecret' => $paymentIntent->client_secret,
                 'amount' => $licensePrice,
-                'currency' => 'CHF',
+                'discountApplied' => $discountEligible,
             ]);
+        } catch (\Stripe\Exception\ApiConnectionException $e) {
+            // Handle network connectivity issues
+            Log::error('Stripe API connection error', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+            ]);
+            
+            return response()->json([
+                'error' => 'Could not connect to payment service. Please check your internet connection and try again.',
+                'details' => 'Network connectivity issue with payment provider.',
+                'dev_mode' => app()->environment('local', 'development', 'testing'),
+            ], 503);
         } catch (\Exception $e) {
             Log::error('Error creating license payment intent', [
                 'error' => $e->getMessage(),
-                'user_id' => Auth::id(),
+                'user_id' => $user->id,
             ]);
-
-            return response()->json(['error' => 'Unable to create payment intent'], 500);
+            
+            return response()->json(['error' => 'Failed to create payment intent: ' . $e->getMessage()], 500);
         }
     }
 
     /**
-     * Handle successful license payment webhook
+     * Display license purchase success page
+     */
+    public function success(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        // Get the user's most recent license
+        $license = License::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->first();
+            
+        return Inertia::render('License/Success', [
+            'license' => $license,
+            'user' => $user,
+        ]);
+    }
+    
+    /**
+     * Handle Stripe webhook for license payments
      */
     public function handleWebhook(Request $request)
     {

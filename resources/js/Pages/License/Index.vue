@@ -195,42 +195,67 @@ export default defineComponent({
     
     async initializePayment() {
       this.showStripeElement = true;
+      this.paymentError = null;
       
-      if (!this.stripe) {
-        this.stripe = await loadStripe(this.stripePublishableKey);
-      }
+      // Wait for DOM update
+      await this.$nextTick();
       
-      this.$nextTick(() => {
-        const elements = this.stripe.elements();
+      try {
+        // Get Stripe key from props or environment variables
+        const stripeKey = this.stripePublishableKey || this.page?.props?.stripeKey || import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+        console.log('Using Stripe key for license:', stripeKey);
         
-        this.cardElement = elements.create('card', {
+        if (!stripeKey) {
+          throw new Error('Stripe public key is not configured');
+        }
+        
+        // Initialize Stripe
+        this.stripe = await loadStripe(stripeKey);
+        
+        // Create elements instance
+        this.elements = this.stripe.elements();
+        
+        // Create card element
+        this.cardElement = this.elements.create('card', {
           style: {
             base: {
-              fontSize: '16px',
               color: '#32325d',
               fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+              fontSmoothing: 'antialiased',
+              fontSize: '16px',
               '::placeholder': {
-                color: '#aab7c4',
-              },
+                color: '#aab7c4'
+              }
             },
             invalid: {
               color: '#fa755a',
-              iconColor: '#fa755a',
-            },
-          },
-        });
-        
-        this.cardElement.mount(this.$refs.cardElement);
-        
-        this.cardElement.on('change', (event) => {
-          this.stripeElementComplete = event.complete;
-          if (event.error) {
-            this.paymentError = event.error.message;
-          } else {
-            this.paymentError = null;
+              iconColor: '#fa755a'
+            }
           }
         });
-      });
+        
+        // Wait for another tick to ensure the DOM is ready
+        await this.$nextTick();
+        
+        // Mount card element
+        const cardElementContainer = this.$refs.cardElement;
+        if (cardElementContainer) {
+          console.log('Mounting card element to container');
+          this.cardElement.mount(cardElementContainer);
+          
+          // Listen for changes
+          this.cardElement.on('change', (event) => {
+            console.log('Card element change:', event.complete);
+            this.stripeElementComplete = event.complete;
+            this.cardError = event.error ? event.error.message : '';
+          });
+        } else {
+          throw new Error('Card element container not found');
+        }
+      } catch (error) {
+        console.error('Error initializing Stripe:', error);
+        this.paymentError = 'Failed to initialize payment form: ' + (error.message || 'Please try again');
+      }
     },
     
     async processPayment() {
@@ -242,34 +267,33 @@ export default defineComponent({
       this.paymentError = null;
       
       try {
+        console.log('Creating payment intent for license...');
         // Create payment intent on the server
-        const response = await axios.post(route('dashboard.license.payment-intent'), {
+        const response = await axios.post(route('license.create-payment-intent'), {
           apply_discount: this.user.discount_eligible && !this.user.discount_used
         });
         
-        const { client_secret } = response.data;
+        console.log('Payment intent created successfully');
+        const { clientSecret } = response.data;
         
-        // Confirm payment with Stripe
-        const result = await this.stripe.confirmCardPayment(client_secret, {
-          payment_method: {
-            card: this.cardElement,
-            billing_details: {
-              email: this.user.email,
-              name: this.user.name,
-            },
-          },
+        if (!clientSecret) {
+          throw new Error('No client secret returned from the server');
+        }
+        
+        // Use Stripe Checkout instead of Elements to avoid mounting issues
+        const { error } = await this.stripe.redirectToCheckout({
+          paymentIntentClientSecret: clientSecret,
+          successUrl: window.location.origin + route('license.success'),
+          cancelUrl: window.location.origin + route('license.purchase'),
         });
         
-        if (result.error) {
-          // Show error to customer
-          this.paymentError = result.error.message;
-          this.paymentProcessing = false;
-        } else {
-          // Payment succeeded, reload the page to show updated license status
-          window.location.reload();
+        if (error) {
+          console.error('Checkout redirect error:', error);
+          throw error;
         }
       } catch (error) {
-        this.paymentError = error.response?.data?.message || 'An error occurred while processing your payment.';
+        console.error('Payment processing error:', error);
+        this.paymentError = error.response?.data?.error || error.message || 'An error occurred while processing your payment.';
         this.paymentProcessing = false;
       }
     },
