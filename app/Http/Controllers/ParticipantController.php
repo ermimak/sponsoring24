@@ -963,34 +963,73 @@ class ParticipantController extends Controller
 
     public function showPaymentOptions(Request $request, $projectId, $participantId, $donationId)
     {
-        try {
-            $donation = \App\Models\Donation::where('id', $donationId)
-                ->where('project_id', $projectId)
-                ->where('participant_id', $participantId)
-                ->firstOrFail();
-            $project = Project::findOrFail($projectId);
-            $participant = Participant::findOrFail($participantId);
-
-            return Inertia::render('Projects/Participants/DonationPayment', [
-                'project' => [
-                    'id' => $project->id,
-                    'name' => $project->name,
-                ],
-                'participant' => [
-                    'id' => $participant->id,
-                    'first_name' => $participant->first_name,
-                    'last_name' => $participant->last_name,
-                ],
-                'donation' => [
-                    'id' => $donation->id,
-                    'amount' => $donation->amount,
-                    'currency' => $donation->currency,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to load payment options: ' . $e->getMessage());
-
-            return redirect()->route('dashboard')->with('error', 'Failed to load payment options.');
+        $project = Project::findOrFail($projectId);
+        $participant = Participant::findOrFail($participantId);
+        $donation = Donation::findOrFail($donationId);
+        
+        // Check if donation belongs to this participant and project
+        if ($donation->participant_id != $participantId || $donation->project_id != $projectId) {
+            abort(404, 'Donation not found for this participant and project');
         }
+
+        if ($donation->status === 'pending') {
+            $donation->update(['status' => 'confirmed']);
+        }
+        
+        return Inertia::render('Projects/Participants/DonationPayment', [
+            'project' => $project,
+            'participant' => $participant,
+            'donation' => $donation,
+        ]);
+    }
+    
+    /**
+     * Show donation success page
+     */
+    public function showDonationSuccess(Request $request, $projectId, $participantId, $donationId)
+    {
+        $project = Project::findOrFail($projectId);
+        $participant = Participant::findOrFail($participantId);
+        $donation = Donation::findOrFail($donationId);
+
+        if ($donation->status === 'confirmed') {
+            $donation->update(['status' => 'paid']);
+        }
+        
+        // Check if donation belongs to this participant and project
+        if ($donation->participant_id != $participantId || $donation->project_id != $projectId) {
+            abort(404, 'Donation not found for this participant and project');
+        }
+        
+        return Inertia::render('Projects/Participants/DonationSuccess', [
+            'project' => $project,
+            'participant' => $participant,
+            'donation' => $donation,
+            'paymentMethod' => $donation->payment_method,
+        ]);
+    }
+    
+    /**
+     * Show invoice success page
+     */
+    public function showInvoiceSuccess(Request $request, $projectId, $participantId, $donationId)
+    {
+        $project = Project::findOrFail($projectId);
+        $participant = Participant::findOrFail($participantId);
+        $donation = Donation::findOrFail($donationId);
+
+        if ($donation->status === 'confirmed') {
+            $donation->update(['status' => 'paid']);
+        }        
+        // Check if donation belongs to this participant and project
+        if ($donation->participant_id != $participantId || $donation->project_id != $projectId) {
+            abort(404, 'Donation not found for this participant and project');
+        }
+        
+        return Inertia::render('Projects/Participants/InvoiceSuccess', [
+            'project' => $project,
+            'participant' => $participant,
+            'donation' => $donation,
+        ]);
     }
 }

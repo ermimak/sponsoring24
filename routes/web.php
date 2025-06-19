@@ -276,6 +276,8 @@ Route::prefix('projects/{projectId}')->group(function () {
 });
 Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{token}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm');
 Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment');
+Route::get('projects/{projectId}/participants/{participantId}/donate/success/{donationId}', [ParticipantController::class, 'showDonationSuccess'])->name('participant.donate.success');
+Route::get('projects/{projectId}/participants/{participantId}/donate/invoice/success/{donationId}', [ParticipantController::class, 'showInvoiceSuccess'])->name('participant.donate.invoice.success');
 
 Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
 
@@ -292,7 +294,8 @@ Route::get('/content/news/{news}', [\App\Http\Controllers\Admin\ContentControlle
 Route::get('/api/projects', [ProjectController::class, 'index'])->name('api.projects');
 
 // Payment Routes
-Route::post('/api/create-payment-intent', [PaymentController::class, 'createPaymentIntent'])->name('payment.intent');
+Route::post('/api/payments/create-payment-intent', [PaymentController::class, 'createPaymentIntent'])->name('payment.intent');
+Route::post('/api/payments/request-invoice', [PaymentController::class, 'requestInvoice'])->name('payment.invoice');
 Route::post('/api/webhook/stripe', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 
 // Debug Route (Remove in Production)

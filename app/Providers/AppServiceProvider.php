@@ -23,5 +23,11 @@ class AppServiceProvider extends ServiceProvider
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }
+        
+        // Share Stripe public key with all views
+        $stripeKey = config('services.stripe.key');
+        
+        // Share with Inertia
+        \Inertia\Inertia::share('stripeKey', $stripeKey);
     }
 }

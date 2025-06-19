@@ -15,8 +15,10 @@ class ProjectController extends Controller
 {
     public function index(Request $request)
     {
+        // Get projects that are created by the current user or are public
         return Project::withCount(['participants', 'donations'])
             ->withSum('donations', 'amount')
+            ->where('created_by', Auth::id())
             ->paginate(20);
     }
 
