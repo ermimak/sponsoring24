@@ -711,6 +711,31 @@ class ParticipantController extends Controller
         }
     }
 
+    public function showLandingPage(Request $request, $projectId, $participantId)
+    {
+        try {
+            $project = Project::findOrFail($projectId);
+            $participant = Participant::whereHas('projects', function ($query) use ($projectId) {
+                $query->where('project_id', $projectId);
+            })->findOrFail($participantId);
+
+            return Inertia::render('Projects/Participants/Landing', [
+                'project' => $project,
+                'participant' => $participant,
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Resource not found: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Project or Participant not found.');
+        } catch (\Exception $e) {
+            Log::error('Failed to load landing page: ' . $e->getMessage(), [
+                'exception' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to load landing page.');
+        }
+    }
+
     public function storeDonation(Request $request, $projectId, $participantId)
     {
         try {

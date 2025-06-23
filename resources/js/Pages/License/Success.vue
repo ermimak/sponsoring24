@@ -1,5 +1,5 @@
 <template>
-  <AppLayout title="License Purchase Successful">
+  <DashboardLayout title="License Purchase Successful">
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         License Purchase Successful
@@ -64,36 +64,25 @@
         </div>
       </div>
     </div>
-  </AppLayout>
+  </DashboardLayout>
 </template>
 
-<script>
-import { defineComponent } from 'vue';
-import { Link } from '@inertiajs/inertia-vue3';
-import AppLayout from '@/Layouts/AppLayout.vue';
-import { CheckCircleIcon } from '@heroicons/vue/outline';
-
-export default defineComponent({
-  components: {
-    AppLayout,
-    Link,
-    CheckCircleIcon,
-  },
-  
-  props: {
-    license: Object,
-    user: Object,
-  },
-  
-  methods: {
-    formatDate(dateString) {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }).format(date);
-    },
-  },
+<script setup>
+import { Link } from '@inertiajs/vue3';
+import DashboardLayout from '@/Layouts/DashboardLayout.vue';
+import { CheckCircleIcon } from '@heroicons/vue/24/outline';
+import { route } from '@/ziggy-plugin';
+defineProps({
+  license: Object,
+  user: Object,
 });
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(date);
+}
 </script>

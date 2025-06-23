@@ -122,44 +122,41 @@ class LicenseController extends Controller
             // Calculate license price with discount if applicable
             $licensePrice = $discountEligible ? self::ANNUAL_LICENSE_PRICE - self::REFERRAL_DISCOUNT : self::ANNUAL_LICENSE_PRICE;
             
-            // Create a PaymentIntent with the license amount and currency
-            $paymentIntentData = [
-                'amount' => $licensePrice * 100, // Convert to cents
-                'currency' => 'chf',
+            // Create a Stripe Checkout Session instead of a PaymentIntent
+            $session = \Stripe\Checkout\Session::create([
+                'payment_method_types' => ['card'],
+                'line_items' => [[
+                    'price_data' => [
+                        'currency' => 'chf',
+                        'product_data' => [
+                            'name' => 'Annual License',
+                            'description' => 'Fundoo Annual License Subscription',
+                        ],
+                        'unit_amount' => $licensePrice * 100, // Convert to cents
+                    ],
+                    'quantity' => 1,
+                ]],
                 'metadata' => [
                     'user_id' => $user->id,
                     'license_type' => 'annual',
                     'discount_applied' => $discountEligible ? 'yes' : 'no',
                     'discount_amount' => $discountEligible ? self::REFERRAL_DISCOUNT : 0,
                 ],
-                'payment_method_types' => ['card'],
-            ];
-            
-            // Check if we're in a development environment and use test mode if needed
-            if (app()->environment('local', 'development', 'testing')) {
-                // Set Stripe API key for test mode
-                \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-                
-                // Add test clock if available (for testing specific scenarios)
-                if (config('services.stripe.test_clock_id')) {
-                    $paymentIntentData['test_clock'] = config('services.stripe.test_clock_id');
-                }
-            }
-            
-            // Create the payment intent with a timeout to avoid long waits
-            $paymentIntent = PaymentIntent::create($paymentIntentData, [
-                'timeout' => 10, // Reduce timeout to 10 seconds in case of network issues
+                'mode' => 'payment',
+                'success_url' => route('license.success'),
+                'cancel_url' => route('license.purchase'),
+                'customer_email' => $user->email,
             ]);
 
-            // Log payment intent creation activity
-            UserActivityService::logPayment('license_payment_intent_created', $user->id, [
-                'payment_intent_id' => $paymentIntent->id,
+            // Log checkout session creation activity
+            UserActivityService::logPayment('license_checkout_session_created', $user->id, [
+                'session_id' => $session->id,
                 'amount' => $licensePrice,
                 'discount_applied' => $discountEligible,
             ]);
             
             return response()->json([
-                'clientSecret' => $paymentIntent->client_secret,
+                'sessionId' => $session->id,
                 'amount' => $licensePrice,
                 'discountApplied' => $discountEligible,
             ]);
@@ -176,12 +173,12 @@ class LicenseController extends Controller
                 'dev_mode' => app()->environment('local', 'development', 'testing'),
             ], 503);
         } catch (\Exception $e) {
-            Log::error('Error creating license payment intent', [
+            Log::error('Error creating license checkout session', [
                 'error' => $e->getMessage(),
                 'user_id' => $user->id,
             ]);
             
-            return response()->json(['error' => 'Failed to create payment intent: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Failed to create checkout session: ' . $e->getMessage()], 500);
         }
     }
 

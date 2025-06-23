@@ -31,7 +31,8 @@
                 </div>
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Groups</dt>
-                  <dd class="text-gray-900">{{ participant.member_groups.map(g => g.name).join(', ') || 'None' }}</dd>
+                  <dd v-if="participant.member_groups" class="text-gray-900">{{ participant.member_groups.map(g => g.name).join(', ') || 'None' }}</dd>
+                  <dd v-else class="text-gray-900">None</dd>
                 </div>
               </dl>
             </div>
@@ -44,11 +45,14 @@
                 </div>
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Sales Volume</dt>
-                  <dd class="text-gray-900">${{ participant.sales_volume.toFixed(2) }}</dd>
+                  <!-- Cannot read properties of undefined (reading 'toFixed') -->
+                  <dd v-if="participant.sales_volume" class="text-gray-900">${{ participant.sales_volume.toFixed(2) }}</dd>
+                  <dd v-else class="text-gray-900">N/A</dd>
                 </div>
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Emails Sent</dt>
-                  <dd class="text-gray-900">{{ participant.emails }}</dd>
+                  <dd v-if="participant.emails" class="text-gray-900">{{ participant.emails }}</dd>
+                  <dd v-else class="text-gray-900">N/A</dd>
                 </div>
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Landing Page Opened</dt>
@@ -78,8 +82,7 @@
   
   <script setup>
   import { Link } from '@inertiajs/vue3'
-  
-  defineProps({
+  const props = defineProps({
     project: Object,
     participant: Object,
   })

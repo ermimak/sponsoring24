@@ -259,7 +259,7 @@ export default defineComponent({
     },
     
     async processPayment() {
-      if (!this.stripeElementComplete || this.paymentProcessing) {
+      if (this.paymentProcessing) {
         return;
       }
       
@@ -267,29 +267,29 @@ export default defineComponent({
       this.paymentError = null;
       
       try {
-        console.log('Creating payment intent for license...');
-        // Create payment intent on the server
+        console.log('Creating checkout session for license...');
+        // Create checkout session on the server
         const response = await axios.post(route('license.create-payment-intent'), {
           apply_discount: this.user.discount_eligible && !this.user.discount_used
         });
         
-        console.log('Payment intent created successfully');
-        const { clientSecret } = response.data;
+        console.log('Checkout session created successfully');
+        const { sessionId } = response.data;
         
-        if (!clientSecret) {
-          throw new Error('No client secret returned from the server');
+        if (!sessionId) {
+          throw new Error('No session ID returned from the server');
         }
         
-        // Use Stripe Checkout instead of Elements to avoid mounting issues
-        const { error } = await this.stripe.redirectToCheckout({
-          paymentIntentClientSecret: clientSecret,
-          successUrl: window.location.origin + route('license.success'),
-          cancelUrl: window.location.origin + route('license.purchase'),
+        // Redirect to Stripe Checkout
+        console.log('Redirecting to Stripe Checkout...');
+        const result = await this.stripe.redirectToCheckout({
+          sessionId: sessionId
         });
         
-        if (error) {
-          console.error('Checkout redirect error:', error);
-          throw error;
+        if (result.error) {
+          // Show error to customer
+          console.error('Checkout redirect error:', result.error);
+          throw result.error;
         }
       } catch (error) {
         console.error('Payment processing error:', error);
