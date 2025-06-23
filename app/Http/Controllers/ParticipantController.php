@@ -680,18 +680,13 @@ class ParticipantController extends Controller
                 $description = reset($description); // Use the first translation as default
             }
 
-            // Split start datetime into date and time
-            $startDateTime = $project->start;
-            $date = $startDateTime ? $startDateTime->format('F d, Y') : null;
-            $time = $startDateTime ? $startDateTime->format('H:i') : null;
-
             return Inertia::render('Projects/Participants/Donate', [
                 'project' => [
                     'id' => $project->id,
                     'name' => $name,
                     'description' => $description,
-                    'date' => $date,
-                    'time' => $time,
+                    'date' => $project->start->format('F d, Y'),
+                    'time' => $project->end->format('H:i'),
                     'location' => $project->location,
                     'image_url' => $project->image_landscape, // Use image_landscape as the landing image
                 ],
@@ -720,7 +715,15 @@ class ParticipantController extends Controller
             })->findOrFail($participantId);
 
             return Inertia::render('Projects/Participants/Landing', [
-                'project' => $project,
+                'project' => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'description' => $project->description,
+                    'date' => $project->start->format('F d, Y'),
+                    'time' => $project->end->format('H:i'),
+                    'location' => $project->location,
+                    'image_url' => $project->image_landscape,
+                ],
                 'participant' => $participant,
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -768,18 +771,14 @@ class ParticipantController extends Controller
                     $description = reset($description); // Use the first translation as default
                 }
 
-                $startDateTime = $project->start;
-                $date = $startDateTime ? $startDateTime->format('F d, Y') : null;
-                $time = $startDateTime ? $startDateTime->format('H:i') : null;
-
                 // Render the same page but with step set to 'confirmation'
                 return Inertia::render('Projects/Participants/Donate', [
                     'project' => [
                         'id' => $project->id,
                         'name' => $name,
                         'description' => $description,
-                        'date' => $date,
-                        'time' => $time,
+                        'date' => $project->start->format('F d, Y'),
+                        'time' => $project->end->format('H:i'),
                         'location' => $project->location,
                         'image_url' => $project->image_landscape, // Use image_landscape as the landing image
                     ],
