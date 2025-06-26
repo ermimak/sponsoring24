@@ -6,6 +6,7 @@ use App\Models\License;
 use App\Models\User;
 use App\Notifications\LicenseNotification;
 use App\Services\LicenseService;
+use App\Services\ReferralService;
 use App\Services\UserActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,11 +30,13 @@ class LicenseController extends Controller
     const REFERRAL_DISCOUNT = 50.00;
 
     protected $licenseService;
+    protected $referralService;
     
-    public function __construct(LicenseService $licenseService)
+    public function __construct(LicenseService $licenseService, ReferralService $referralService)
     {
         Stripe::setApiKey(config('services.stripe.secret'));
         $this->licenseService = $licenseService;
+        $this->referralService = $referralService;
     }
 
     /**
@@ -54,6 +57,41 @@ class LicenseController extends Controller
         return Inertia::render('Dashboard/License', [
             'license' => $license
         ]);
+    }
+
+    /**
+     * Display detailed information about a specific license.
+     *
+     * @param string $licenseId
+     * @return \Inertia\Response
+     */
+    public function showDetail($licenseId = null)
+    {
+        $user = Auth::user();
+        
+        // If no license ID is provided, get the active license
+        if (!$licenseId) {
+            $license = $this->licenseService->getActiveLicense($user);
+        } else {
+            // Otherwise, get the specific license if it belongs to the user
+            $license = License::where('id', $licenseId)
+                ->where('user_id', $user->id)
+                ->first();
+        }
+        
+        if ($license) {
+            // Add days remaining for the view
+            $license->days_remaining = $license->daysRemaining();
+            
+            // Log the license view
+            Log::info('User viewed license details', [
+                'user_id' => $user->id,
+                'license_id' => $license->id,
+                'license_key' => $license->license_key,
+            ]);
+        }
+        
+        return Inertia::render('License/Detail', ['license' => $license]);
     }
 
     /**
@@ -218,95 +256,214 @@ class LicenseController extends Controller
                 $payload, $sig_header, $endpoint_secret
             );
 
-            // Handle the event
-            if ($event->type === 'payment_intent.succeeded') {
-                $paymentIntent = $event->data->object;
-                $metadata = $paymentIntent->metadata;
+            // Log the event type for debugging
+            Log::info('Stripe webhook received', [
+                'event_type' => $event->type,
+                'event_id' => $event->id,
+            ]);
+
+            // Handle the event based on type
+            if ($event->type === 'checkout.session.completed') {
+                // Handle Checkout Session completion
+                $session = $event->data->object;
+                $metadata = $session->metadata->toArray();
                 
-                if (isset($metadata->license_type) && $metadata->license_type === 'annual') {
-                    $userId = $metadata->user_id;
+                Log::info('Checkout session completed', [
+                    'session_id' => $session->id,
+                    'metadata' => $metadata,
+                ]);
+                
+                if (isset($metadata['license_type']) && $metadata['license_type'] === 'annual') {
+                    $userId = $metadata['user_id'];
                     $user = User::find($userId);
                     
                     if ($user) {
-                        // If discount was applied, mark it as used
-                        if (isset($metadata->discount_applied) && $metadata->discount_applied === 'yes') {
-                            $user->discount_used = true;
-                            $user->save();
+                        // Use a database transaction for ACID compliance
+                        \DB::beginTransaction();
+                        
+                        try {
+                            // Get payment details from the session
+                            $amount = $session->amount_total / 100; // Convert from cents
+                            $currency = strtoupper($session->currency);
+                            $paymentId = $session->payment_intent;
+                            $discountApplied = isset($metadata['discount_applied']) && $metadata['discount_applied'] === 'yes';
+                            $discountAmount = $metadata['discount_amount'] ?? 0;
                             
-                            // Log the discount usage
-                            Log::info('License discount applied', [
-                                'user_id' => $user->id,
-                                'discount_amount' => $metadata->discount_amount,
-                            ]);
-                            
-                            // Find the referrer and credit them with the bonus
-                            $bonusCredit = \App\Models\BonusCredit::where('referred_user_id', $user->id)
-                                ->where('type', 'referral')
-                                ->where('credited', false)
-                                ->first();
+                            // If discount was applied, mark it as used
+                            if ($discountApplied) {
+                                $user->discount_used = true;
+                                $user->save();
                                 
-                            if ($bonusCredit) {
-                                $referrer = \App\Models\User::find($bonusCredit->user_id);
+                                // Log the discount usage
+                                Log::info('License discount applied', [
+                                    'user_id' => $user->id,
+                                    'discount_amount' => $discountAmount,
+                                ]);
                                 
-                                if ($referrer) {
-                                    // Credit the bonus
-                                    $bonusCredit->credited = true;
-                                    $bonusCredit->amount = 100.00; // CHF 100 bonus
-                                    $bonusCredit->save();
-                                    
-                                    // Notify the referrer
-                                    $referrer->notify(new \App\Notifications\ReferralBonusNotification($bonusCredit));
-                                    
-                                    // Log the bonus credit
-                                    Log::info('Referral bonus credited', [
-                                        'referrer_id' => $referrer->id,
-                                        'referred_user_id' => $user->id,
-                                        'bonus_amount' => $bonusCredit->amount,
+                                // Use the ReferralService to credit any referral bonus in an ACID-compliant way
+                                $bonusResult = $this->referralService->creditReferralBonus(
+                                    $user, 
+                                    $amount, 
+                                    $currency, 
+                                    $paymentId
+                                );
+                                
+                                if ($bonusResult) {
+                                    Log::info('Referral bonus credited via ReferralService', [
+                                        'bonus_credit_id' => $bonusResult['bonus_credit_id'],
+                                        'referrer_id' => $bonusResult['referrer_id'],
+                                        'amount' => $bonusResult['amount'],
+                                        'currency' => $bonusResult['currency']
                                     ]);
                                 }
                             }
+                            
+                            // Create license record in database
+                            $licenseType = $metadata['license_type'] ?? 'annual';
+                            $license = $this->licenseService->createLicense(
+                                $user,
+                                $paymentId,
+                                $amount,
+                                $currency,
+                                $licenseType,
+                                $discountApplied,
+                                $discountAmount,
+                                [
+                                    'payment_method' => $session->payment_method_types[0] ?? 'card',
+                                    'customer_email' => $user->email,
+                                    'session_id' => $session->id,
+                                ]
+                            );
+                            
+                            // Commit the transaction
+                            \DB::commit();
+                            
+                            Log::info('License created successfully', [
+                                'user_id' => $user->id,
+                                'license_key' => $license->license_key,
+                                'expires_at' => $license->expires_at,
+                                'transaction' => 'committed',
+                            ]);
+                            
+                            // After successful transaction, send notifications
+                            // These are outside the transaction as they're not critical for data integrity
+                            try {
+                                // Notify the user about successful license purchase
+                                $user->notify(new LicenseNotification($user, 'purchase_success', [
+                                    'amount' => $amount,
+                                    'currency' => $currency,
+                                    'discount_applied' => $discountApplied,
+                                    'discount_amount' => $discountAmount,
+                                    'license_key' => $license->license_key,
+                                    'license_type' => $license->type,
+                                    'expires_at' => $license->expires_at ? $license->expires_at->format('Y-m-d') : null,
+                                ]));
+                                
+                                // Notify referrer if applicable
+                                if ($discountApplied && isset($bonusCredit) && isset($referrer)) {
+                                    $referrer->notify(new \App\Notifications\ReferralBonusNotification($bonusCredit));
+                                }
+                                
+                                // Log the successful payment
+                                UserActivityService::logPayment('license_payment_succeeded', $user->id, [
+                                    'amount' => $amount,
+                                    'currency' => $currency,
+                                    'payment_id' => $paymentId,
+                                    'discount_applied' => $discountApplied,
+                                    'discount_amount' => $discountAmount,
+                                ]);
+                            } catch (\Exception $notificationException) {
+                                // Log notification errors but don't fail the webhook
+                                Log::error('Error sending notifications after license creation', [
+                                    'error' => $notificationException->getMessage(),
+                                    'user_id' => $user->id,
+                                ]);
+                            }
+                        } catch (\Exception $e) {
+                            // If anything goes wrong, roll back the transaction
+                            \DB::rollBack();
+                            
+                            Log::error('License creation failed, transaction rolled back', [
+                                'error' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString(),
+                                'user_id' => $user->id,
+                                'session_id' => $session->id,
+                            ]);
+                            
+                            throw $e; // Re-throw to be caught by the outer try-catch
                         }
-                        
-                        // Create license record in database
-                        $licenseType = isset($metadata->license_type) ? $metadata->license_type : 'annual';
-                        $license = $this->licenseService->createLicense(
-                            $user,
-                            $paymentIntent->id,
-                            $paymentIntent->amount / 100, // Convert from cents
-                            strtoupper($paymentIntent->currency),
-                            $licenseType,
-                            isset($metadata->discount_applied) && $metadata->discount_applied === 'yes',
-                            $metadata->discount_amount ?? 0,
-                            [
-                                'payment_method' => $paymentIntent->payment_method_types[0] ?? 'card',
-                                'customer_email' => $user->email,
-                            ]
-                        );
-                        
-                        Log::info('License created', [
-                            'user_id' => $user->id,
-                            'license_key' => $license->license_key,
-                            'expires_at' => $license->expires_at,
+                    } else {
+                        Log::error('User not found for license creation', [
+                            'user_id' => $userId,
+                            'session_id' => $session->id,
                         ]);
+                    }
+                }
+            } 
+            // Also handle payment_intent.succeeded for backward compatibility
+            else if ($event->type === 'payment_intent.succeeded') {
+                $paymentIntent = $event->data->object;
+                $metadata = $paymentIntent->metadata->toArray();
+                
+                if (isset($metadata['license_type']) && $metadata['license_type'] === 'annual') {
+                    $userId = $metadata['user_id'];
+                    $user = User::find($userId);
+                    
+                    if ($user) {
+                        // Use a database transaction for ACID compliance
+                        \DB::beginTransaction();
                         
-                        // Notify the user about successful license purchase
-                        $user->notify(new LicenseNotification($user, 'purchase_success', [
-                            'amount' => $paymentIntent->amount / 100, // Convert from cents
-                            'currency' => strtoupper($paymentIntent->currency),
-                            'discount_applied' => isset($metadata->discount_applied) && $metadata->discount_applied === 'yes',
-                            'discount_amount' => $metadata->discount_amount ?? 0,
-                            'license_key' => $license->license_key,
-                            'license_type' => $license->type,
-                            'expires_at' => $license->expires_at ? $license->expires_at->format('Y-m-d') : null,
-                        ]));
-                        
-                        // Log the successful payment
-                        UserActivityService::logPayment('license_payment_succeeded', $user->id, [
-                            'amount' => $paymentIntent->amount / 100,
-                            'currency' => strtoupper($paymentIntent->currency),
-                            'payment_id' => $paymentIntent->id,
-                            'discount_applied' => isset($metadata->discount_applied) && $metadata->discount_applied === 'yes',
-                            'discount_amount' => $metadata->discount_amount ?? 0,
+                        try {
+                            $discountApplied = isset($metadata['discount_applied']) && $metadata['discount_applied'] === 'yes';
+                            $discountAmount = $metadata['discount_amount'] ?? 0;
+                            
+                            // If discount was applied, mark it as used
+                            if ($discountApplied) {
+                                $user->discount_used = true;
+                                $user->save();
+                            }
+                            
+                            // Create license record in database
+                            $licenseType = $metadata['license_type'] ?? 'annual';
+                            $license = $this->licenseService->createLicense(
+                                $user,
+                                $paymentIntent->id,
+                                $paymentIntent->amount / 100,
+                                strtoupper($paymentIntent->currency),
+                                $licenseType,
+                                $discountApplied,
+                                $discountAmount,
+                                [
+                                    'payment_method' => $paymentIntent->payment_method_types[0] ?? 'card',
+                                    'customer_email' => $user->email,
+                                ]
+                            );
+                            
+                            // Commit the transaction
+                            \DB::commit();
+                            
+                            Log::info('License created from payment intent', [
+                                'user_id' => $user->id,
+                                'license_key' => $license->license_key,
+                                'transaction' => 'committed',
+                            ]);
+                        } catch (\Exception $e) {
+                            // If anything goes wrong, roll back the transaction
+                            \DB::rollBack();
+                            
+                            Log::error('License creation from payment intent failed, transaction rolled back', [
+                                'error' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString(),
+                                'user_id' => $user->id,
+                                'payment_intent_id' => $paymentIntent->id,
+                            ]);
+                            
+                            throw $e; // Re-throw to be caught by the outer try-catch
+                        }
+                    } else {
+                        Log::error('User not found for license creation from payment intent', [
+                            'user_id' => $userId,
+                            'payment_intent_id' => $paymentIntent->id,
                         ]);
                     }
                 }

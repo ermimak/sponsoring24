@@ -15,6 +15,10 @@ class BonusCredit extends Model
         'amount',
         'status',            // e.g. 'pending', 'credited'
         'referral_code_used', // The referral code that was used
+        'credited',          // Boolean flag indicating if the bonus has been credited
+        'payment_id',        // The payment ID associated with the bonus credit
+        'credited_at',       // Timestamp when the bonus was credited
+        'type',              // Type of bonus credit (e.g., 'referral', 'project')
     ];
 
     public function user()

@@ -148,6 +148,7 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/dashboard/license', [LicenseController::class, 'dashboard'])->name('dashboard.license');
     Route::post('/license/create-payment-intent', [LicenseController::class, 'createPaymentIntent'])->name('license.create-payment-intent');
     Route::get('/license/success', [LicenseController::class, 'success'])->name('license.success');
+    Route::get('/license/detail/{licenseId?}', [LicenseController::class, 'showDetail'])->name('license.detail');
     Route::post('/webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
     
     // Referrals
@@ -184,6 +185,11 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+        
+        // License Management
+        Route::get('/licenses', [\App\Http\Controllers\Admin\LicenseController::class, 'index'])->name('licenses.index');
+        Route::get('/licenses/{id}', [\App\Http\Controllers\Admin\LicenseController::class, 'show'])->name('licenses.show');
+        Route::post('/licenses/{id}/update-status', [\App\Http\Controllers\Admin\LicenseController::class, 'updateStatus'])->name('licenses.update-status');
         
         // User Management
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
