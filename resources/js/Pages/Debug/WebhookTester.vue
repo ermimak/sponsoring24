@@ -246,23 +246,22 @@ export default defineComponent({
     async checkLicenseCreation() {
       try {
         // Wait a moment for the license to be created
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // Check if license was created by fetching the dashboard
-        const response = await axios.get('/dashboard/license');
+        // Make a direct API call to check for licenses
+        const response = await axios.get('/api/check-license-status');
         
-        if (response.data && response.data.props && response.data.props.license) {
-          this.result = {
-            ...this.result,
-            license_created: true,
-            license: response.data.props.license
-          };
+        this.result = {
+          ...this.result,
+          license_check_response: response.data
+        };
+        
+        if (response.data && response.data.has_active_license) {
+          this.result.license_created = true;
+          this.result.license = response.data.license;
         } else {
-          this.result = {
-            ...this.result,
-            license_created: false,
-            message: 'No license found in dashboard response'
-          };
+          this.result.license_created = false;
+          this.result.message = 'No active license found';
         }
       } catch (error) {
         console.error('Error checking license creation:', error);

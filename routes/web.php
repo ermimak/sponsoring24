@@ -154,6 +154,7 @@ Route::middleware(['auth', 'web'])->group(function () {
     // Debug tools (only in non-production environments)
     if (app()->environment('local', 'development', 'testing')) {
         Route::get('/debug/webhook-tester', fn() => Inertia::render('Debug/WebhookTester'))->name('debug.webhook-tester');
+        Route::get('/api/check-license-status', [\App\Http\Controllers\Api\LicenseApiController::class, 'checkStatus'])->name('api.check-license-status');
     }
     
     // Referrals

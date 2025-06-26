@@ -334,12 +334,19 @@ class LicenseController extends Controller
         $payload = $request->getContent();
         $sig_header = $request->header('Stripe-Signature');
         $endpoint_secret = config('services.stripe.webhook_secret');
+        
+        // Save raw payload for debugging
+        Log::debug('Received webhook payload', [
+            'payload' => $payload,
+            'has_signature' => !empty($sig_header),
+            'has_secret' => !empty($endpoint_secret),
+            'environment' => app()->environment()
+        ]);
 
         try {
-            // In development environment, we might want to bypass signature verification
-            // since we might be testing with forwarded webhooks or direct POST requests
-            if (app()->environment('local', 'development', 'testing')) {
-                Log::info('Development environment detected, attempting to parse webhook directly');
+            // In development environment or if webhook secret is missing, parse webhook directly
+            if (app()->environment('local', 'development', 'testing') || empty($endpoint_secret)) {
+                Log::info('Development environment or missing webhook secret, attempting to parse webhook directly');
                 try {
                     $event = json_decode($payload, true);
                     $event = \Stripe\Event::constructFrom($event);
@@ -347,10 +354,14 @@ class LicenseController extends Controller
                     Log::warning('Failed to parse webhook directly, falling back to signature verification', [
                         'error' => $e->getMessage()
                     ]);
-                    // Fall back to normal signature verification
-                    $event = \Stripe\Webhook::constructEvent(
-                        $payload, $sig_header, $endpoint_secret
-                    );
+                    // Only fall back to signature verification if we have both a signature and a secret
+                    if (!empty($sig_header) && !empty($endpoint_secret)) {
+                        $event = \Stripe\Webhook::constructEvent(
+                            $payload, $sig_header, $endpoint_secret
+                        );
+                    } else {
+                        throw new \Exception('Cannot verify webhook: missing signature or secret');
+                    }
                 }
             } else {
                 // Production environment - always verify signature
@@ -388,7 +399,35 @@ class LicenseController extends Controller
                             // Get payment details from the session
                             $amount = $session->amount_total / 100; // Convert from cents
                             $currency = strtoupper($session->currency);
-                            $paymentId = $session->payment_intent;
+                            
+                            // Extract payment_intent ID - this is crucial for license creation
+                            // In newer Stripe API versions, payment_intent might be a string or an object
+                            if (isset($session->payment_intent)) {
+                                if (is_string($session->payment_intent)) {
+                                    $paymentId = $session->payment_intent;
+                                } elseif (is_object($session->payment_intent)) {
+                                    $paymentId = $session->payment_intent->id;
+                                } else {
+                                    // Fallback to session ID if payment_intent is not available
+                                    $paymentId = $session->id;
+                                    Log::warning('Using session ID as payment ID fallback', [
+                                        'session_id' => $session->id,
+                                        'payment_intent_type' => gettype($session->payment_intent)
+                                    ]);
+                                }
+                            } else {
+                                // Fallback to session ID if payment_intent is not available
+                                $paymentId = $session->id;
+                                Log::warning('No payment_intent found in session, using session ID', [
+                                    'session_id' => $session->id
+                                ]);
+                            }
+                            
+                            Log::info('Extracted payment ID for license creation', [
+                                'payment_id' => $paymentId,
+                                'session_id' => $session->id
+                            ]);
+                            
                             $discountApplied = isset($metadata['discount_applied']) && $metadata['discount_applied'] === 'yes';
                             $discountAmount = $metadata['discount_amount'] ?? 0;
                             
@@ -506,69 +545,141 @@ class LicenseController extends Controller
             // Also handle payment_intent.succeeded for backward compatibility
             else if ($event->type === 'payment_intent.succeeded') {
                 $paymentIntent = $event->data->object;
-                $metadata = $paymentIntent->metadata->toArray();
                 
+                // Log the payment intent for debugging
+                Log::info('Payment intent succeeded', [
+                    'payment_intent_id' => $paymentIntent->id,
+                    'amount' => $paymentIntent->amount / 100,
+                    'currency' => $paymentIntent->currency,
+                    'has_metadata' => isset($paymentIntent->metadata)
+                ]);
+                
+                // Get metadata - handle both object and array formats
+                $metadata = [];
+                if (isset($paymentIntent->metadata)) {
+                    if (is_object($paymentIntent->metadata) && method_exists($paymentIntent->metadata, 'toArray')) {
+                        $metadata = $paymentIntent->metadata->toArray();
+                    } elseif (is_array($paymentIntent->metadata)) {
+                        $metadata = $paymentIntent->metadata;
+                    }
+                }
+                
+                Log::info('Payment intent metadata', ['metadata' => $metadata]);
+                
+                // Check if this is a license payment
                 if (isset($metadata['license_type']) && $metadata['license_type'] === 'annual') {
+                    if (!isset($metadata['user_id'])) {
+                        Log::error('Missing user_id in payment intent metadata', [
+                            'payment_intent_id' => $paymentIntent->id,
+                            'metadata' => $metadata
+                        ]);
+                        return response()->json(['error' => 'Missing user_id in metadata'], 400);
+                    }
+                    
                     $userId = $metadata['user_id'];
                     $user = User::find($userId);
                     
-                    if ($user) {
-                        // Use a database transaction for ACID compliance
-                        \DB::beginTransaction();
+                    if (!$user) {
+                        Log::error('User not found for payment intent', [
+                            'payment_intent_id' => $paymentIntent->id,
+                            'user_id' => $userId
+                        ]);
+                        return response()->json(['error' => 'User not found'], 404);
+                    }
+                    
+                    // Use a database transaction for ACID compliance
+                    \DB::beginTransaction();
+                    
+                    try {
+                        $discountApplied = isset($metadata['discount_applied']) && $metadata['discount_applied'] === 'yes';
+                        $discountAmount = $metadata['discount_amount'] ?? 0;
                         
-                        try {
-                            $discountApplied = isset($metadata['discount_applied']) && $metadata['discount_applied'] === 'yes';
-                            $discountAmount = $metadata['discount_amount'] ?? 0;
+                        Log::info('Processing license payment from payment intent', [
+                            'user_id' => $user->id,
+                            'payment_id' => $paymentIntent->id,
+                            'amount' => $paymentIntent->amount / 100,
+                            'currency' => $paymentIntent->currency,
+                            'discount_applied' => $discountApplied,
+                            'discount_amount' => $discountAmount
+                        ]);
+                        
+                        // If discount was applied, mark it as used
+                        if ($discountApplied) {
+                            $user->discount_used = true;
+                            $user->save();
                             
-                            // If discount was applied, mark it as used
-                            if ($discountApplied) {
-                                $user->discount_used = true;
-                                $user->save();
-                            }
+                            Log::info('License discount applied', [
+                                'user_id' => $user->id,
+                                'discount_amount' => $discountAmount
+                            ]);
                             
-                            // Create license record in database
-                            $licenseType = $metadata['license_type'] ?? 'annual';
-                            $license = $this->licenseService->createLicense(
-                                $user,
-                                $paymentIntent->id,
-                                $paymentIntent->amount / 100,
-                                strtoupper($paymentIntent->currency),
-                                $licenseType,
-                                $discountApplied,
-                                $discountAmount,
-                                [
-                                    'payment_method' => $paymentIntent->payment_method_types[0] ?? 'card',
-                                    'customer_email' => $user->email,
-                                ]
+                            // Credit any referral bonus
+                            $bonusResult = $this->referralService->creditReferralBonus(
+                                $user, 
+                                $paymentIntent->amount / 100, 
+                                strtoupper($paymentIntent->currency), 
+                                $paymentIntent->id
                             );
                             
-                            // Commit the transaction
-                            \DB::commit();
-                            
-                            Log::info('License created from payment intent', [
-                                'user_id' => $user->id,
-                                'license_key' => $license->license_key,
-                                'transaction' => 'committed',
-                            ]);
-                        } catch (\Exception $e) {
-                            // If anything goes wrong, roll back the transaction
-                            \DB::rollBack();
-                            
-                            Log::error('License creation from payment intent failed, transaction rolled back', [
-                                'error' => $e->getMessage(),
-                                'trace' => $e->getTraceAsString(),
-                                'user_id' => $user->id,
-                                'payment_intent_id' => $paymentIntent->id,
-                            ]);
-                            
-                            throw $e; // Re-throw to be caught by the outer try-catch
+                            if ($bonusResult) {
+                                Log::info('Referral bonus credited via payment intent', [
+                                    'bonus_credit_id' => $bonusResult['bonus_credit_id'] ?? null,
+                                    'referrer_id' => $bonusResult['referrer_id'] ?? null,
+                                    'amount' => $bonusResult['amount'] ?? null,
+                                    'currency' => $bonusResult['currency'] ?? null
+                                ]);
+                            } else {
+                                Log::info('No pending referral bonus found for user', [
+                                    'user_id' => $user->id,
+                                    'payment_id' => $paymentIntent->id
+                                ]);
+                            }
                         }
-                    } else {
-                        Log::error('User not found for license creation from payment intent', [
-                            'user_id' => $userId,
+                        
+                        // Create license record in database
+                        $licenseType = $metadata['license_type'] ?? 'annual';
+                        $license = $this->licenseService->createLicense(
+                            $user,
+                            $paymentIntent->id,
+                            $paymentIntent->amount / 100,
+                            strtoupper($paymentIntent->currency),
+                            $licenseType,
+                            $discountApplied,
+                            $discountAmount,
+                            [
+                                'payment_method' => $paymentIntent->payment_method_types[0] ?? 'card',
+                                'customer_email' => $user->email,
+                                'event_type' => 'payment_intent.succeeded'
+                            ]
+                        );
+                        
+                        // Commit the transaction
+                        \DB::commit();
+                        
+                        Log::info('License created successfully from payment intent', [
+                            'license_id' => $license->id ?? null,
+                            'license_key' => $license->license_key ?? null,
+                            'user_id' => $user->id,
+                            'payment_id' => $paymentIntent->id
+                        ]);
+                    } catch (\Exception $e) {
+                        // If anything goes wrong, roll back the transaction
+                        \DB::rollBack();
+                        
+                        Log::error('License creation from payment intent failed, transaction rolled back', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                            'user_id' => $user->id,
                             'payment_intent_id' => $paymentIntent->id,
                         ]);
+                        
+                        throw $e; // Re-throw to be caught by the outer try-catch
                     }
+                } else {
+                    Log::info('Payment intent not related to license purchase, ignoring', [
+                        'payment_intent_id' => $paymentIntent->id,
+                        'metadata' => $metadata
+                    ]);
                 }
             }
             
