@@ -151,6 +151,11 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/license/detail/{licenseId?}', [LicenseController::class, 'showDetail'])->name('license.detail');
     Route::post('/webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
     
+    // Debug tools (only in non-production environments)
+    if (app()->environment('local', 'development', 'testing')) {
+        Route::get('/debug/webhook-tester', fn() => Inertia::render('Debug/WebhookTester'))->name('debug.webhook-tester');
+    }
+    
     // Referrals
     Route::get('/dashboard/referrals', [ReferralController::class, 'index'])->name('dashboard.referrals');
 
@@ -275,6 +280,10 @@ Route::middleware(['auth', 'web'])->group(function () {
 // Public Routes
 // Route::get('api/projects/{project}', [ProjectController::class, 'show']);
 // Route::get('api/projects/{project}/participants/{participant}', [PublicParticipantController::class, 'show']);
+
+// Stripe Webhook Routes - These must be accessible without CSRF protection
+Route::post('webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
+Route::post('webhook/donation/stripe', [PaymentController::class, 'handleWebhook'])->name('webhook.donation.stripe');
 // Route::post('api/projects/{project}/participants/{participant}/donate', [PublicParticipantController::class, 'donate']);
 Route::prefix('projects/{projectId}')->group(function () {
     Route::get('participants/{participantId}', [ParticipantController::class, 'showLandingPage'])->name('participant.landing');

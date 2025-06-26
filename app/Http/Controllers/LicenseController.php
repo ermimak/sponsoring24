@@ -11,6 +11,7 @@ use App\Services\UserActivityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Stripe\Exception\SignatureVerificationException;
 use Stripe\PaymentIntent;
@@ -205,11 +206,94 @@ class LicenseController extends Controller
                 'user_id' => $user->id,
             ]);
             
-            return response()->json([
-                'error' => 'Could not connect to payment service. Please check your internet connection and try again.',
-                'details' => 'Network connectivity issue with payment provider.',
-                'dev_mode' => app()->environment('local', 'development', 'testing'),
-            ], 503);
+            // For local development, create a license directly if we can't connect to Stripe
+            if (app()->environment('local', 'development', 'testing')) {
+                try {
+                    Log::warning('Creating license directly in dev mode due to Stripe connection failure', [
+                        'user_id' => $user->id,
+                        'environment' => app()->environment(),
+                    ]);
+                    
+                    // Begin transaction
+                    \DB::beginTransaction();
+                    
+                    // Create a mock payment ID for local development
+                    $mockPaymentId = 'dev_' . Str::random(24);
+                    
+                    // Create license with standard values
+                    $license = $this->licenseService->createLicense(
+                        $user,
+                        $mockPaymentId,
+                        500.00, // Standard license price
+                        'CHF',
+                        'annual',
+                        $user->discount_eligible && !$user->discount_used,
+                        $user->discount_eligible && !$user->discount_used ? self::REFERRAL_DISCOUNT : 0,
+                        [
+                            'payment_method' => 'card',
+                            'customer_email' => $user->email,
+                            'dev_mode' => true,
+                            'created_at' => now()->toDateTimeString(),
+                        ]
+                    );
+                    
+                    // If discount was applied, mark it as used
+                    if ($user->discount_eligible && !$user->discount_used) {
+                        $user->discount_used = true;
+                        $user->save();
+                        
+                        // Credit any referral bonus
+                        $this->referralService->creditReferralBonus(
+                            $user,
+                            500.00,
+                            'CHF',
+                            $mockPaymentId
+                        );
+                    }
+                    
+                    // Commit transaction
+                    \DB::commit();
+                    
+                    Log::info('License created directly in dev mode', [
+                        'user_id' => $user->id,
+                        'license_id' => $license->id,
+                        'license_key' => $license->license_key,
+                        'dev_mode' => true,
+                    ]);
+                    
+                    // Return success with redirect URL to success page
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'License created successfully in development mode',
+                        'redirect' => route('license.success'),
+                        'dev_mode' => true,
+                    ]);
+                    
+                } catch (\Exception $devEx) {
+                    // Roll back transaction if anything fails
+                    \DB::rollBack();
+                    
+                    Log::error('Failed to create license in dev mode', [
+                        'error' => $devEx->getMessage(),
+                        'trace' => $devEx->getTraceAsString(),
+                        'user_id' => $user->id,
+                    ]);
+                    
+                    // Return the original error
+                    return response()->json([
+                        'error' => 'Could not connect to payment service and dev fallback failed. Please check your internet connection and try again.',
+                        'details' => 'Network connectivity issue with payment provider.',
+                        'dev_mode' => app()->environment('local', 'development', 'testing'),
+                    ], 503);
+                }
+            } else {
+                // In production, just return the error
+                return response()->json([
+                    'error' => 'Could not connect to payment service. Please check your internet connection and try again.',
+                    'details' => 'Network connectivity issue with payment provider.',
+                    'dev_mode' => false,
+                ], 503);
+            }
         } catch (\Exception $e) {
             Log::error('Error creating license checkout session', [
                 'error' => $e->getMessage(),
@@ -252,9 +336,28 @@ class LicenseController extends Controller
         $endpoint_secret = config('services.stripe.webhook_secret');
 
         try {
-            $event = \Stripe\Webhook::constructEvent(
-                $payload, $sig_header, $endpoint_secret
-            );
+            // In development environment, we might want to bypass signature verification
+            // since we might be testing with forwarded webhooks or direct POST requests
+            if (app()->environment('local', 'development', 'testing')) {
+                Log::info('Development environment detected, attempting to parse webhook directly');
+                try {
+                    $event = json_decode($payload, true);
+                    $event = \Stripe\Event::constructFrom($event);
+                } catch (\Exception $e) {
+                    Log::warning('Failed to parse webhook directly, falling back to signature verification', [
+                        'error' => $e->getMessage()
+                    ]);
+                    // Fall back to normal signature verification
+                    $event = \Stripe\Webhook::constructEvent(
+                        $payload, $sig_header, $endpoint_secret
+                    );
+                }
+            } else {
+                // Production environment - always verify signature
+                $event = \Stripe\Webhook::constructEvent(
+                    $payload, $sig_header, $endpoint_secret
+                );
+            }
 
             // Log the event type for debugging
             Log::info('Stripe webhook received', [
@@ -468,15 +571,39 @@ class LicenseController extends Controller
                     }
                 }
             }
-
+            
             return response()->json(['status' => 'success']);
-        } catch (\Exception $e) {
-            Log::error('Webhook error', [
+        } catch (\Stripe\Exception\SignatureVerificationException $e) {
+            // Handle signature verification errors
+            Log::error('Stripe webhook signature verification failed', [
                 'error' => $e->getMessage(),
-                'payload' => $payload,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => 'Invalid signature'], 400);
+        } catch (\Stripe\Exception\ApiErrorException $e) {
+            // Handle Stripe API errors
+            Log::error('Stripe API error in webhook', [
+                'error' => $e->getMessage(),
+                'code' => $e->getStripeCode(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => 'Stripe API error: ' . $e->getMessage()], 400);
+        } catch (\Exception $e) {
+            // Handle all other exceptions
+            Log::error('Stripe webhook processing error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'payload_excerpt' => substr($payload, 0, 500) . '...',
             ]);
             
-            return response()->json(['error' => $e->getMessage()], 400);
+            // Save the webhook payload for debugging in development environments
+            if (app()->environment('local', 'development', 'testing')) {
+                $filename = 'failed_webhook_' . date('Y-m-d_H-i-s') . '.json';
+                Storage::disk('local')->put('webhooks/' . $filename, $payload);
+                Log::info('Failed webhook payload saved', ['filename' => $filename]);
+            }
+            
+            return response()->json(['error' => 'Webhook processing error: ' . $e->getMessage()], 500);
         }
     }
 }
