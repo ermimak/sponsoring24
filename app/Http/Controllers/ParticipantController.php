@@ -48,7 +48,7 @@ class ParticipantController extends Controller
                 'data' => $participantProjects->toArray(),
             ]);
 
-            $participants = $participantProjects->map(function ($participantProject) {
+            $participants = $participantProjects->map(function ($participantProject) use ($projectId) {
                 $participant = $participantProject->participant;
                 if (! $participant) {
                     return null;
@@ -63,9 +63,9 @@ class ParticipantController extends Controller
                         'member_groups' => $participant->memberGroups->map(function ($group) {
                             return ['id' => $group->id, 'name' => $group->name];
                         })->toArray(),
-                        'supporters' => $participant->supporters ?? 0,
-                        'sales_volume' => $participant->sales_volume ?? 0,
-                        'emails' => $participant->emails_sent ?? 0,
+                        'supporters' => $participant->getSupportersForProject($projectId) ?? 0,
+                        'sales_volume' => $participant->getSalesVolumeForProject($projectId) ?? 0,
+                        'emails' => $participant->getEmailsSentForProject($projectId) ?? 0,
                         'landing_page_opened' => $participant->landing_page_opened ?? false,
                     ];
                 } catch (\Exception $e) {
@@ -117,7 +117,7 @@ class ParticipantController extends Controller
             // Return the updated list of participants for the project
             $updatedParticipants = Participant::whereHas('projects', function ($query) use ($projectId) {
                 $query->where('project_id', $projectId);
-            })->with(['memberGroups', 'donations'])->get()->map(function ($participant) {
+            })->with(['memberGroups', 'donations'])->get()->map(function ($participant) use ($projectId) {
                 return [
                     'id' => $participant->id,
                     'first_name' => $participant->first_name,
@@ -126,9 +126,9 @@ class ParticipantController extends Controller
                     'member_groups' => $participant->memberGroups->map(function ($group) {
                         return ['id' => $group->id, 'name' => $group->name];
                     }),
-                    'supporters' => $participant->supporters,
-                    'sales_volume' => $participant->sales_volume,
-                    'emails' => $participant->emails_sent,
+                    'supporters' => $participant->getSupportersForProject($projectId) ?? 0,
+                    'sales_volume' => $participant->getSalesVolumeForProject($projectId) ?? 0,
+                    'emails' => $participant->getEmailsSentForProject($projectId) ?? 0,
                     'landing_page_opened' => $participant->landing_page_opened,
                 ];
             });
@@ -637,19 +637,28 @@ class ParticipantController extends Controller
         }
     }
 
-    public function export(Request $request, $projectId)
+    public function export(Request $request, $projectId = null)
     {
         try {
-            $project = Project::findOrFail($projectId);
-            $participants = Participant::whereHas('projects', function ($query) use ($projectId) {
-                $query->where('project_id', $projectId);
-            })->with(['memberGroups'])->get();
+            if ($projectId) {
+                // Export participants for a specific project
+                $project = Project::findOrFail($projectId);
+                $participants = Participant::whereHas('projects', function ($query) use ($projectId) {
+                    $query->where('project_id', $projectId);
+                })->with(['memberGroups'])->get();
+                
+                $fileName = "participants_project_{$projectId}.xlsx";
+            } else {
+                // Export all participants when called from Members/Index.vue
+                $participants = Participant::with(['memberGroups'])->get();
+                $fileName = "all_participants.xlsx";
+            }
 
-            $export = new \App\Exports\ProjectParticipantsExport($participants);
+            $export = new \App\Exports\ProjectParticipantsExport($participants, $projectId);
 
-            return Excel::download($export, "participants_project_{$projectId}.csv");
+            return Excel::download($export, $fileName);
         } catch (\Exception $e) {
-            Log::error('Export failed for project ' . $projectId . ': ' . $e->getMessage());
+            Log::error('Export failed: ' . ($projectId ? 'for project ' . $projectId . ': ' : '') . $e->getMessage());
 
             return response()->json(['message' => 'Export failed: ' . $e->getMessage()], 422);
         }
@@ -667,7 +676,7 @@ class ParticipantController extends Controller
                 'id' => $participant->id,
                 'first_name' => $participant->first_name,
                 'last_name' => $participant->last_name,
-                'sales_volume' => $participant->sales_volume ?? 0,
+                'sales_volume' => $participant->getSalesVolumeForProject($projectId) ?? 0,
             ];
 
             // Handle translatable fields
@@ -786,7 +795,7 @@ class ParticipantController extends Controller
                          'id' => $participant->id,
                          'first_name' => $participant->first_name,
                          'last_name' => $participant->last_name,
-                         'sales_volume' => $participant->sales_volume ?? 0,
+                         'sales_volume' => $participant->getSalesVolumeForProject($projectId) ?? 0,
                     ],
                     'step' => 'confirmation',
                     'form' => [ // Pass the collected amount to the next step form
