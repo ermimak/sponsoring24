@@ -16,11 +16,11 @@
           </div>
           <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
             <div class="text-gray-500 text-sm font-medium">Total Discount Amount</div>
-            <div class="text-3xl font-bold text-blue-600">CHF {{ stats.totalDiscountAmount.toFixed(2) }}</div>
+            <div class="text-3xl font-bold text-blue-600">CHF {{ stats.totalDiscountAmount }}</div>
           </div>
           <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
             <div class="text-gray-500 text-sm font-medium">Average Discount</div>
-            <div v-if="stats.averageDiscount !== null" class="text-3xl font-bold text-green-600">CHF {{ stats.averageDiscount.toFixed(2) }}</div>
+            <div v-if="stats.averageDiscount !== null" class="text-3xl font-bold text-green-600">CHF {{ Math.round(stats.averageDiscount * 100) / 100 }}</div>
             <div v-else class="text-3xl font-bold text-gray-500">N/A</div>
           </div>
         </div>
@@ -61,13 +61,13 @@
                     <div class="text-sm text-gray-900">{{ formatDate(license.created_at) }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ license.currency }} {{ (license.amount + license.discount_amount).toFixed(2) }}</div>
+                    <div class="text-sm text-gray-900">{{ license.currency }} {{ (license.amount + license.discount_amount) }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-green-600 font-medium">{{ license.currency }} {{ license.discount_amount.toFixed(2) }}</div>
+                    <div class="text-sm text-green-600 font-medium">{{ license.currency }} {{ license.discount_amount }}</div>
                   </td>
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ license.currency }} {{ license.amount.toFixed(2) }}</div>
+                    <div class="text-sm text-gray-900">{{ license.currency }} {{ license.amount }}</div>
                   </td>
                 </tr>
               </tbody>
