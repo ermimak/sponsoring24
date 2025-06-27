@@ -775,6 +775,11 @@ watch(() => props.project.id, (newProjectId) => {
   }
 })
 
+// Apply filters function that's missing
+const applyFilters = () => {
+  fetchDonations();
+}
+
 // Watch filters, but only fetch if values actually change (deep watch)
 watch(filters, (newFilters, oldFilters) => {
   // Deep compare to avoid unnecessary fetches

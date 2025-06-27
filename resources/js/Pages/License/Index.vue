@@ -49,24 +49,13 @@
                     <p class="text-red-700 text-sm">{{ paymentError }}</p>
                   </div>
 
-                  <div v-if="showStripeElement" ref="cardElement" class="my-4 p-3 border border-gray-300 rounded-md"></div>
-
                   <div class="flex justify-end">
                     <button 
-                      v-if="!showStripeElement" 
-                      @click="initializePayment" 
+                      @click="processPayment" 
+                      :disabled="paymentProcessing"
                       class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
                     >
                       {{ $t('Purchase License') }}
-                    </button>
-                    
-                    <button 
-                      v-else 
-                      @click="processPayment" 
-                      :disabled="!stripeElementComplete || paymentProcessing"
-                      class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
-                    >
-                      {{ $t('Complete Purchase') }}
                     </button>
                   </div>
                 </div>
@@ -161,9 +150,6 @@ export default defineComponent({
       standardPrice: 500.00, // CHF 500
       discountAmount: 50.00, // CHF 50
       stripe: null,
-      cardElement: null,
-      stripeElementComplete: false,
-      showStripeElement: false,
       paymentProcessing: false,
       paymentError: null,
       linkCopied: false,
@@ -193,48 +179,8 @@ export default defineComponent({
       return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     },
     
-    async initializePayment() {
-      this.showStripeElement = true;
-      
-      if (!this.stripe) {
-        this.stripe = await loadStripe(this.stripePublishableKey);
-      }
-      
-      this.$nextTick(() => {
-        const elements = this.stripe.elements();
-        
-        this.cardElement = elements.create('card', {
-          style: {
-            base: {
-              fontSize: '16px',
-              color: '#32325d',
-              fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
-              '::placeholder': {
-                color: '#aab7c4',
-              },
-            },
-            invalid: {
-              color: '#fa755a',
-              iconColor: '#fa755a',
-            },
-          },
-        });
-        
-        this.cardElement.mount(this.$refs.cardElement);
-        
-        this.cardElement.on('change', (event) => {
-          this.stripeElementComplete = event.complete;
-          if (event.error) {
-            this.paymentError = event.error.message;
-          } else {
-            this.paymentError = null;
-          }
-        });
-      });
-    },
-    
     async processPayment() {
-      if (!this.stripeElementComplete || this.paymentProcessing) {
+      if (this.paymentProcessing) {
         return;
       }
       
@@ -242,34 +188,54 @@ export default defineComponent({
       this.paymentError = null;
       
       try {
-        // Create payment intent on the server
-        const response = await axios.post(route('dashboard.license.payment-intent'), {
+        console.log('Creating checkout session for license...');
+        // Get Stripe key from props or environment variables
+        const stripeKey = this.stripePublishableKey || this.page?.props?.stripeKey || import.meta.env.VITE_STRIPE_PUBLIC_KEY;
+        console.log('Using Stripe key for license:', stripeKey);
+        
+        if (!stripeKey) {
+          throw new Error('Stripe public key is not configured');
+        }
+        
+        // Initialize Stripe
+        this.stripe = await loadStripe(stripeKey);
+        
+        // Create checkout session on the server
+        const response = await axios.post(route('license.create-payment-intent'), {
           apply_discount: this.user.discount_eligible && !this.user.discount_used
         });
         
-        const { client_secret } = response.data;
+        console.log('Response received:', response.data);
         
-        // Confirm payment with Stripe
-        const result = await this.stripe.confirmCardPayment(client_secret, {
-          payment_method: {
-            card: this.cardElement,
-            billing_details: {
-              email: this.user.email,
-              name: this.user.name,
-            },
-          },
+        // Check if this is a dev mode direct license creation response
+        if (response.data.dev_mode === true && response.data.success === true) {
+          console.log('Development mode license created directly');
+          // Redirect to success page directly
+          window.location.href = response.data.redirect;
+          return;
+        }
+        
+        // Normal Stripe flow
+        const { sessionId } = response.data;
+        
+        if (!sessionId) {
+          throw new Error('No session ID returned from the server');
+        }
+        
+        // Redirect to Stripe Checkout
+        console.log('Redirecting to Stripe Checkout...');
+        const result = await this.stripe.redirectToCheckout({
+          sessionId: sessionId
         });
         
         if (result.error) {
           // Show error to customer
-          this.paymentError = result.error.message;
-          this.paymentProcessing = false;
-        } else {
-          // Payment succeeded, reload the page to show updated license status
-          window.location.reload();
+          console.error('Checkout redirect error:', result.error);
+          throw result.error;
         }
       } catch (error) {
-        this.paymentError = error.response?.data?.message || 'An error occurred while processing your payment.';
+        console.error('Payment processing error:', error);
+        this.paymentError = error.response?.data?.error || error.message || 'An error occurred while processing your payment.';
         this.paymentProcessing = false;
       }
     },
@@ -284,11 +250,7 @@ export default defineComponent({
     },
   },
   
-  beforeUnmount() {
-    if (this.cardElement) {
-      this.cardElement.destroy();
-    }
-  },
+  // No cleanup needed
 });
 </script>
 

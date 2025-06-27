@@ -147,7 +147,15 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::get('/license', [LicenseController::class, 'index'])->name('license.purchase');
     Route::get('/dashboard/license', [LicenseController::class, 'dashboard'])->name('dashboard.license');
     Route::post('/license/create-payment-intent', [LicenseController::class, 'createPaymentIntent'])->name('license.create-payment-intent');
+    Route::get('/license/success', [LicenseController::class, 'success'])->name('license.success');
+    Route::get('/license/detail/{licenseId?}', [LicenseController::class, 'showDetail'])->name('license.detail');
     Route::post('/webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
+    
+    // Debug tools (only in non-production environments)
+    if (app()->environment('local', 'development', 'testing')) {
+        Route::get('/debug/webhook-tester', fn() => Inertia::render('Debug/WebhookTester'))->name('debug.webhook-tester');
+        Route::get('/api/check-license-status', [\App\Http\Controllers\Api\LicenseApiController::class, 'checkStatus'])->name('api.check-license-status');
+    }
     
     // Referrals
     Route::get('/dashboard/referrals', [ReferralController::class, 'index'])->name('dashboard.referrals');
@@ -183,6 +191,11 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+        
+        // License Management
+        Route::get('/licenses', [\App\Http\Controllers\Admin\LicenseController::class, 'index'])->name('licenses.index');
+        Route::get('/licenses/{id}', [\App\Http\Controllers\Admin\LicenseController::class, 'show'])->name('licenses.show');
+        Route::post('/licenses/{id}/update-status', [\App\Http\Controllers\Admin\LicenseController::class, 'updateStatus'])->name('licenses.update-status');
         
         // User Management
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
@@ -268,6 +281,10 @@ Route::middleware(['auth', 'web'])->group(function () {
 // Public Routes
 // Route::get('api/projects/{project}', [ProjectController::class, 'show']);
 // Route::get('api/projects/{project}/participants/{participant}', [PublicParticipantController::class, 'show']);
+
+// Stripe Webhook Routes - These must be accessible without CSRF protection
+Route::post('webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
+Route::post('webhook/donation/stripe', [PaymentController::class, 'handleWebhook'])->name('webhook.donation.stripe');
 // Route::post('api/projects/{project}/participants/{participant}/donate', [PublicParticipantController::class, 'donate']);
 Route::prefix('projects/{projectId}')->group(function () {
     Route::get('participants/{participantId}', [ParticipantController::class, 'showLandingPage'])->name('participant.landing');
@@ -276,6 +293,8 @@ Route::prefix('projects/{projectId}')->group(function () {
 });
 Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{token}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm');
 Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment');
+Route::get('projects/{projectId}/participants/{participantId}/donate/success/{donationId}', [ParticipantController::class, 'showDonationSuccess'])->name('participant.donate.success');
+Route::get('projects/{projectId}/participants/{participantId}/donate/invoice/success/{donationId}', [ParticipantController::class, 'showInvoiceSuccess'])->name('participant.donate.invoice.success');
 
 Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
 
@@ -292,7 +311,8 @@ Route::get('/content/news/{news}', [\App\Http\Controllers\Admin\ContentControlle
 Route::get('/api/projects', [ProjectController::class, 'index'])->name('api.projects');
 
 // Payment Routes
-Route::post('/api/create-payment-intent', [PaymentController::class, 'createPaymentIntent'])->name('payment.intent');
+Route::post('/api/payments/create-payment-intent', [PaymentController::class, 'createPaymentIntent'])->name('payment.intent');
+Route::post('/api/payments/request-invoice', [PaymentController::class, 'requestInvoice'])->name('payment.invoice');
 Route::post('/api/webhook/stripe', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 
 // Debug Route (Remove in Production)

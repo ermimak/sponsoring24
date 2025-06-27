@@ -48,7 +48,7 @@ class ParticipantController extends Controller
                 'data' => $participantProjects->toArray(),
             ]);
 
-            $participants = $participantProjects->map(function ($participantProject) {
+            $participants = $participantProjects->map(function ($participantProject) use ($projectId) {
                 $participant = $participantProject->participant;
                 if (! $participant) {
                     return null;
@@ -63,9 +63,9 @@ class ParticipantController extends Controller
                         'member_groups' => $participant->memberGroups->map(function ($group) {
                             return ['id' => $group->id, 'name' => $group->name];
                         })->toArray(),
-                        'supporters' => $participant->supporters ?? 0,
-                        'sales_volume' => $participant->sales_volume ?? 0,
-                        'emails' => $participant->emails_sent ?? 0,
+                        'supporters' => $participant->getSupportersForProject($projectId) ?? 0,
+                        'sales_volume' => $participant->getSalesVolumeForProject($projectId) ?? 0,
+                        'emails' => $participant->getEmailsSentForProject($projectId) ?? 0,
                         'landing_page_opened' => $participant->landing_page_opened ?? false,
                     ];
                 } catch (\Exception $e) {
@@ -117,7 +117,7 @@ class ParticipantController extends Controller
             // Return the updated list of participants for the project
             $updatedParticipants = Participant::whereHas('projects', function ($query) use ($projectId) {
                 $query->where('project_id', $projectId);
-            })->with(['memberGroups', 'donations'])->get()->map(function ($participant) {
+            })->with(['memberGroups', 'donations'])->get()->map(function ($participant) use ($projectId) {
                 return [
                     'id' => $participant->id,
                     'first_name' => $participant->first_name,
@@ -126,9 +126,9 @@ class ParticipantController extends Controller
                     'member_groups' => $participant->memberGroups->map(function ($group) {
                         return ['id' => $group->id, 'name' => $group->name];
                     }),
-                    'supporters' => $participant->supporters,
-                    'sales_volume' => $participant->sales_volume,
-                    'emails' => $participant->emails_sent,
+                    'supporters' => $participant->getSupportersForProject($projectId) ?? 0,
+                    'sales_volume' => $participant->getSalesVolumeForProject($projectId) ?? 0,
+                    'emails' => $participant->getEmailsSentForProject($projectId) ?? 0,
                     'landing_page_opened' => $participant->landing_page_opened,
                 ];
             });
@@ -637,19 +637,28 @@ class ParticipantController extends Controller
         }
     }
 
-    public function export(Request $request, $projectId)
+    public function export(Request $request, $projectId = null)
     {
         try {
-            $project = Project::findOrFail($projectId);
-            $participants = Participant::whereHas('projects', function ($query) use ($projectId) {
-                $query->where('project_id', $projectId);
-            })->with(['memberGroups'])->get();
+            if ($projectId) {
+                // Export participants for a specific project
+                $project = Project::findOrFail($projectId);
+                $participants = Participant::whereHas('projects', function ($query) use ($projectId) {
+                    $query->where('project_id', $projectId);
+                })->with(['memberGroups'])->get();
+                
+                $fileName = "participants_project_{$projectId}.xlsx";
+            } else {
+                // Export all participants when called from Members/Index.vue
+                $participants = Participant::with(['memberGroups'])->get();
+                $fileName = "all_participants.xlsx";
+            }
 
-            $export = new \App\Exports\ProjectParticipantsExport($participants);
+            $export = new \App\Exports\ProjectParticipantsExport($participants, $projectId);
 
-            return Excel::download($export, "participants_project_{$projectId}.csv");
+            return Excel::download($export, $fileName);
         } catch (\Exception $e) {
-            Log::error('Export failed for project ' . $projectId . ': ' . $e->getMessage());
+            Log::error('Export failed: ' . ($projectId ? 'for project ' . $projectId . ': ' : '') . $e->getMessage());
 
             return response()->json(['message' => 'Export failed: ' . $e->getMessage()], 422);
         }
@@ -667,7 +676,7 @@ class ParticipantController extends Controller
                 'id' => $participant->id,
                 'first_name' => $participant->first_name,
                 'last_name' => $participant->last_name,
-                'sales_volume' => $participant->sales_volume ?? 0,
+                'sales_volume' => $participant->getSalesVolumeForProject($projectId) ?? 0,
             ];
 
             // Handle translatable fields
@@ -680,18 +689,13 @@ class ParticipantController extends Controller
                 $description = reset($description); // Use the first translation as default
             }
 
-            // Split start datetime into date and time
-            $startDateTime = $project->start;
-            $date = $startDateTime ? $startDateTime->format('F d, Y') : null;
-            $time = $startDateTime ? $startDateTime->format('H:i') : null;
-
             return Inertia::render('Projects/Participants/Donate', [
                 'project' => [
                     'id' => $project->id,
                     'name' => $name,
                     'description' => $description,
-                    'date' => $date,
-                    'time' => $time,
+                    'date' => $project->start->format('F d, Y'),
+                    'time' => $project->end->format('H:i'),
                     'location' => $project->location,
                     'image_url' => $project->image_landscape, // Use image_landscape as the landing image
                 ],
@@ -708,6 +712,39 @@ class ParticipantController extends Controller
             ]);
 
             return redirect()->back()->with('error', 'Failed to load donation page.');
+        }
+    }
+
+    public function showLandingPage(Request $request, $projectId, $participantId)
+    {
+        try {
+            $project = Project::findOrFail($projectId);
+            $participant = Participant::whereHas('projects', function ($query) use ($projectId) {
+                $query->where('project_id', $projectId);
+            })->findOrFail($participantId);
+
+            return Inertia::render('Projects/Participants/Landing', [
+                'project' => [
+                    'id' => $project->id,
+                    'name' => $project->name,
+                    'description' => $project->description,
+                    'date' => $project->start->format('F d, Y'),
+                    'time' => $project->end->format('H:i'),
+                    'location' => $project->location,
+                    'image_url' => $project->image_landscape,
+                ],
+                'participant' => $participant,
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Resource not found: ' . $e->getMessage());
+
+            return redirect()->back()->with('error', 'Project or Participant not found.');
+        } catch (\Exception $e) {
+            Log::error('Failed to load landing page: ' . $e->getMessage(), [
+                'exception' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to load landing page.');
         }
     }
 
@@ -743,18 +780,14 @@ class ParticipantController extends Controller
                     $description = reset($description); // Use the first translation as default
                 }
 
-                $startDateTime = $project->start;
-                $date = $startDateTime ? $startDateTime->format('F d, Y') : null;
-                $time = $startDateTime ? $startDateTime->format('H:i') : null;
-
                 // Render the same page but with step set to 'confirmation'
                 return Inertia::render('Projects/Participants/Donate', [
                     'project' => [
                         'id' => $project->id,
                         'name' => $name,
                         'description' => $description,
-                        'date' => $date,
-                        'time' => $time,
+                        'date' => $project->start->format('F d, Y'),
+                        'time' => $project->end->format('H:i'),
                         'location' => $project->location,
                         'image_url' => $project->image_landscape, // Use image_landscape as the landing image
                     ],
@@ -762,7 +795,7 @@ class ParticipantController extends Controller
                          'id' => $participant->id,
                          'first_name' => $participant->first_name,
                          'last_name' => $participant->last_name,
-                         'sales_volume' => $participant->sales_volume ?? 0,
+                         'sales_volume' => $participant->getSalesVolumeForProject($projectId) ?? 0,
                     ],
                     'step' => 'confirmation',
                     'form' => [ // Pass the collected amount to the next step form
@@ -963,34 +996,73 @@ class ParticipantController extends Controller
 
     public function showPaymentOptions(Request $request, $projectId, $participantId, $donationId)
     {
-        try {
-            $donation = \App\Models\Donation::where('id', $donationId)
-                ->where('project_id', $projectId)
-                ->where('participant_id', $participantId)
-                ->firstOrFail();
-            $project = Project::findOrFail($projectId);
-            $participant = Participant::findOrFail($participantId);
-
-            return Inertia::render('Projects/Participants/DonationPayment', [
-                'project' => [
-                    'id' => $project->id,
-                    'name' => $project->name,
-                ],
-                'participant' => [
-                    'id' => $participant->id,
-                    'first_name' => $participant->first_name,
-                    'last_name' => $participant->last_name,
-                ],
-                'donation' => [
-                    'id' => $donation->id,
-                    'amount' => $donation->amount,
-                    'currency' => $donation->currency,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Failed to load payment options: ' . $e->getMessage());
-
-            return redirect()->route('dashboard')->with('error', 'Failed to load payment options.');
+        $project = Project::findOrFail($projectId);
+        $participant = Participant::findOrFail($participantId);
+        $donation = Donation::findOrFail($donationId);
+        
+        // Check if donation belongs to this participant and project
+        if ($donation->participant_id != $participantId || $donation->project_id != $projectId) {
+            abort(404, 'Donation not found for this participant and project');
         }
+
+        if ($donation->status === 'pending') {
+            $donation->update(['status' => 'confirmed']);
+        }
+        
+        return Inertia::render('Projects/Participants/DonationPayment', [
+            'project' => $project,
+            'participant' => $participant,
+            'donation' => $donation,
+        ]);
+    }
+    
+    /**
+     * Show donation success page
+     */
+    public function showDonationSuccess(Request $request, $projectId, $participantId, $donationId)
+    {
+        $project = Project::findOrFail($projectId);
+        $participant = Participant::findOrFail($participantId);
+        $donation = Donation::findOrFail($donationId);
+
+        if ($donation->status === 'confirmed') {
+            $donation->update(['status' => 'paid']);
+        }
+        
+        // Check if donation belongs to this participant and project
+        if ($donation->participant_id != $participantId || $donation->project_id != $projectId) {
+            abort(404, 'Donation not found for this participant and project');
+        }
+        
+        return Inertia::render('Projects/Participants/DonationSuccess', [
+            'project' => $project,
+            'participant' => $participant,
+            'donation' => $donation,
+            'paymentMethod' => $donation->payment_method,
+        ]);
+    }
+    
+    /**
+     * Show invoice success page
+     */
+    public function showInvoiceSuccess(Request $request, $projectId, $participantId, $donationId)
+    {
+        $project = Project::findOrFail($projectId);
+        $participant = Participant::findOrFail($participantId);
+        $donation = Donation::findOrFail($donationId);
+
+        if ($donation->status === 'confirmed') {
+            $donation->update(['status' => 'paid']);
+        }        
+        // Check if donation belongs to this participant and project
+        if ($donation->participant_id != $participantId || $donation->project_id != $projectId) {
+            abort(404, 'Donation not found for this participant and project');
+        }
+        
+        return Inertia::render('Projects/Participants/InvoiceSuccess', [
+            'project' => $project,
+            'participant' => $participant,
+            'donation' => $donation,
+        ]);
     }
 }

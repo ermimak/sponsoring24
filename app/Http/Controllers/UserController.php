@@ -17,17 +17,29 @@ class UserController extends Controller
     public function index()
     {
         try {
-            $users = User::with('roles', 'permissions')->get()->map(function ($user) {
+            $currentUser = Auth::user();
+            $query = User::with('roles', 'permissions');
+            
+            // If user is not a superadmin, only show users they created
+            if (!$currentUser->hasRole('super-admin')) {
+                $query->where('created_by', $currentUser->id);
+            }
+            
+            $users = $query->get()->map(function ($user) {
                 return [
                     'id' => $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'roles' => $user->roles->pluck('name')->toArray(),
                     'permissions' => $user->permissions->pluck('name')->toArray(),
+                    'created_by' => $user->created_by,
                 ];
             });
 
-            Log::info('User list retrieved successfully', ['user_count' => $users->count()]);
+            Log::info('User list retrieved successfully', [
+                'user_count' => $users->count(),
+                'filtered_by_user' => !Auth::user()->hasRole('super-admin')
+            ]);
 
             return Inertia::render('User/UserManagement', [
                 'users' => $users,
@@ -123,10 +135,22 @@ class UserController extends Controller
                 'roles' => ['array'],
                 'permissions' => ['array'],
             ]);
-
-            $user = $request->user_id
-                ? User::findOrFail($request->user_id)
-                : new User();
+            
+            $currentUser = Auth::user();
+            
+            // Check if editing an existing user
+            if ($request->user_id) {
+                $user = User::findOrFail($request->user_id);
+                
+                // If not superadmin, ensure user can only edit users they created
+                if (!$currentUser->hasRole('super-admin') && $user->created_by !== $currentUser->id) {
+                    return response()->json(['error' => 'You are not authorized to edit this user'], 403);
+                }
+            } else {
+                $user = new User();
+                // Set created_by for new users
+                $user->created_by = $currentUser->id;
+            }
 
             $user->name = $validated['first_name'] . ' ' . $validated['last_name'];
             $user->email = $validated['email'];

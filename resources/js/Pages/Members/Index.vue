@@ -58,7 +58,7 @@
           </label>
           <div class="relative">
             <input 
-              v-model="search"
+              v-model="searchQuery"
               type="text"
               class="w-full rounded-lg border-gray-300 pl-10 shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-200 focus:ring-opacity-50 transition-colors duration-200" 
               placeholder="Search by name, email, ID..." 
@@ -517,7 +517,7 @@ async function handleImport(file) {
   const formData = new FormData();
   formData.append('file', file);
   try {
-    const response = await axios.post('/dashboard/members/import', formData, {
+    const response = await axios.post(route('dashboard.members.import'), formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     message.value = response.data.message;
@@ -535,7 +535,7 @@ function handleImportExportClose() {
 async function handleExport() {
   try {
     exporting.value = true;
-    const response = await axios.get('/dashboard/members/export', {
+    const response = await axios.get(route('dashboard.members.export'), {
       responseType: 'blob',
     });
     const url = window.URL.createObjectURL(new Blob([response.data]));
