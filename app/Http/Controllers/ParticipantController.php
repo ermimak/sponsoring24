@@ -668,6 +668,17 @@ class ParticipantController extends Controller
     {
         try {
             $project = Project::findOrFail($projectId);
+            
+            // Check if the project allows public donations
+            if (!$project->public_donation_enabled) {
+                Log::warning('Attempted to access donation page for a project with public donations disabled', [
+                    'project_id' => $projectId,
+                    'participant_id' => $participantId,
+                    'ip' => $request->ip(),
+                ]);
+                return redirect()->route('dashboard')->with('error', 'This project does not allow public donations.');
+            }
+            
             $participant = Participant::whereHas('projects', function ($query) use ($projectId) {
                 $query->where('project_id', $projectId);
             })->findOrFail($participantId);
@@ -698,6 +709,9 @@ class ParticipantController extends Controller
                     'time' => $project->end->format('H:i'),
                     'location' => $project->location,
                     'image_url' => $project->image_landscape, // Use image_landscape as the landing image
+                    'flat_rate_enabled' => $project->flat_rate_enabled,
+                    'flat_rate_min_amount' => $project->flat_rate_min_amount,
+                    'flat_rate_help_text' => $project->flat_rate_help_text,
                 ],
                 'participant' => $participantData,
                 'step' => 'donation',

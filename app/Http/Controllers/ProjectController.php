@@ -24,7 +24,8 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
+        // Basic validation for all projects
+        $rules = [
             'name' => 'required|array',
             'description' => 'nullable|array',
             'location' => 'nullable|string',
@@ -35,13 +36,33 @@ class ProjectController extends Controller
             'image_landscape' => 'nullable|string',
             'image_square' => 'nullable|string',
             'flat_rate_enabled' => 'boolean',
-            'flat_rate_min_amount' => 'nullable|numeric|min:0',
-            'flat_rate_help_text' => 'nullable|string',
             'unit_based_enabled' => 'boolean',
             'public_donation_enabled' => 'boolean',
             'created_by' => 'exists:users,id',
-        ]);
+        ];
+        
+        // Add conditional validation rules for flat-rate donations
+        if ($request->input('flat_rate_enabled')) {
+            $rules['flat_rate_min_amount'] = 'required|numeric|min:0';
+            $rules['flat_rate_help_text'] = 'nullable|string';
+        } else {
+            $rules['flat_rate_min_amount'] = 'nullable|numeric|min:0';
+            $rules['flat_rate_help_text'] = 'nullable|string';
+        }
+        
+        $data = $request->validate($rules);
 
+        // Set default values for donation options if not provided
+        $data['flat_rate_enabled'] = $data['flat_rate_enabled'] ?? false;
+        $data['unit_based_enabled'] = $data['unit_based_enabled'] ?? false;
+        $data['public_donation_enabled'] = $data['public_donation_enabled'] ?? false;
+        
+        // If flat rate is disabled, ensure min amount and help text are null
+        if (!$data['flat_rate_enabled']) {
+            $data['flat_rate_min_amount'] = null;
+            $data['flat_rate_help_text'] = null;
+        }
+        
         $data['created_by'] = $data['created_by'] ?? auth()->id();
         $project = Project::create($data);
         
@@ -84,7 +105,8 @@ class ProjectController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $data = $request->validate([
+        // Basic validation for all projects
+        $rules = [
             'name' => 'required|array',
             'description' => 'nullable|array',
             'location' => 'nullable|string',
@@ -93,13 +115,33 @@ class ProjectController extends Controller
             'end' => 'required|date|after:start',
             'allow_donation_until' => 'nullable|date|after:end',
             'flat_rate_enabled' => 'boolean',
-            'flat_rate_min_amount' => 'nullable|numeric|min:0',
-            'flat_rate_help_text' => 'nullable|string',
             'unit_based_enabled' => 'boolean',
             'public_donation_enabled' => 'boolean',
             'image_landscape' => 'nullable|image|max:2048|dimensions:width=1200,height=300',
             'image_square' => 'nullable|image|max:2048|dimensions:width=400,height=400',
-        ]);
+        ];
+        
+        // Add conditional validation rules for flat-rate donations
+        if ($request->input('flat_rate_enabled')) {
+            $rules['flat_rate_min_amount'] = 'required|numeric|min:0';
+            $rules['flat_rate_help_text'] = 'nullable|string';
+        } else {
+            $rules['flat_rate_min_amount'] = 'nullable|numeric|min:0';
+            $rules['flat_rate_help_text'] = 'nullable|string';
+        }
+        
+        $data = $request->validate($rules);
+        
+        // Set default values for donation options if not provided
+        $data['flat_rate_enabled'] = $data['flat_rate_enabled'] ?? false;
+        $data['unit_based_enabled'] = $data['unit_based_enabled'] ?? false;
+        $data['public_donation_enabled'] = $data['public_donation_enabled'] ?? false;
+        
+        // If flat rate is disabled, ensure min amount and help text are null
+        if (!$data['flat_rate_enabled']) {
+            $data['flat_rate_min_amount'] = null;
+            $data['flat_rate_help_text'] = null;
+        }
 
         if ($request->hasFile('image_landscape')) {
             if ($project->image_landscape) {
