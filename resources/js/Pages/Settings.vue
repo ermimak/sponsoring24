@@ -794,15 +794,32 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
+// import { toast } from '@/Utils/toast'
+import {route} from 'ziggy-js';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 
 const props = defineProps({
   settings: Object,
 })
 
-const user = usePage().props.auth.user
+const page = usePage()
+
+// Debug auth data to console
+console.log('Auth data in Settings.vue:', page.props.auth)
+
+// Ensure user data is available with fallbacks
+const user = computed(() => {
+  const authUser = page.props.auth?.user || {}
+  return {
+    id: authUser.id || '',
+    name: authUser.name || '',
+    email: authUser.email || '',
+    organization: authUser.organization || ''
+  }
+})
+
 const referralLink = computed(() => {
-  return `${window.location.origin}/register?ref=${user.id}`
+  return user.value.id ? `${window.location.origin}/register?ref=${user.value.id}` : ''
 })
 
 const linkCopied = ref(false)
@@ -884,6 +901,7 @@ function handleLogoUpload(event) {
 
 function saveSettings() {
   errors.value = {} // Reset errors
+  console.log('Submitting settings form:', form.value)
 
   const formData = new FormData()
   for (const key in form.value) {
@@ -895,13 +913,22 @@ function saveSettings() {
   }
 
   router.post('/dashboard/settings', formData, {
-    onSuccess: () => {
+    onSuccess: (page) => {
       errors.value = {} // Clear errors on success
       form.value.password = '' // Reset password fields
       form.value.password_confirmation = ''
+      
+      // Log success and updated user data
+      console.log('Settings updated successfully')
+      console.log('Updated auth data:', page.props.auth)
+      
+      // Show success message
+      toast.success('Settings updated successfully')
     },
     onError: (err) => {
       errors.value = err // Set validation errors
+      console.error('Settings update failed:', err)
+      toast.error('Failed to update settings')
     },
     preserveState: true, // Preserve form state to show errors
     preserveScroll: true, // Keep scroll position

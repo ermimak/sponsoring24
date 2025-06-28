@@ -19,7 +19,7 @@
           </div>
           <div class="flex flex-col">
             <span class="text-sm font-medium">{{ user.name }}</span>
-            <span class="text-xs text-blue-200">{{ user.org || 'Admin' }}</span>
+            <span class="text-xs text-blue-200">{{ user.org }}</span>
           </div>
         </div>
       </div>
@@ -101,10 +101,19 @@ import ErrorHandler from '@/Components/ErrorHandler.vue'
 import SuccessMessage from '@/Components/SuccessMessage.vue'
 
 const page = usePage()
-const user = ref({
-  name: page.props?.auth?.user?.name || 'User',
-  org: page.props?.auth?.user?.organization || 'Org',
+
+// Debug auth data to console
+console.log('Auth data in AppDashboardLayout:', page.props.auth)
+
+// Make user data reactive with computed property
+const user = computed(() => {
+  const authUser = page.props.auth?.user || {}
+  return {
+    name: authUser.name || 'User',
+    org: authUser.organization || authUser.email || 'Org',
+  }
 })
+
 const currentLocale = ref(page.props?.locale || 'de')
 
 function switchLanguage() {
