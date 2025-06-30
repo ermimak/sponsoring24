@@ -26,7 +26,7 @@
       <nav class="flex-1 px-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-700 scrollbar-track-transparent">
         <SidebarLink icon="users" label="Members" :to="route('dashboard.members.index')" />
         <SidebarLink icon="folder" label="Campaigns" :to="route('dashboard.projects.index')" />
-        <SidebarLink icon="chart-bar" label="Analytics" to="/dashboard/analytics" />
+        <!-- <SidebarLink icon="chart-bar" label="Analytics" to="/dashboard/analytics" /> -->
         <SidebarLink icon="adjustments" label="Settings" :to="route('dashboard.settings')" />
         <SidebarLink icon="lock-closed" label="User Management" :to="route('dashboard.users')" />
         <SidebarLink icon="currency-dollar" label="Bonus Credit" :to="route('dashboard.bonus.index')" />
