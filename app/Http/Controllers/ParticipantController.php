@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
@@ -446,29 +445,7 @@ class ParticipantController extends Controller
         try {
             Log::info('Loading members page');
             
-            // Get the current authenticated user
-            $user = Auth::user();
-            Log::info('Current user ID: ' . $user->id);
-            
-            // Start with all participants and their member groups
             $query = Participant::with('memberGroups');
-            
-            // For non-admin users, filter participants based on who created them
-            if (!$user->hasRole('admin') && !$user->hasRole('super-admin')) {
-                Log::info('User is not admin/super-admin, checking organization access');
-                
-                // Get the current user's organization ID
-                $organizationId = $user->organization_id;
-                Log::info('User organization ID: ' . ($organizationId ?? 'null'));
-                
-                // TEMPORARY FIX: Show all participants for regular users
-                // This is a temporary fix until we properly implement organization-based filtering
-                Log::info('TEMPORARY FIX: Showing all participants for regular users');
-                
-                // In the future, we'll implement proper organization-based filtering here
-                // For now, we're not applying any filter to ensure users can see participants
-            }
-            
             if ($request->has('search')) {
                 $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
@@ -540,21 +517,12 @@ class ParticipantController extends Controller
     public function store(StoreParticipantRequest $request)
     {
         try {
-            // Get the current authenticated user
-            $user = auth()->user();
-            
-            // Merge the validated data with created_by
-            $validatedData = $request->validated();
-            $validatedData['created_by'] = $user->id;
-            
-            $participant = Participant::create($validatedData);
-            
+            $participant = Participant::create($request->validated());
             if ($request->has('groups')) {
                 $groupIds = MemberGroup::whereIn('name', $request->input('groups'))->pluck('id');
                 $participant->memberGroups()->sync($groupIds);
             }
-            
-            Log::info('Participant created by user: ' . $user->id, ['participant_id' => $participant->id]);
+
             return response()->json(['message' => 'Participant created', 'participant' => $participant], 201);
         } catch (\Exception $e) {
             Log::error('Failed to create participant: ' . $e->getMessage());

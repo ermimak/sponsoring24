@@ -909,8 +909,8 @@ function saveSettings() {
     if (key === 'logo' && form.value[key]) {
       formData.append('logo', form.value[key])
     } else if (key === 'project_overview_enabled') {
-      // Ensure boolean is properly converted
-      formData.append(key, form.value[key] === true ? '1' : '0')
+      // Explicitly cast boolean to string '1' or '0' for proper handling
+      formData.append(key, form.value[key] ? '1' : '0')
     } else if (key !== 'user') {
       formData.append(key, form.value[key] ?? '') // Handle null/undefined values
     }

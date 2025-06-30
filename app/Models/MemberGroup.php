@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class MemberGroup extends Model
 {
-    protected $fillable = ['name', 'created_by'];
+    protected $fillable = ['name'];
 
     public function participants()
     {

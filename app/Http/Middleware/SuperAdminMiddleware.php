@@ -16,7 +16,16 @@ class SuperAdminMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (!$request->user() || !$request->user()->hasRole('super-admin')) {
-            abort(403, 'Unauthorized action.');
+            // Log unauthorized access attempt
+            \Illuminate\Support\Facades\Log::warning('Unauthorized admin access attempt', [
+                'user_id' => $request->user() ? $request->user()->id : null,
+                'email' => $request->user() ? $request->user()->email : null,
+                'ip' => $request->ip(),
+                'url' => $request->fullUrl()
+            ]);
+            
+            // redirect back to dashboard
+            return redirect()->route('dashboard');
         }
 
         return $next($request);

@@ -194,7 +194,7 @@ Route::middleware(['auth', 'web'])->group(function () {
     });
     
     // Super Admin Routes
-    Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::middleware(['auth', '\App\Http\Middleware\SuperAdminMiddleware'])->prefix('admin')->name('admin.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
         

@@ -25,7 +25,6 @@ class Participant extends Model
         'archived',
         'email_status',
         'landing_page_opened',
-        'created_by',
     ];
 
     protected $casts = [

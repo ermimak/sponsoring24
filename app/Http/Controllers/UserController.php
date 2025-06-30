@@ -155,16 +155,6 @@ class UserController extends Controller
             $user->name = $validated['first_name'] . ' ' . $validated['last_name'];
             $user->email = $validated['email'];
             $user->password = bcrypt($validated['password']);
-            
-            // Auto-approve users created by organizers (not needed for superadmin-created users)
-            if (!$currentUser->hasRole('super-admin')) {
-                $user->approval_status = true;
-                Log::info('User auto-approved by organizer', [
-                    'user_id' => $user->id,
-                    'created_by' => $currentUser->id
-                ]);
-            }
-            
             $user->save();
             
             // Log user profile update activity

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\MemberGroup;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -29,38 +28,14 @@ class MemberGroupController extends Controller
     public function data(Request $request)
     {
         try {
-            // Get the current authenticated user
-            $user = auth()->user();
-            Log::info('Loading groups for user: ' . $user->id);
-            
-            // Start with all groups
-            $query = MemberGroup::query();
-            
-            // For non-admin users, filter groups based on who created them
-            if (!$user->hasRole('admin') && !$user->hasRole('super-admin')) {
-                Log::info('User is not admin/super-admin, checking organization access');
-                
-                // Get the current user's organization ID
-                $organizationId = $user->organization_id;
-                Log::info('User organization ID: ' . ($organizationId ?? 'null'));
-                
-                // TEMPORARY FIX: Show all groups for regular users
-                // This is a temporary fix until we properly implement organization-based filtering
-                Log::info('TEMPORARY FIX: Showing all groups for regular users');
-                
-                // In the future, we'll implement proper organization-based filtering here
-                // For now, we're not applying any filter to ensure users can see groups
-            }
-            
-            $groups = $query->get()->map(function ($group) {
+            $groups = MemberGroup::all()->map(function ($group) {
                 return [
                     'id' => $group->id,
                     'name' => $group->name,
                     'member_count' => $group->participants()->count(),
                 ];
             });
-            
-            Log::info('Found ' . $groups->count() . ' groups');
+
             return response()->json($groups);
         } catch (\Exception $e) {
             Log::error('Failed to load groups data: ' . $e->getMessage());
@@ -75,22 +50,9 @@ class MemberGroupController extends Controller
             'name' => ['required', 'string', 'max:255', 'unique:member_groups,name'],
         ]);
 
-        try {
-            // Get the current authenticated user
-            $user = auth()->user();
-            
-            $group = MemberGroup::create([
-                'name' => $request->name,
-                'created_by' => $user->id, // Set created_by to current user's ID
-            ]);
-            
-            Log::info('Group created by user: ' . $user->id, ['group_id' => $group->id, 'group_name' => $group->name]);
-            return response()->json(['message' => 'Group created', 'group' => $group], 201);
-        } catch (\Exception $e) {
-            Log::error('Failed to create group: ' . $e->getMessage());
+        $group = MemberGroup::create(['name' => $request->name]);
 
-            return response()->json(['message' => 'Failed to create group'], 500);
-        }
+        return response()->json(['message' => 'Group created', 'group' => $group], 201);
     }
 
     public function destroy(MemberGroup $memberGroup)
