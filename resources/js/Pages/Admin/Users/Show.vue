@@ -53,6 +53,10 @@
                                             <div class="mt-1 text-sm text-gray-900">{{ user.email }}</div>
                                         </div>
                                         <div>
+                                            <div class="text-sm font-medium text-gray-500">Phone</div>
+                                            <div class="mt-1 text-sm text-gray-900">{{ user.phone || 'Not provided' }}</div>
+                                        </div>
+                                        <div>
                                             <div class="text-sm font-medium text-gray-500">Registration Date</div>
                                             <div class="mt-1 text-sm text-gray-900">{{ formatDate(user.created_at) }}</div>
                                         </div>
@@ -83,6 +87,65 @@
                                                 <span v-if="user.permissions.length === 0" class="text-sm text-gray-500">No direct permissions</span>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization Information -->
+                        <div class="bg-gray-50 p-6 rounded-lg mb-6">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Organization Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Organization Name</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.organization_name || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Contact Title</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.contact_title || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Contact First Name</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.contact_first_name || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Contact Last Name</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.contact_last_name || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Address</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.address || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Address Suffix</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.address_suffix || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Postal Code</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.postal_code || 'Not provided' }}</div>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Location</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.location || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Country</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.country || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Email</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.email || user.email }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Phone</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ settings?.phone || user.phone || 'Not provided' }}</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-medium text-gray-500">Created By</div>
+                                        <div class="mt-1 text-sm text-gray-900">{{ user.created_by ? user.created_by : 'Self-registered' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -157,6 +220,7 @@ import { format } from 'date-fns';
 
 const props = defineProps({
     user: Object,
+    settings: Object,
 });
 
 const showApproveModal = ref(false);

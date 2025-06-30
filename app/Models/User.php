@@ -48,9 +48,20 @@ class User extends Authenticatable
     protected static function boot()
     {
         parent::boot();
+        
+        // Generate referral code for new users
         static::creating(function ($user) {
             if (empty($user->referral_code)) {
                 $user->referral_code = strtoupper(bin2hex(random_bytes(3)));
+            }
+        });
+        
+        // Cascade delete users when their organizer is deleted
+        static::deleting(function ($user) {
+            // Find all users created by this user and delete them
+            $createdUsers = User::where('created_by', $user->id)->get();
+            foreach ($createdUsers as $createdUser) {
+                $createdUser->delete();
             }
         });
     }

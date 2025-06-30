@@ -1,14 +1,15 @@
 <template>
-    <AuthLayout title="Create your Sponsoring24 account">
-        <div class="bg-white p-8 md:p-10 rounded-xl shadow-2xl border border-gray-200 w-full max-w-md">
+    <AuthLayout title="New registration">
+        <div class="bg-white p-8 md:p-10 rounded-xl shadow-2xl border border-gray-200 w-full max-w-xl">
             <div class="text-center mb-8">
-                <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                <h1 class="text-3xl font-bold text-indigo-700 flex items-center justify-center">
+                    <svg class="h-8 w-8 mr-2 text-indigo-600" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/>
                     </svg>
-                    Create Account
+                    New registration
                 </h1>
-                <p class="text-gray-500 mt-2 text-sm">Join Sponsoring24 and start your journey!</p>
+                <p class="text-gray-600 mt-2">Please fill out the form below to register as an organizer and use fundoo for your fundraising efforts.</p>
+                <p class="text-gray-600 mt-2">Once we have verified your information, we will send you a link to activate your account.</p>
                 
                 <div v-if="hasReferralCode" class="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600 mt-0.5 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -16,7 +17,7 @@
                     </svg>
                     <div class="text-left">
                         <p class="text-green-800 font-medium">Referral Discount Applied!</p>
-                        <p class="text-green-700 text-sm">You'll receive CHF 50 off your first annual license purchase.</p>
+                        <p class="text-green-700 text-sm">You'll receive a discount on your first annual license purchase.</p>
                     </div>
                 </div>
             </div>
@@ -28,113 +29,283 @@
                 <div v-if="hasReferralCode" class="mb-4 text-xs bg-blue-50 p-2 rounded">
                     <p>Debug: Using referral code: {{ referralCode }}</p>
                 </div>
+                
                 <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700 mb-1.5 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    <label for="contact_title" class="block text-sm font-medium text-gray-700 mb-1.5">Contact person Title*</label>
+                    <select 
+                        id="contact_title"
+                        v-model="form.contact_title" 
+                        required
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200"
+                    >
+                        <option value="Mister">Mister</option>
+                        <option value="Mrs">Mrs</option>
+                        <option value="Ms">Ms</option>
+                    </select>
+                    <div v-if="form.errors.contact_title" class="mt-1.5 text-xs text-red-600 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Full Name
-                    </label>
+                        {{ form.errors.contact_title }}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="contact_first_name" class="block text-sm font-medium text-gray-700 mb-1.5">Your first name*</label>
+                        <input
+                            id="contact_first_name"
+                            v-model="form.contact_first_name"
+                            type="text"
+                            required
+                            placeholder="First name"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                        />
+                        <div v-if="form.errors.contact_first_name" class="mt-1.5 text-xs text-red-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ form.errors.contact_first_name }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="contact_last_name" class="block text-sm font-medium text-gray-700 mb-1.5">Your last name*</label>
+                        <input
+                            id="contact_last_name"
+                            v-model="form.contact_last_name"
+                            type="text"
+                            required
+                            placeholder="Last name"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                        />
+                        <div v-if="form.errors.contact_last_name" class="mt-1.5 text-xs text-red-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ form.errors.contact_last_name }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="organization_name" class="block text-sm font-medium text-gray-700 mb-1.5">Name of the organization*</label>
                     <input
-                        id="name"
-                        v-model="form.name"
+                        id="organization_name"
+                        v-model="form.organization_name"
                         type="text"
                         required
-                        placeholder="Enter your full name"
+                        placeholder="Organization name"
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
                     />
-                    <div v-if="form.errors.name" class="mt-1.5 text-xs text-red-600 flex items-center">
+                    <div v-if="form.errors.organization_name" class="mt-1.5 text-xs text-red-600 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {{ form.errors.name }}
+                        {{ form.errors.organization_name }}
                     </div>
                 </div>
 
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
-                        </svg>
-                        E-Mail Address
-                    </label>
+                    <label for="address" class="block text-sm font-medium text-gray-700 mb-1.5">Address*</label>
                     <input
-                        id="email"
-                        v-model="form.email"
-                        type="email"
+                        id="address"
+                        v-model="form.address"
+                        type="text"
                         required
-                        placeholder="your.email@example.com"
+                        placeholder="Street address"
                         class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
                     />
-                    <div v-if="form.errors.email" class="mt-1.5 text-xs text-red-600 flex items-center">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {{ form.errors.email }}
-                    </div>
-                </div>
-
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        Password
-                    </label>
-                    <input
-                        id="password"
-                        v-model="form.password"
-                        type="password"
-                        required
-                        placeholder="Choose a strong password"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
-                    />
-                     <div v-if="form.errors.password" class="mt-1.5 text-xs text-red-600 flex items-center">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {{ form.errors.password }}
-                    </div>
-                </div>
-
-                <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1.5 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                        Confirm Password
-                    </label>
-                    <input
-                        id="password_confirmation"
-                        v-model="form.password_confirmation"
-                        type="password"
-                        required
-                        placeholder="Confirm your password"
-                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
-                    />
-                    <div v-if="form.errors.password_confirmation" class="mt-1.5 text-xs text-red-600 flex items-center">
+                    <div v-if="form.errors.address" class="mt-1.5 text-xs text-red-600 flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        {{ form.errors.password_confirmation }}
+                        {{ form.errors.address }}
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="postal_code" class="block text-sm font-medium text-gray-700 mb-1.5">Postal code*</label>
+                        <input
+                            id="postal_code"
+                            v-model="form.postal_code"
+                            type="text"
+                            required
+                            placeholder="Postal code"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                        />
+                        <div v-if="form.errors.postal_code" class="mt-1.5 text-xs text-red-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ form.errors.postal_code }}
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label for="location" class="block text-sm font-medium text-gray-700 mb-1.5">Location*</label>
+                        <input
+                            id="location"
+                            v-model="form.location"
+                            type="text"
+                            required
+                            placeholder="City/Town"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                        />
+                        <div v-if="form.errors.location" class="mt-1.5 text-xs text-red-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ form.errors.location }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="country" class="block text-sm font-medium text-gray-700 mb-1.5">Land*</label>
+                        <select
+                            id="country"
+                            v-model="form.country"
+                            required
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                        >
+                            <option value="Switzerland">Switzerland</option>
+                            <option value="Germany">Germany</option>
+                            <option value="Austria">Austria</option>
+                            <option value="France">France</option>
+                            <option value="Italy">Italy</option>
+                        </select>
+                        <div v-if="form.errors.country" class="mt-1.5 text-xs text-red-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ form.errors.country }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700 mb-1.5">E-mail*</label>
+                        <input
+                            id="email"
+                            v-model="form.email"
+                            type="email"
+                            required
+                            placeholder="your.email@example.com"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                        />
+                        <div v-if="form.errors.email" class="mt-1.5 text-xs text-red-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ form.errors.email }}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="phone" class="block text-sm font-medium text-gray-700 mb-1.5">Telephone*</label>
+                        <input
+                            id="phone"
+                            v-model="form.phone"
+                            type="tel"
+                            required
+                            placeholder="+41 XX XXX XX XX"
+                            class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                        />
+                        <div v-if="form.errors.phone" class="mt-1.5 text-xs text-red-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ form.errors.phone }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-6 mt-2">
+                    <h3 class="font-semibold text-lg text-gray-800 mb-3">Account credentials</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">Password*</label>
+                            <input
+                                id="password"
+                                v-model="form.password"
+                                type="password"
+                                required
+                                placeholder="Choose a secure password"
+                                class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                            />
+                            <div v-if="form.errors.password" class="mt-1.5 text-xs text-red-600 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {{ form.errors.password }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1.5">Confirm Password*</label>
+                            <input
+                                id="password_confirmation"
+                                v-model="form.password_confirmation"
+                                type="password"
+                                required
+                                placeholder="Confirm your password"
+                                class="w-full px-4 py-2.5 rounded-lg border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors duration-200"
+                            />
+                            <div v-if="form.errors.password_confirmation" class="mt-1.5 text-xs text-red-600 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {{ form.errors.password_confirmation }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 pt-6 mt-2">
+                    <h3 class="font-semibold text-lg text-gray-800 mb-3">Terms and conditions</h3>
+                    
+                    <div class="flex items-center space-x-2 mt-2">
+                        <input
+                            id="terms"
+                            v-model="form.terms"
+                            type="checkbox"
+                            required
+                            class="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                        />
+                        <label for="terms" class="text-sm text-gray-700">
+                            I agree to the <a href="#" class="text-purple-600 hover:text-purple-800 font-medium">Terms of Service</a> and <a href="#" class="text-purple-600 hover:text-purple-800 font-medium">Privacy Policy</a>
+                        </label>
+                    </div>
+                    <div v-if="form.errors.terms" class="mt-1 text-xs text-red-600 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {{ form.errors.terms }}
+                    </div>
+                    
+                    <div class="flex items-center space-x-2 mt-4">
+                        <input
+                            id="newsletter"
+                            v-model="form.newsletter"
+                            type="checkbox"
+                            class="h-5 w-5 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                        />
+                        <label for="newsletter" class="text-sm text-gray-700">
+                            I would like to receive the newsletter
+                        </label>
                     </div>
                 </div>
 
-                <div class="pt-3">
-                    <button
-                        type="submit"
-                        class="w-full flex justify-center items-center py-3 px-4 rounded-lg text-base font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
-                        :disabled="form.processing"
-                    >
-                        <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-                        </svg>
-                        {{ form.processing ? 'Creating Account...' : 'Create Account' }}
-                    </button>
+                <div class="pt-6">
+                    <button type="submit" class="w-full py-3 px-6 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50 transition-colors duration-200 flex justify-center items-center" :disabled="form.processing">
+                    <svg v-if="form.processing" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>{{ form.processing ? 'Processing...' : 'Register' }}</span>
+                </button>
                 </div>
             </form>
 
@@ -184,11 +355,18 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import AuthLayout from '@/Layouts/AuthLayout.vue';
+import { ref, computed, onMounted } from 'vue';
 import { route } from 'ziggy-js';
-import { computed, onMounted, ref } from 'vue';
 
-// Get referral code from URL if present
-const referralCode = ref('');
+const props = defineProps({
+    referralCode: {
+        type: String,
+        default: '',
+    },
+});
+
+// Create a reactive reference to store the referral code
+const referralCode = ref(props.referralCode || '');
 
 onMounted(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -201,10 +379,32 @@ onMounted(() => {
 });
 
 const form = useForm({
-    name: '',
+    // Contact person details
+    contact_title: 'Mister',
+    contact_first_name: '',
+    contact_last_name: '',
+    organization_name: '',
+    
+    // Address details
+    address: '',
+    address_suffix: '',
+    postal_code: '',
+    location: '',
+    country: 'Switzerland',
+    
+    // Contact details
     email: '',
+    phone: '',
+    
+    // Account credentials
     password: '',
     password_confirmation: '',
+    
+    // Terms and newsletter
+    terms: false,
+    newsletter: false,
+    
+    // Referral code
     referral_code: '',
 });
 
@@ -245,4 +445,4 @@ const submit = () => {
         });
     }
 };
-</script> 
+</script>

@@ -794,7 +794,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
-// import { toast } from '@/Utils/toast'
+import { useToast } from 'vue-toastification'
 import {route} from 'ziggy-js';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 
@@ -803,6 +803,7 @@ const props = defineProps({
 })
 
 const page = usePage()
+const toast = useToast()
 
 // Debug auth data to console
 console.log('Auth data in Settings.vue:', page.props.auth)
@@ -907,6 +908,9 @@ function saveSettings() {
   for (const key in form.value) {
     if (key === 'logo' && form.value[key]) {
       formData.append('logo', form.value[key])
+    } else if (key === 'project_overview_enabled') {
+      // Ensure boolean is properly converted
+      formData.append(key, form.value[key] === true ? '1' : '0')
     } else if (key !== 'user') {
       formData.append(key, form.value[key] ?? '') // Handle null/undefined values
     }
@@ -918,9 +922,18 @@ function saveSettings() {
       form.value.password = '' // Reset password fields
       form.value.password_confirmation = ''
       
+      // Update form with new settings if available
+      if (page.props.settings) {
+        for (const key in page.props.settings) {
+          if (form.value.hasOwnProperty(key)) {
+            form.value[key] = page.props.settings[key]
+          }
+        }
+      }
+      
       // Log success and updated user data
       console.log('Settings updated successfully')
-      console.log('Updated auth data:', page.props.auth)
+      console.log('Updated settings data:', page.props.settings)
       
       // Show success message
       toast.success('Settings updated successfully')

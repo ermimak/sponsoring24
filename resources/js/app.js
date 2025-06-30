@@ -9,6 +9,26 @@ import axios from 'axios';
 import i18n from './i18n';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
+// Import Vue Toastification
+import Toast from 'vue-toastification';
+import 'vue-toastification/dist/index.css';
+
+// Toast options
+const toastOptions = {
+    position: 'top-right',
+    timeout: 5000,
+    closeOnClick: true,
+    pauseOnFocusLoss: true,
+    pauseOnHover: true,
+    draggable: true,
+    draggablePercent: 0.6,
+    showCloseButtonOnHover: false,
+    hideProgressBar: false,
+    closeButton: 'button',
+    icon: true,
+    rtl: false
+};
+
 // Configure axios to use the same protocol as the current page
 axios.defaults.baseURL = window.location.origin;
 // Force HTTP for local development
@@ -25,11 +45,13 @@ createInertiaApp({
         const app = createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyPlugin)
-            .use(i18n);
+            .use(i18n)
+            .use(Toast, toastOptions);
 
         app.mount(el);
     },
     progress: {
-        color: '#4B5563',
+        // color according to our brand color rgb between purple and blue #9333ea and #2563eb
+        color: 'rgb(147, 51, 234)',
     },
 });

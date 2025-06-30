@@ -25,12 +25,12 @@
             </div>
         </section>
 
-        <!-- Notifications Panel -->
+        <!-- Notifications Panel
         <section v-if="notifications && notifications.length > 0" class="bg-white py-8">
             <div class="max-w-6xl mx-auto px-4">
                 <NotificationDropdown />
             </div>
-        </section>
+        </section> -->
         
         <!-- Referral Program -->
         <section class="bg-gradient-to-r from-purple-50 to-blue-50 py-16">

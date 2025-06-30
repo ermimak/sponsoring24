@@ -73,13 +73,14 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        $user->load('roles');
+        $user->load('roles', 'setting');
         
         return Inertia::render('Admin/Users/Show', [
             'user' => array_merge($user->toArray(), [
                 'permissions' => $user->getPermissionsViaRoles()->pluck('name'),
                 'roles' => $user->getRoleNames(),
             ]),
+            'settings' => $user->setting,
         ]);
     }
 

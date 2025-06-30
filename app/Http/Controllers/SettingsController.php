@@ -21,7 +21,18 @@ class SettingsController extends Controller
                 return redirect()->route('login')->with('error', 'Please log in to access settings.');
             }
 
-            $settings = Setting::firstOrNew([]);
+            $user = Auth::user();
+            
+            // Load user settings with proper relationship
+            $user->load('setting');
+            $settings = $user->setting;
+            
+            // If no settings exist, create a new one for this user
+            if (!$settings) {
+                $settings = new Setting(['user_id' => $user->id]);
+                $settings->save();
+                Log::info('Created new settings for user: ' . $user->id);
+            }
             Log::info('Settings loaded: ' . json_encode($settings->toArray()));
 
             return Inertia::render('Settings', [
@@ -71,40 +82,48 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         try {
-            Log::info('Updating settings for user: ' . Auth::id(), ['request_data' => $request->all()]);
-            $settings = Setting::first() ?? new Setting();
+            $user = Auth::user();
+            $settings = Setting::where('user_id', $user->id)->first();
 
-            $validated = $request->validate([
-                'organization_name' => 'required|string|max:255',
-                'contact_title' => 'required|in:Mister,Mrs,Ms',
-                'contact_first_name' => 'required|string|max:255',
-                'contact_last_name' => 'required|string|max:255',
-                'address' => 'required|string|max:255',
-                'postal_code' => 'required|string|max:10',
-                'location' => 'required|string|max:100',
-                'country' => 'required|string|max:100',
-                'language' => 'required|in:German,English,French,Italian',
-                'email' => 'required|email|max:255',
-                'phone' => 'required|string|max:20',
-                'accent_color' => 'required|string|regex:/^#[0-9A-Fa-f]{6}$/',
-                'billing_salutation' => 'nullable|in:Mister,Mrs,Ms',
-                'billing_first_name' => 'nullable|string|max:255',
-                'billing_last_name' => 'nullable|string|max:255',
-                'billing_address' => 'nullable|string|max:255',
-                'billing_address_suffix' => 'nullable|string|max:255',
-                'billing_postal_code' => 'nullable|string|max:10',
-                'billing_location' => 'nullable|string|max:100',
-                'billing_country' => 'nullable|string|max:100',
-                'billing_email' => 'nullable|email|max:255',
-                'billing_phone' => 'nullable|string|max:20',
-                'bank_account_details' => 'nullable|string',
-                'iban' => 'nullable|string|max:34',
-                'recipient' => 'nullable|string|max:255',
-                'project_overview_enabled' => 'required|boolean',
-                'logo' => 'nullable|image|max:2048',
-                'password' => 'nullable|confirmed|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
-                'password_confirmation' => 'nullable|same:password',
-            ]);
+            if (!$settings) {
+                $settings = new Setting(['user_id' => $user->id]);
+            }
+
+            $validationRules = [
+                'organization_name' => 'sometimes|string|max:255',
+                'contact_title' => 'sometimes|in:Mister,Mrs,Ms',
+                'contact_first_name' => 'sometimes|string|max:255',
+                'contact_last_name' => 'sometimes|string|max:255',
+                'address' => 'sometimes|string|max:255',
+                'address_suffix' => 'sometimes|nullable|string|max:255',
+                'postal_code' => 'sometimes|string|max:10',
+                'location' => 'sometimes|string|max:100',
+                'country' => 'sometimes|string|max:100',
+                'language' => 'sometimes|in:German,English,French,Italian',
+                'email' => 'sometimes|email|max:255',
+                'phone' => 'sometimes|string|max:20',
+                'accent_color' => 'sometimes|string|regex:/^#[0-9A-Fa-f]{6}$/',
+                'billing_salutation' => 'sometimes|nullable|in:Mister,Mrs,Ms',
+                'billing_first_name' => 'sometimes|nullable|string|max:255',
+                'billing_last_name' => 'sometimes|nullable|string|max:255',
+                'billing_address' => 'sometimes|nullable|string|max:255',
+                'billing_address_suffix' => 'sometimes|nullable|string|max:255',
+                'billing_postal_code' => 'sometimes|nullable|string|max:10',
+                'billing_location' => 'sometimes|nullable|string|max:100',
+                'billing_country' => 'sometimes|nullable|string|max:100',
+                'billing_email' => 'sometimes|nullable|email|max:255',
+                'billing_phone' => 'sometimes|nullable|string|max:20',
+                'bank_account_details' => 'sometimes|nullable|string',
+                'iban' => 'sometimes|nullable|string|max:34',
+                'recipient' => 'sometimes|nullable|string|max:255',
+                'project_overview_enabled' => 'sometimes|boolean',
+                'logo' => 'sometimes|nullable|image|max:2048',
+                'password' => 'sometimes|nullable|confirmed|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/',
+                'password_confirmation' => 'sometimes|nullable|same:password',
+            ];
+
+            $fieldsToValidate = array_intersect_key($validationRules, $request->all());
+            $validated = $request->validate($fieldsToValidate);
 
             $data = $request->only([
                 'organization_name', 'contact_title', 'contact_first_name', 'contact_last_name',
@@ -162,16 +181,33 @@ class SettingsController extends Controller
             }
 
             Log::info('Settings updated successfully for user: ' . Auth::id());
-
-            return redirect()->back()->with('success', 'Settings updated successfully.');
+            
+            // Reload user with settings for response
+            $user = Auth::user();
+            $user->load('setting');
+            
+            // Return with Inertia to maintain the auth data in the response
+            return Inertia::render('Settings', [
+                'settings' => $settings->toArray(),
+                'flash' => ['success' => 'Settings updated successfully.']
+            ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::warning('Validation failed for settings update: ' . json_encode($e->errors()));
 
-            return redirect()->back()->withErrors($e->errors())->withInput();
+            // Return validation errors with Inertia
+            return Inertia::render('Settings', [
+                'settings' => $settings->toArray(),
+                'errors' => $e->errors(),
+                'flash' => ['error' => 'Please fix the validation errors.']
+            ]);
         } catch (\Exception $e) {
             Log::error('Failed to update settings: ' . $e->getMessage(), ['exception' => $e]);
 
-            return redirect()->back()->with('error', 'Failed to update settings.')->withInput();
+            // Return error with Inertia
+            return Inertia::render('Settings', [
+                'settings' => $settings->toArray(),
+                'flash' => ['error' => 'Failed to update settings: ' . ($e->getMessage() ?: 'Unknown error')]
+            ]);            
         }
     }
 }
