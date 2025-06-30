@@ -146,57 +146,68 @@ class LicenseController extends Controller
         }
         
         // Check if user already has an active license
-        $hasActiveLicense = License::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->exists();
-            
-        if ($hasActiveLicense) {
+        if ($this->licenseService->hasActiveLicense($user)) {
             return response()->json(['error' => 'User already has an active license'], 400);
         }
         
+        // Determine if discount should be applied
+        $discountEligible = $user->discount_eligible && !$user->discount_used && $request->input('apply_discount', false);
+        $discountAmount = $discountEligible ? self::REFERRAL_DISCOUNT : 0;
+        $finalAmount = self::ANNUAL_LICENSE_PRICE - $discountAmount;
+        
         try {
-            // Check if user is eligible for a discount
-            $discountEligible = $request->input('apply_discount') && $user->discount_eligible && !$user->discount_used;
+            // Create a unique idempotency key to prevent duplicate sessions
+            $idempotencyKey = 'license_' . $user->id . '_' . time() . '_' . Str::random(8);
             
-            // Calculate license price with discount if applicable
-            $licensePrice = $discountEligible ? self::ANNUAL_LICENSE_PRICE - self::REFERRAL_DISCOUNT : self::ANNUAL_LICENSE_PRICE;
+            Log::info('Creating Stripe Checkout Session', [
+                'user_id' => $user->id,
+                'amount' => $finalAmount,
+                'discount_eligible' => $discountEligible,
+                'discount_amount' => $discountAmount,
+                'idempotency_key' => $idempotencyKey
+            ]);
             
-            // Create a Stripe Checkout Session instead of a PaymentIntent
+            // Create a Stripe Checkout Session
             $session = \Stripe\Checkout\Session::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
                     'price_data' => [
                         'currency' => 'chf',
                         'product_data' => [
-                            'name' => 'Annual License',
-                            'description' => 'Fundoo Annual License Subscription',
+                            'name' => 'Fundoo Annual License',
+                            'description' => 'Access to all premium features for one year',
                         ],
-                        'unit_amount' => $licensePrice * 100, // Convert to cents
+                        'unit_amount' => (int)($finalAmount * 100), // Convert to cents
                     ],
                     'quantity' => 1,
                 ]],
+                'mode' => 'payment',
+                'success_url' => route('license.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('license.purchase'),
+                'customer_email' => $user->email,
                 'metadata' => [
                     'user_id' => $user->id,
                     'license_type' => 'annual',
                     'discount_applied' => $discountEligible ? 'yes' : 'no',
-                    'discount_amount' => $discountEligible ? self::REFERRAL_DISCOUNT : 0,
+                    'discount_amount' => $discountAmount,
+                    'created_at' => now()->toIso8601String(),
+                    'idempotency_key' => $idempotencyKey
                 ],
-                'mode' => 'payment',
-                'success_url' => route('license.success'),
-                'cancel_url' => route('license.purchase'),
-                'customer_email' => $user->email,
-            ]);
-
-            // Log checkout session creation activity
-            UserActivityService::logPayment('license_checkout_session_created', $user->id, [
+            ], ['idempotency_key' => $idempotencyKey]);
+            
+            // Store the session ID in the session for fallback license creation
+            session(['last_license_checkout_session' => $session->id]);
+            
+            Log::info('Stripe Checkout Session created', [
+                'user_id' => $user->id,
                 'session_id' => $session->id,
-                'amount' => $licensePrice,
+                'amount' => $finalAmount,
                 'discount_applied' => $discountEligible,
             ]);
             
             return response()->json([
                 'sessionId' => $session->id,
-                'amount' => $licensePrice,
+                'amount' => $finalAmount,
                 'discountApplied' => $discountEligible,
             ]);
         } catch (\Stripe\Exception\ApiConnectionException $e) {
@@ -220,15 +231,15 @@ class LicenseController extends Controller
                     // Create a mock payment ID for local development
                     $mockPaymentId = 'dev_' . Str::random(24);
                     
-                    // Create license with standard values
+                    // Create license with current price values
                     $license = $this->licenseService->createLicense(
                         $user,
                         $mockPaymentId,
-                        500.00, // Standard license price
+                        $finalAmount, // Use the calculated final amount with any discounts
                         'CHF',
                         'annual',
-                        $user->discount_eligible && !$user->discount_used,
-                        $user->discount_eligible && !$user->discount_used ? self::REFERRAL_DISCOUNT : 0,
+                        $discountEligible, // Use the already calculated discount eligibility
+                        $discountAmount, // Use the already calculated discount amount
                         [
                             'payment_method' => 'card',
                             'customer_email' => $user->email,
@@ -245,7 +256,7 @@ class LicenseController extends Controller
                         // Credit any referral bonus
                         $this->referralService->creditReferralBonus(
                             $user,
-                            500.00,
+                            $finalAmount, // Use the calculated final amount
                             'CHF',
                             $mockPaymentId
                         );
@@ -305,7 +316,7 @@ class LicenseController extends Controller
     }
 
     /**
-     * Display license purchase success page
+     * Display license purchase success page and handle fallback license creation
      */
     public function success(Request $request)
     {
@@ -315,10 +326,119 @@ class LicenseController extends Controller
             return redirect()->route('login');
         }
         
+        // Check if there's a session_id in the URL (from Stripe redirect)
+        $sessionId = $request->query('session_id');
+        
         // Get the user's most recent license
         $license = License::where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->first();
+            
+        // If we have a session ID but no license, the webhook might have failed
+        // Let's verify the payment and create the license as a fallback
+        if ($sessionId && !$license) {
+            Log::info('No license found after Stripe redirect, attempting fallback license creation', [
+                'user_id' => $user->id,
+                'session_id' => $sessionId
+            ]);
+            
+            try {
+                // Retrieve the checkout session from Stripe to verify payment
+                $session = \Stripe\Checkout\Session::retrieve($sessionId);
+                
+                // Only proceed if the payment was successful
+                if ($session && $session->payment_status === 'paid') {
+                    Log::info('Payment verified as paid, creating license via fallback', [
+                        'user_id' => $user->id,
+                        'session_id' => $sessionId,
+                        'payment_status' => $session->payment_status
+                    ]);
+                    
+                    // Begin transaction
+                    \DB::beginTransaction();
+                    
+                    try {
+                        // Extract payment details
+                        $amount = $session->amount_total / 100; // Convert from cents
+                        $currency = strtoupper($session->currency);
+                        $paymentId = $session->payment_intent;
+                        
+                        // Get metadata
+                        $metadata = $session->metadata->toArray();
+                        $discountApplied = isset($metadata['discount_applied']) && $metadata['discount_applied'] === 'yes';
+                        $discountAmount = $metadata['discount_amount'] ?? 0;
+                        
+                        // If discount was applied, mark it as used
+                        if ($discountApplied) {
+                            $user->discount_used = true;
+                            $user->save();
+                            
+                            // Credit any referral bonus
+                            $this->referralService->creditReferralBonus(
+                                $user, 
+                                $amount, 
+                                $currency, 
+                                $paymentId
+                            );
+                        }
+                        
+                        // Create license record
+                        $licenseType = $metadata['license_type'] ?? 'annual';
+                        $license = $this->licenseService->createLicense(
+                            $user,
+                            $paymentId,
+                            $amount,
+                            $currency,
+                            $licenseType,
+                            $discountApplied,
+                            $discountAmount,
+                            [
+                                'payment_method' => $session->payment_method_types[0] ?? 'card',
+                                'customer_email' => $user->email,
+                                'session_id' => $session->id,
+                                'fallback_creation' => true
+                            ]
+                        );
+                        
+                        // Commit transaction
+                        \DB::commit();
+                        
+                        Log::info('License created successfully via fallback', [
+                            'license_id' => $license->id,
+                            'user_id' => $user->id,
+                            'session_id' => $sessionId
+                        ]);
+                    } catch (\Exception $e) {
+                        // Roll back transaction if anything fails
+                        \DB::rollBack();
+                        
+                        Log::error('Fallback license creation failed', [
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                            'user_id' => $user->id,
+                            'session_id' => $sessionId
+                        ]);
+                    }
+                } else {
+                    Log::warning('Payment not confirmed as paid in fallback check', [
+                        'user_id' => $user->id,
+                        'session_id' => $sessionId,
+                        'payment_status' => $session->payment_status ?? 'unknown'
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error verifying payment in fallback license creation', [
+                    'error' => $e->getMessage(),
+                    'user_id' => $user->id,
+                    'session_id' => $sessionId
+                ]);
+            }
+            
+            // Refresh license data after fallback attempt
+            $license = License::where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+        }
             
         return Inertia::render('License/Success', [
             'license' => $license,
@@ -331,6 +451,30 @@ class LicenseController extends Controller
      */
     public function handleWebhook(Request $request)
     {
+        // Log webhook receipt with timestamp and request details
+        Log::info('Stripe license webhook received', [
+            'timestamp' => now()->toIso8601String(),
+            'ip' => $request->ip(),
+            'method' => $request->method(),
+            'url' => $request->fullUrl(),
+            'content_type' => $request->header('Content-Type'),
+            'stripe_signature' => $request->header('Stripe-Signature') ? '[PRESENT]' : '[MISSING]',
+            'environment' => app()->environment()
+        ]);
+        
+        // Store the raw request for debugging
+        $rawRequest = [
+            'headers' => $request->headers->all(),
+            'ip' => $request->ip(),
+            'method' => $request->method(),
+            'url' => $request->fullUrl()
+        ];
+        
+        // In development environments, log the full request for debugging
+        if (app()->environment('local', 'development', 'testing')) {
+            Log::debug('Stripe webhook raw request', $rawRequest);
+        }
+        
         $payload = $request->getContent();
         $sig_header = $request->header('Stripe-Signature');
         $endpoint_secret = config('services.stripe.webhook_secret');
@@ -339,6 +483,7 @@ class LicenseController extends Controller
         Log::debug('Received webhook payload', [
             'payload' => $payload,
             'has_signature' => !empty($sig_header),
+            'signature_header' => $sig_header,
             'has_secret' => !empty($endpoint_secret),
             'environment' => app()->environment()
         ]);
@@ -349,25 +494,48 @@ class LicenseController extends Controller
                 Log::info('Development environment or missing webhook secret, attempting to parse webhook directly');
                 try {
                     $event = json_decode($payload, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        throw new \Exception('Invalid JSON payload: ' . json_last_error_msg());
+                    }
+                    
+                    if (empty($event)) {
+                        throw new \Exception('Empty event payload');
+                    }
+                    
+                    Log::debug('Successfully parsed webhook JSON payload', [
+                        'event_type' => $event['type'] ?? 'unknown',
+                        'event_id' => $event['id'] ?? 'unknown'
+                    ]);
+                    
                     $event = \Stripe\Event::constructFrom($event);
                 } catch (\Exception $e) {
                     Log::warning('Failed to parse webhook directly, falling back to signature verification', [
-                        'error' => $e->getMessage()
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
+                    
                     // Only fall back to signature verification if we have both a signature and a secret
                     if (!empty($sig_header) && !empty($endpoint_secret)) {
+                        Log::info('Attempting to verify webhook signature');
                         $event = \Stripe\Webhook::constructEvent(
                             $payload, $sig_header, $endpoint_secret
                         );
+                        Log::info('Webhook signature verified successfully');
                     } else {
+                        Log::error('Cannot verify webhook: missing signature or secret', [
+                            'has_signature' => !empty($sig_header),
+                            'has_secret' => !empty($endpoint_secret)
+                        ]);
                         throw new \Exception('Cannot verify webhook: missing signature or secret');
                     }
                 }
             } else {
                 // Production environment - always verify signature
+                Log::info('Production environment, verifying webhook signature');
                 $event = \Stripe\Webhook::constructEvent(
                     $payload, $sig_header, $endpoint_secret
                 );
+                Log::info('Webhook signature verified successfully in production');
             }
 
             // Log the event type for debugging
@@ -380,12 +548,33 @@ class LicenseController extends Controller
             if ($event->type === 'checkout.session.completed') {
                 // Handle Checkout Session completion
                 $session = $event->data->object;
-                $metadata = $session->metadata->toArray();
+                
+                // Ensure we have metadata
+                $metadata = [];
+                if (isset($session->metadata)) {
+                    if (is_object($session->metadata) && method_exists($session->metadata, 'toArray')) {
+                        $metadata = $session->metadata->toArray();
+                    } elseif (is_array($session->metadata)) {
+                        $metadata = $session->metadata;
+                    }
+                }
                 
                 Log::info('Checkout session completed', [
                     'session_id' => $session->id,
+                    'payment_status' => $session->payment_status ?? 'unknown',
                     'metadata' => $metadata,
+                    'amount_total' => $session->amount_total ?? 0,
+                    'currency' => $session->currency ?? 'unknown'
                 ]);
+                
+                // Verify payment status
+                if (!isset($session->payment_status) || $session->payment_status !== 'paid') {
+                    Log::warning('Checkout session not paid, skipping license creation', [
+                        'session_id' => $session->id,
+                        'payment_status' => $session->payment_status ?? 'unknown'
+                    ]);
+                    return response()->json(['status' => 'skipped', 'reason' => 'payment_not_paid']);
+                }
                 
                 if (isset($metadata['license_type']) && $metadata['license_type'] === 'annual') {
                     $userId = $metadata['user_id'];

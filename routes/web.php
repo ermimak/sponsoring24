@@ -155,7 +155,6 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/license/create-payment-intent', [LicenseController::class, 'createPaymentIntent'])->name('license.create-payment-intent');
     Route::get('/license/success', [LicenseController::class, 'success'])->name('license.success');
     Route::get('/license/detail/{licenseId?}', [LicenseController::class, 'showDetail'])->name('license.detail');
-    Route::post('/webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
     
     // Debug tools (only in non-production environments)
     if (app()->environment('local', 'development', 'testing')) {
@@ -288,9 +287,15 @@ Route::middleware(['auth', 'web'])->group(function () {
 // Route::get('api/projects/{project}', [ProjectController::class, 'show']);
 // Route::get('api/projects/{project}/participants/{participant}', [PublicParticipantController::class, 'show']);
 
-// Stripe Webhook Routes - These must be accessible without CSRF protection
-Route::post('webhook/license/stripe', [LicenseController::class, 'handleWebhook'])->name('webhook.license.stripe');
-Route::post('webhook/donation/stripe', [PaymentController::class, 'handleWebhook'])->name('webhook.donation.stripe');
+// Stripe Webhook Routes - These must be accessible without CSRF protection or middleware
+// IMPORTANT: These routes must be outside any middleware groups to be accessible by Stripe
+Route::post('webhook/license/stripe', [LicenseController::class, 'handleWebhook'])
+    ->name('webhook.license.stripe')
+    ->middleware('api'); // Use API middleware to skip CSRF but still get basic request handling
+
+Route::post('webhook/donation/stripe', [PaymentController::class, 'handleWebhook'])
+    ->name('webhook.donation.stripe')
+    ->middleware('api'); // Use API middleware to skip CSRF but still get basic request handling
 // Route::post('api/projects/{project}/participants/{participant}/donate', [PublicParticipantController::class, 'donate']);
 Route::prefix('projects/{projectId}')->group(function () {
     Route::get('participants/{participantId}', [ParticipantController::class, 'showLandingPage'])->name('participant.landing');
