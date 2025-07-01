@@ -222,6 +222,8 @@ class AuthController extends Controller
                             'referred_user_id' => $user->id,
                             'amount' => 100.00,
                             'status' => 'pending',
+                            'credited' => false,
+                            'type' => 'referral',
                             'referral_code_used' => $referralCode,
                         ]);
 

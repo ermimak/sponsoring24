@@ -119,6 +119,8 @@ const formatDate = (dateString) => {
 const getNotificationTitle = (notification) => {
   const data = notification.data;
   
+  // Cannot read properties of undefined (reading 'type') data.type
+  
   switch (data.type) {
     case 'user_registered':
       return 'New User Registration';
