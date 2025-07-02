@@ -16,7 +16,7 @@
               <div class="bg-gray-50 p-6 rounded-lg mb-6">
                 <div class="flex justify-between items-center mb-4">
                   <div>
-                    <h4 class="font-medium text-gray-800">{{ $t('Fundoo Annual License') }}</h4>
+                    <h4 class="font-medium text-gray-800">{{ $t('Sponsoring24 Annual License') }}</h4>
                     <p class="text-gray-600 text-sm">{{ $t('Access to all premium features for one year') }}</p>
                   </div>
                   <div class="text-right">
@@ -68,7 +68,7 @@
               <div class="bg-gray-50 p-6 rounded-lg">
                 <div class="flex justify-between items-center mb-4">
                   <div>
-                    <h4 class="font-medium text-gray-800">{{ $t('Fundoo Annual License') }}</h4>
+                    <h4 class="font-medium text-gray-800">{{ $t('Sponsoring24 Annual License') }}</h4>
                     <p class="text-gray-600 text-sm">{{ $t('Valid until') }}: {{ licenseExpiryDate }}</p>
                   </div>
                   <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">

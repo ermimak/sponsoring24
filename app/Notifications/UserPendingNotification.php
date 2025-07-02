@@ -37,11 +37,11 @@ class UserPendingNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Your Account Registration is Pending Approval')
             ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('Thank you for registering with Fundoo.')
+            ->line('Thank you for registering with Sponsoring24.')
             ->line('Your account has been created but requires approval from an administrator before you can log in.')
             ->line('You will receive another email once your account has been approved or if additional information is needed.')
             ->line('Thank you for your patience!')
-            ->salutation('Regards, The Fundoo Team');
+            ->salutation('Regards, The Sponsoring24 Team');
     }
 
     /**

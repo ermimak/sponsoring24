@@ -41,7 +41,9 @@ const iconClass = computed(() => {
     adjustments: 'fas fa-sliders-h',
     'lock-closed': 'fas fa-lock',
     'currency-dollar': 'fas fa-coins',
-    'chart-bar': 'fas fa-chart-bar'
+    'chart-bar': 'fas fa-chart-bar',
+    'referral': 'fas fa-person',
+    'license': 'fas fa-calendar-check'
   }
   return map[props.icon] || props.icon
 })

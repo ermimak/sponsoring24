@@ -54,7 +54,7 @@
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap">
                   <div class="font-medium">€{{ Number.isFinite(project.donations_sum_amount) ? project.donations_sum_amount.toFixed(2) : '0.00' }}</div>
-                  <div class="text-xs text-green-600 mt-1">Paid: €{{ Number.isFinite(project.donations_sum_amount) ? project.donations_sum_amount.toFixed(2) : '0.00' }}</div>
+                  <div class="text-xs text-green-600 mt-1">Paid: €{{ Number.isFinite(project.paid_donations_sum_amount) ? project.paid_donations_sum_amount.toFixed(2) : '0.00' }}</div>
                 </td>
                 <td class="px-6 py-5 whitespace-nowrap text-right">
                   <div class="flex justify-end gap-3 table-actions">
@@ -106,7 +106,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 
@@ -117,6 +117,16 @@ const totalPages = ref(props.projects?.last_page || 1);
 const totalEntries = ref(props.projects?.total || 0);
 const loading = ref(false);
 const error = ref(null);
+
+onMounted(() => {
+  // Debug projects data
+  console.log('Projects data:', props.projects);
+  if (props.projects && props.projects.data && props.projects.data.length > 0) {
+    console.log('First project:', props.projects.data[0]);
+    console.log('Donations sum amount:', props.projects.data[0].donations_sum_amount);
+    console.log('Paid donations sum amount:', props.projects.data[0].paid_donations_sum_amount);
+  }
+});
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';

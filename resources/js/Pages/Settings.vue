@@ -690,7 +690,7 @@
                 Facebook
               </a>
               <a 
-                :href="`https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join Fundoo and get CHF 50 off your first annual license!')}`"
+                :href="`https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join Sponsoring24 and get CHF 50 off your first annual license!')}`"
                 target="_blank"
                 class="inline-flex items-center px-4 py-2 bg-blue-400 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-600 focus:outline-none focus:border-blue-600 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
               >
@@ -700,7 +700,7 @@
                 Twitter
               </a>
               <a 
-                :href="`mailto:?subject=${encodeURIComponent('Join Fundoo and save CHF 50')}&body=${encodeURIComponent('I thought you might be interested in Fundoo. Sign up using my referral link and get CHF 50 off your first annual license: ' + referralLink)}`"
+                :href="`mailto:?subject=${encodeURIComponent('Join Sponsoring24 and save CHF 50')}&body=${encodeURIComponent('I thought you might be interested in Sponsoring24. Sign up using my referral link and get CHF 50 off your first annual license: ' + referralLink)}`"
                 class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-800 focus:outline-none focus:border-gray-800 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -794,15 +794,33 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
+import { useToast } from 'vue-toastification'
+import {route} from 'ziggy-js';
 import DashboardLayout from '@/Layouts/DashboardLayout.vue'
 
 const props = defineProps({
   settings: Object,
 })
 
-const user = usePage().props.auth.user
+const page = usePage()
+const toast = useToast()
+
+// Debug auth data to console
+console.log('Auth data in Settings.vue:', page.props.auth)
+
+// Ensure user data is available with fallbacks
+const user = computed(() => {
+  const authUser = page.props.auth?.user || {}
+  return {
+    id: authUser.id || '',
+    name: authUser.name || '',
+    email: authUser.email || '',
+    organization: authUser.organization || ''
+  }
+})
+
 const referralLink = computed(() => {
-  return `${window.location.origin}/register?ref=${user.id}`
+  return user.value.id ? `${window.location.origin}/register?ref=${user.value.id}` : ''
 })
 
 const linkCopied = ref(false)
@@ -884,24 +902,46 @@ function handleLogoUpload(event) {
 
 function saveSettings() {
   errors.value = {} // Reset errors
+  console.log('Submitting settings form:', form.value)
 
   const formData = new FormData()
   for (const key in form.value) {
     if (key === 'logo' && form.value[key]) {
       formData.append('logo', form.value[key])
+    } else if (key === 'project_overview_enabled') {
+      // Explicitly cast boolean to string '1' or '0' for proper handling
+      formData.append(key, form.value[key] ? '1' : '0')
     } else if (key !== 'user') {
       formData.append(key, form.value[key] ?? '') // Handle null/undefined values
     }
   }
 
   router.post('/dashboard/settings', formData, {
-    onSuccess: () => {
+    onSuccess: (page) => {
       errors.value = {} // Clear errors on success
       form.value.password = '' // Reset password fields
       form.value.password_confirmation = ''
+      
+      // Update form with new settings if available
+      if (page.props.settings) {
+        for (const key in page.props.settings) {
+          if (form.value.hasOwnProperty(key)) {
+            form.value[key] = page.props.settings[key]
+          }
+        }
+      }
+      
+      // Log success and updated user data
+      console.log('Settings updated successfully')
+      console.log('Updated settings data:', page.props.settings)
+      
+      // Show success message
+      toast.success('Settings updated successfully')
     },
     onError: (err) => {
       errors.value = err // Set validation errors
+      console.error('Settings update failed:', err)
+      toast.error('Failed to update settings')
     },
     preserveState: true, // Preserve form state to show errors
     preserveScroll: true, // Keep scroll position

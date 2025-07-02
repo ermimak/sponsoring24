@@ -5,7 +5,7 @@ import path from 'path';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isLocal = process.env.APP_ENV === 'local' || !process.env.APP_ENV;
-const host = isLocal ? 'localhost' : 'fundoo.onrender.com';
+const host = isLocal ? 'localhost' : 'sponsoring24.onrender.com';
 const protocol = isLocal ? 'http' : 'https';
 
 export default defineConfig({

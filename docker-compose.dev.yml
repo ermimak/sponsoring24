@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: fundoo-dev-app
+    container_name: sponsoring24-dev-app
     restart: unless-stopped
     working_dir: /var/www/html
     ports:
@@ -23,7 +23,7 @@ services:
       - DB_CONNECTION=pgsql
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_DATABASE=fundoo
+      - DB_DATABASE=sponsoring24
       - DB_USERNAME=postgres
       - DB_PASSWORD=password
       - REDIS_HOST=redis
@@ -36,37 +36,37 @@ services:
       - db
       - redis
     networks:
-      - fundoo-dev-network
+      - sponsoring24-dev-network
 
   db:
     image: postgres:15-alpine
-    container_name: fundoo-dev-db
+    container_name: sponsoring24-dev-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: fundoo
+      POSTGRES_DB: sponsoring24
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - fundoo-dev-db-data:/var/lib/postgresql/data
+      - sponsoring24-dev-db-data:/var/lib/postgresql/data
     networks:
-      - fundoo-dev-network
+      - sponsoring24-dev-network
 
   redis:
     image: redis:alpine
-    container_name: fundoo-dev-redis
+    container_name: sponsoring24-dev-redis
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
-      - fundoo-dev-redis-data:/data
+      - sponsoring24-dev-redis-data:/data
     networks:
-      - fundoo-dev-network
+      - sponsoring24-dev-network
 
   node:
     image: node:20-alpine
-    container_name: fundoo-dev-node
+    container_name: sponsoring24-dev-node
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
@@ -88,21 +88,21 @@ services:
         fi &&
         npm run dev -- --host 0.0.0.0"
     networks:
-      - fundoo-dev-network
+      - sponsoring24-dev-network
 
   mailhog:
     image: mailhog/mailhog:latest
-    container_name: fundoo-dev-mailhog
+    container_name: sponsoring24-dev-mailhog
     ports:
       - "${MAILHOG_PORT:-8025}:8025"
       - "1025:1025"
     networks:
-      - fundoo-dev-network
+      - sponsoring24-dev-network
 
 networks:
-  fundoo-dev-network:
+  sponsoring24-dev-network:
     driver: bridge
 
 volumes:
-  fundoo-dev-db-data:
-  fundoo-dev-redis-data:
+  sponsoring24-dev-db-data:
+  sponsoring24-dev-redis-data:

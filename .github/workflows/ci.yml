@@ -39,7 +39,7 @@ jobs:
       postgres:
         image: postgres:15
         env:
-          POSTGRES_DB: fundoo_test
+          POSTGRES_DB: sponsoring24_test
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
         ports:

@@ -25,12 +25,12 @@
             </div>
         </section>
 
-        <!-- Notifications Panel -->
+        <!-- Notifications Panel
         <section v-if="notifications && notifications.length > 0" class="bg-white py-8">
             <div class="max-w-6xl mx-auto px-4">
                 <NotificationDropdown />
             </div>
-        </section>
+        </section> -->
         
         <!-- Referral Program -->
         <section class="bg-gradient-to-r from-purple-50 to-blue-50 py-16">
@@ -38,7 +38,7 @@
                 <div class="text-center mb-10">
                     <span class="inline-block px-4 py-1 bg-purple-100 text-purple-700 font-medium rounded-full mb-4">Special Offer</span>
                     <h2 class="text-3xl md:text-4xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-700 to-blue-700">Join Our Referral Program</h2>
-                    <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">Share Fundoo with your network and earn rewards!</p>
+                    <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">Share Sponsoring24 with your network and earn rewards!</p>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -59,7 +59,7 @@
                             </svg>
                         </div>
                         <h3 class="text-2xl font-bold text-gray-800 mb-4">Your Friends Save CHF 50</h3>
-                        <p class="text-gray-600 mb-6">New users who register with your referral link will receive a CHF 50 discount on their first annual Fundoo license.</p>
+                        <p class="text-gray-600 mb-6">New users who register with your referral link will receive a CHF 50 discount on their first annual Sponsoring24 license.</p>
                     </div>
                 </div>
                 

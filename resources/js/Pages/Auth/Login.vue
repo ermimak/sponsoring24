@@ -75,10 +75,16 @@
                         </label>
                     </div>
                     <div class="text-sm">
-                        <a href="/forgot-password" class="font-medium text-purple-600 hover:text-purple-500 hover:underline transition-colors duration-200">
+                        <a :href="route('password.request')" class="font-medium text-purple-600 hover:text-purple-500 hover:underline transition-colors duration-200">
                             Forgot your password?
                         </a>
                     </div>
+                </div>
+
+                <div class="flex items-center justify-between mt-4">
+                    <a :href="route('password.request')" class="text-sm text-purple-600 hover:text-purple-500 hover:underline transition-colors duration-200">
+                        Forgot your password?
+                    </a>
                 </div>
 
                 <div class="mt-8">
@@ -102,7 +108,7 @@
             <div class="mt-10 text-center">
                 <p class="text-sm text-gray-600">
                     New to Sponsoring24?
-                    <a href="/register" class="font-medium text-purple-600 hover:text-purple-500 hover:underline transition-colors duration-200 ml-1">
+                    <a :href="route('register')" class="font-medium text-purple-600 hover:text-purple-500 hover:underline transition-colors duration-200 ml-1">
                         Create an account
                     </a>
                 </p>
@@ -114,7 +120,7 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import AuthLayout from '@/Layouts/AuthLayout.vue';
-
+import { route } from '@/ziggy-plugin';
 const form = useForm({
     email: '',
     password: '',
@@ -122,7 +128,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post('/login', {
+    form.post(route('login'), {
         onSuccess: () => {
             form.reset('password');
         }

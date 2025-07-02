@@ -1,0 +1,54 @@
+<template>
+  <div class="min-h-screen flex flex-col items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white rounded-xl shadow-2xl p-8 md:p-10 border border-gray-200">
+      <div class="text-center">
+        <div class="flex justify-center mb-6">
+          <div class="rounded-full bg-amber-100 p-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          </div>
+        </div>
+        
+        <h1 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-2">
+          503
+        </h1>
+        
+        <p class="text-xl font-semibold text-gray-800 mb-6">Under Maintenance</p>
+        
+        <p class="text-gray-600 mb-8">{{ message || 'We are currently performing scheduled maintenance. Please check back soon.' }}</p>
+        
+        <div class="flex flex-col space-y-4">
+          <button
+            @click="refreshPage"
+            class="w-full flex justify-center items-center py-3 px-4 rounded-lg text-base font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {{ $t('common.refresh_page') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { Head } from '@inertiajs/vue3';
+
+const props = defineProps({
+  status: {
+    type: Number,
+    default: 503
+  },
+  message: {
+    type: String,
+    default: 'We are currently performing scheduled maintenance. Please check back soon.'
+  }
+});
+
+const refreshPage = () => {
+  window.location.reload();
+};
+</script>

@@ -51,6 +51,19 @@ class="animated-dot"
                     </span>
                 </a>
             </div>
+            <!-- Error and Success Messages -->
+            <ErrorHandler 
+                v-if="$page.props.error || $page.props.errors && Object.keys($page.props.errors).length > 0" 
+                :error="$page.props.error || formatErrors($page.props.errors)" 
+                @close="clearError"
+                class="mb-4"
+            />
+            <SuccessMessage 
+                v-if="$page.props.success" 
+                :message="$page.props.success" 
+                @close="clearSuccess"
+                class="mb-4"
+            />
             <!-- Slot for Login/Register card -->
             <slot></slot>
         </div>
@@ -60,8 +73,12 @@ class="animated-dot"
 
 <script setup>
 import { ref } from 'vue';
-import { Head } from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import CookieBanner from '@/Components/CookieBanner.vue';
+import ErrorHandler from '@/Components/ErrorHandler.vue';
+import SuccessMessage from '@/Components/SuccessMessage.vue';
+
+const page = usePage();
 const currentLang = ref('de'); // TODO: Replace with real i18n logic
 
 defineProps({
@@ -70,6 +87,40 @@ defineProps({
         required: false
     }
 });
+
+// Error handling methods
+function formatErrors(errors) {
+  // Convert Laravel validation errors object to a format our ErrorHandler can display
+  if (!errors) return null;
+  
+  const errorMessage = {
+    message: 'Please correct the following errors:',
+    details: []
+  };
+  
+  for (const field in errors) {
+    if (Array.isArray(errors[field])) {
+      errors[field].forEach(error => {
+        errorMessage.details.push(error);
+      });
+    } else {
+      errorMessage.details.push(errors[field]);
+    }
+  }
+  
+  return errorMessage;
+}
+
+function clearError() {
+  // Clear error from page props
+  delete page.props.error;
+  delete page.props.errors;
+}
+
+function clearSuccess() {
+  // Clear success message from page props
+  delete page.props.success;
+}
 </script>
 
 <style scoped>

@@ -1,7 +1,7 @@
 # PLANNING.md
 
 ## Project Overview
-**Name:** Fundoo Fullstack Platform
+**Name:** Sponsoring24 Fullstack Platform
 **Description:** A bilingual (German/FR) fullstack fundraising platform. Laravel 12 monolith serves both API endpoints for a Vue 3 SPA frontend and renders server-side views where needed.
 
 ## Scope & Goals

@@ -31,10 +31,16 @@
 type="number"
 class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
 required
-min="0"
+:min="project.flat_rate_enabled ? project.flat_rate_min_amount || 0 : 0"
 step="0.01"
 placeholder="0.00" />
                 <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">CHF</span>
+              </div>
+              <div v-if="project.flat_rate_enabled && project.flat_rate_help_text" class="text-sm text-gray-600 mt-2 mb-4">
+                {{ project.flat_rate_help_text }}
+              </div>
+              <div v-if="project.flat_rate_enabled && project.flat_rate_min_amount > 0" class="text-sm text-blue-600 mt-2 mb-4">
+                Minimum donation amount: CHF {{ project.flat_rate_min_amount }}
               </div>
               <button type="submit" class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-200 font-medium">
                 CHF {{ form.amount || 0 }} support
@@ -208,6 +214,13 @@ required />
   function submitDonation() {
     loading.value = true
     errors.value = {}
+    
+    // Validate minimum amount for flat-rate donations
+    if (props.project.flat_rate_enabled && props.project.flat_rate_min_amount > 0 && form.value.amount < props.project.flat_rate_min_amount) {
+      errors.value = { amount: [`Minimum donation amount is CHF ${props.project.flat_rate_min_amount}`] }
+      loading.value = false
+      return
+    }
   
     router.post(`/projects/${props.project.id}/participants/${props.participant.id}/donate`, {
       ...form.value,

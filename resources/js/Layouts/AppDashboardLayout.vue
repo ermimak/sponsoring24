@@ -19,7 +19,7 @@
           </div>
           <div class="flex flex-col">
             <span class="text-sm font-medium">{{ user.name }}</span>
-            <span class="text-xs text-blue-200">{{ user.org || 'Admin' }}</span>
+            <span class="text-xs text-blue-200">{{ user.org }}</span>
           </div>
         </div>
       </div>
@@ -32,7 +32,7 @@
         <SidebarLink icon="currency-dollar" label="Bonus Credit" to="/dashboard/bonus" />
       </nav>
       <div class="mt-auto p-4 text-xs text-blue-200 border-t border-white/10 flex items-center justify-center">
-        <span>© Sponsoring24 2025</span>
+        <span>©  2025</span>
       </div>
     </aside>
 
@@ -75,6 +75,17 @@
       </header>
       <main class="flex-1 p-8 bg-gray-50 overflow-y-auto">
         <div class="mx-auto max-w-7xl">
+          <!-- Global Error and Success Messages -->
+          <ErrorHandler 
+            v-if="$page.props.error || $page.props.errors && Object.keys($page.props.errors).length > 0" 
+            :error="$page.props.error || formatErrors($page.props.errors)" 
+            @close="clearError"
+          />
+          <SuccessMessage 
+            v-if="$page.props.success" 
+            :message="$page.props.success" 
+            @close="clearSuccess"
+          />
           <slot></slot>
         </div>
       </main>
@@ -86,12 +97,23 @@
 import { ref } from 'vue'
 import { usePage, router } from '@inertiajs/vue3'
 import SidebarLink from '@/Components/SidebarLink.vue'
+import ErrorHandler from '@/Components/ErrorHandler.vue'
+import SuccessMessage from '@/Components/SuccessMessage.vue'
 
 const page = usePage()
-const user = ref({
-  name: page.props?.auth?.user?.name || 'User',
-  org: page.props?.auth?.user?.organization || 'Org',
+
+// Debug auth data to console
+console.log('Auth data in AppDashboardLayout:', page.props.auth)
+
+// Make user data reactive with computed property
+const user = computed(() => {
+  const authUser = page.props.auth?.user || {}
+  return {
+    name: authUser.name || 'User',
+    org: authUser.organization || authUser.email || 'Org',
+  }
 })
+
 const currentLocale = ref(page.props?.locale || 'de')
 
 function switchLanguage() {
@@ -99,6 +121,40 @@ function switchLanguage() {
 }
 function logout() {
   router.post('/logout')
+}
+
+// Error handling methods
+function formatErrors(errors) {
+  // Convert Laravel validation errors object to a format our ErrorHandler can display
+  if (!errors) return null
+  
+  const errorMessage = {
+    message: 'Please correct the following errors:',
+    details: []
+  }
+  
+  for (const field in errors) {
+    if (Array.isArray(errors[field])) {
+      errors[field].forEach(error => {
+        errorMessage.details.push(error)
+      })
+    } else {
+      errorMessage.details.push(errors[field])
+    }
+  }
+  
+  return errorMessage
+}
+
+function clearError() {
+  // Clear error from page props
+  delete page.props.error
+  delete page.props.errors
+}
+
+function clearSuccess() {
+  // Clear success message from page props
+  delete page.props.success
 }
 </script>
 

@@ -27,20 +27,44 @@ class PublicParticipantController extends Controller
 
     public function donate(Request $request, $projectId, $participantId)
     {
-        $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'donor_name' => 'required|string|max:255',
-            'donor_email' => 'required|email',
-            'card_number' => 'required|string',
-            'card_expiry' => 'required|string',
-            'card_cvc' => 'required|string',
-        ]);
-
         try {
             // Use a database transaction for ACID compliance
             \DB::beginTransaction();
             
             $project = Project::findOrFail($projectId);
+            
+            // Check if the project allows public donations
+            if (!$project->public_donation_enabled) {
+                \DB::rollBack();
+                \Log::warning('Attempted to donate to a project with public donations disabled', [
+                    'project_id' => $projectId,
+                    'participant_id' => $participantId,
+                    'ip' => $request->ip(),
+                ]);
+                
+                return response()->json([
+                    'message' => 'This project does not allow public donations.'
+                ], 403);
+            }
+            
+            // Determine validation rules based on project settings
+            $amountRule = 'required|numeric';
+            if ($project->flat_rate_enabled && $project->flat_rate_min_amount > 0) {
+                $amountRule .= '|min:' . $project->flat_rate_min_amount;
+            } else {
+                $amountRule .= '|min:1'; // Default minimum
+            }
+            
+            // Validate the request with dynamic rules
+            $validated = $request->validate([
+                'amount' => $amountRule,
+                'donor_name' => 'required|string|max:255',
+                'donor_email' => 'required|email',
+                'card_number' => 'required|string',
+                'card_expiry' => 'required|string',
+                'card_cvc' => 'required|string',
+            ]);
+            
             $participant = Participant::whereHas('projects', function ($query) use ($projectId) {
                 $query->where('project_id', $projectId);
             })->findOrFail($participantId);

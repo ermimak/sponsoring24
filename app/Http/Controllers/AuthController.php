@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BonusCredit;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\ReferralCodeUsed;
 use App\Notifications\UserPendingNotification;
@@ -139,8 +140,24 @@ class AuthController extends Controller
     {
         try {
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
+                // Contact person details
+                'contact_title' => 'required|string|in:Mister,Mrs,Ms',
+                'contact_first_name' => 'required|string|max:100',
+                'contact_last_name' => 'required|string|max:100',
+                'organization_name' => 'required|string|max:255',
+                
+                // Address details
+                'address' => 'required|string|max:255',
+                'address_suffix' => 'nullable|string|max:255',
+                'postal_code' => 'required|string|max:20',
+                'location' => 'required|string|max:100',
+                'country' => 'required|string|max:100',
+                
+                // Contact details
                 'email' => 'required|string|email|max:255|unique:users',
+                'phone' => 'required|string|max:50',
+                
+                // Account credentials
                 'password' => 'required|string|min:8|confirmed',
                 'registration_discount_code' => 'nullable|string|max:255',
             ]);
@@ -148,20 +165,54 @@ class AuthController extends Controller
             DB::beginTransaction();
 
             try {
+                // Create the full name from first and last name
+                $fullName = $validated['contact_first_name'] . ' ' . $validated['contact_last_name'];
+                
                 $user = User::create([
-                    'name' => $validated['name'],
+                    'name' => $fullName,
                     'email' => $validated['email'],
                     'password' => Hash::make($validated['password']),
                     'approval_status' => 'pending',
+                    'contact_title' => $validated['contact_title'],
+                    'contact_first_name' => $validated['contact_first_name'],
+                    'contact_last_name' => $validated['contact_last_name'],
+                    'organization_name' => $validated['organization_name'],
+                    'address' => $validated['address'],
+                    'address_suffix' => $validated['address_suffix'] ?? null,
+                    'postal_code' => $validated['postal_code'],
+                    'location' => $validated['location'],
+                    'country' => $validated['country'],
+                    'phone' => $validated['phone'],
+                    'newsletter' => $validated['newsletter'] ?? false,
+                    'referral_code' => substr(md5(uniqid(mt_rand(), true)), 0, 10), // Generate a unique referral code
                 ]);
 
                 // Assign the user role
                 $user->assignRole('user');
+                
+                // Create a settings record for this user
+                $settings = new Setting([
+                    'user_id' => $user->id,
+                    'organization_name' => $validated['organization_name'],
+                    'contact_title' => $validated['contact_title'],
+                    'contact_first_name' => $validated['contact_first_name'],
+                    'contact_last_name' => $validated['contact_last_name'],
+                    'address' => $validated['address'],
+                    'address_suffix' => $validated['address_suffix'] ?? null,
+                    'postal_code' => $validated['postal_code'],
+                    'location' => $validated['location'],
+                    'country' => $validated['country'],
+                    'email' => $validated['email'],
+                    'phone' => $validated['phone'],
+                    'language' => 'English', // Default language
+                    'accent_color' => '#6366F1', // Default accent color
+                ]);
+                $settings->save();
 
                 // Handle referral code if present
                 $referralInfo = null;
-                if ($request->filled('registration_discount_code')) {
-                    $referralCode = $request->input('registration_discount_code');
+                if ($request->filled('referral_code')) {
+                    $referralCode = $request->input('referral_code');
                     $referrer = User::where('referral_code', $referralCode)->first();
                     
                     if ($referrer) {
@@ -171,6 +222,8 @@ class AuthController extends Controller
                             'referred_user_id' => $user->id,
                             'amount' => 100.00,
                             'status' => 'pending',
+                            'credited' => false,
+                            'type' => 'referral',
                             'referral_code_used' => $referralCode,
                         ]);
 

@@ -25,10 +25,21 @@ class ReferralService
     {
         try {
             // Find any pending referral bonus for this user
+            // Note: We're not filtering by type='referral' here because the BonusCredit might not have the type set
+            // when created during registration
             $bonusCredit = BonusCredit::where('referred_user_id', $user->id)
-                ->where('type', 'referral')
-                ->where('status', 'pending')
-                ->where('credited', false)
+                ->where(function($query) {
+                    $query->where('type', 'referral')
+                          ->orWhereNull('type');
+                })
+                ->where(function($query) {
+                    $query->where('status', 'pending')
+                          ->orWhereNull('status');
+                })
+                ->where(function($query) {
+                    $query->where('credited', false)
+                          ->orWhereNull('credited');
+                })
                 ->first();
                 
             if (!$bonusCredit) {

@@ -46,8 +46,24 @@ class BonusCreditController extends Controller
             
             // Validate the request
             $validated = $request->validate([
-                'name' => 'required|string|max:255',
+                // Contact person details
+                'contact_title' => 'required|string|in:Mister,Mrs,Ms',
+                'contact_first_name' => 'required|string|max:100',
+                'contact_last_name' => 'required|string|max:100',
+                'organization_name' => 'required|string|max:255',
+                
+                // Address details
+                'address' => 'required|string|max:255',
+                'address_suffix' => 'nullable|string|max:255',
+                'postal_code' => 'required|string|max:20',
+                'location' => 'required|string|max:100',
+                'country' => 'required|string|max:100',
+                
+                // Contact details
                 'email' => 'required|string|email|max:255|unique:users',
+                'phone' => 'required|string|max:50',
+                
+                // Account credentials
                 'password' => 'required|string|min:8|confirmed',
                 'referral_code' => 'required|string|max:255',
             ]);
@@ -95,7 +111,7 @@ class BonusCreditController extends Controller
             try {
                 // Create user with pending status
                 $userData = [
-                    'name' => $validated['name'],
+                    'name' => $validated['contact_first_name'] . ' ' . $validated['contact_last_name'],
                     'email' => $validated['email'],
                     'password' => Hash::make($validated['password']),
                     'approval_status' => 'pending', // Set status to pending
@@ -260,7 +276,7 @@ class BonusCreditController extends Controller
                 $referredUser->notify(new BonusCreditNotification($bonusCredit, 'discount_eligible', [
                     'currency' => 'CHF',
                     'discount_amount' => 50.00,
-                    'referrer_name' => $referrer ? $referrer->name : 'A Fundoo user'
+                    'referrer_name' => $referrer ? $referrer->name : 'A Sponsoring24 user'
                 ]));
             }
             

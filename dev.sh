@@ -9,7 +9,7 @@ NC='\033[0m' # No Color
 
 # Function to display usage
 show_usage() {
-  echo -e "${BLUE}Fundoo Development Environment Manager${NC}"
+  echo -e "${BLUE}Sponsoring24 Development Environment Manager${NC}"
   echo -e "Usage: ./dev.sh [command]"
   echo -e ""
   echo -e "Commands:"
@@ -112,7 +112,7 @@ main() {
       ;;
     db)
       echo -e "${BLUE}Opening PostgreSQL CLI...${NC}"
-      docker-compose -f docker-compose.dev.yml exec db psql -U postgres -d fundoo
+      docker-compose -f docker-compose.dev.yml exec db psql -U postgres -d sponsoring24
       ;;
     redis)
       echo -e "${BLUE}Opening Redis CLI...${NC}"

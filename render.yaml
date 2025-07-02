@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: fundoo
+    name: sponsoring24
     env: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .

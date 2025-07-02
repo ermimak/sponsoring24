@@ -4,7 +4,7 @@
       <!-- Header Image and Logo -->
       <div class="relative h-64 bg-cover bg-center" :style="{ backgroundImage: `url(${project.image_landscape})` }">
         <div class="absolute top-4 right-4 bg-white rounded-full p-2 shadow-md">
-          <img src="/images/fundoo-logo.png" alt="fundoo logo" class="h-8 w-8" />
+          <img src="/images/sponsoring24-logo.png" alt="sponsoring24 logo" class="h-8 w-8" />
         </div>
       </div>
 
@@ -103,8 +103,8 @@
 
     <!-- Footer -->
     <div class="mt-8 text-center text-gray-500 text-sm">
-      <p>Powered by fundoo © 2025</p>
-      <p><a href="#" class="text-gray-500 hover:underline">info@fundoo.ch</a> - <a href="#" class="text-gray-500 hover:underline">Datenschutzerklärung</a></p>
+      <p>Powered by Sponsoring24 © 2025</p>
+      <p><a href="#" class="text-gray-500 hover:underline">info@sponsoring24.ch</a> - <a href="#" class="text-gray-500 hover:underline">Datenschutzerklärung</a></p>
     </div>
 
   </div>
