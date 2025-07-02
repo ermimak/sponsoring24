@@ -21,13 +21,13 @@
               </button>
             </div>
 
-            <div v-if="notifications.length === 0" class="text-center py-8 text-gray-500">
+            <div v-if="!notifications.data || notifications.data.length === 0" class="text-center py-8 text-gray-500">
               No notifications to display
             </div>
 
             <div v-else class="space-y-4">
               <div 
-                v-for="notification in notifications" 
+                v-for="notification in notifications.data" 
                 :key="notification.id" 
                 class="p-4 border rounded-md transition-colors duration-200"
                 :class="{'bg-blue-50 border-blue-200': !notification.read_at, 'border-gray-200': notification.read_at}"
@@ -71,15 +71,23 @@ import { computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { route } from '@/ziggy-plugin';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { formatDate } from '@/utils';
+import { onMounted } from 'vue';
 
 const props = defineProps({
-  notifications: {
-    type: Array,
-    default: () => []
+  notifications: Object,
+});
+
+onMounted(() => {
+  // Debug notifications
+  console.log('Admin notifications:', props.notifications);
+  if (props.notifications && props.notifications.data && props.notifications.data.length > 0) {
+    console.log('First notification:', props.notifications.data[0]);
+    console.log('First notification data:', props.notifications.data[0].data);
   }
 });
 
-const unreadCount = computed(() => props.notifications.filter(n => !n.read_at).length);
+const unreadCount = computed(() => props.notifications.data.filter(n => !n.read_at).length);
 
 // Format date to relative time (e.g. "2 hours ago")
 const formatDate = (dateString) => {
@@ -117,9 +125,15 @@ const formatDate = (dateString) => {
 
 // Get notification title based on type
 const getNotificationTitle = (notification) => {
+  if (!notification || !notification.data) {
+    return 'Notification';
+  }
+  
   const data = notification.data;
   
-  // Cannot read properties of undefined (reading 'type') data.type
+  if (!data.type) {
+    return data.message || 'Notification';
+  }
   
   switch (data.type) {
     case 'user_registered':
@@ -141,6 +155,9 @@ const getNotificationTitle = (notification) => {
 
 // Get notification message
 const getNotificationMessage = (notification) => {
+  if (!notification || !notification.data) {
+    return '';
+  }
   return notification.data.message || '';
 };
 

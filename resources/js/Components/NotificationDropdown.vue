@@ -28,11 +28,11 @@
       </div>
 
       <div class="max-h-72 overflow-y-auto">
-        <div v-if="notifications.length === 0" class="py-4 px-4 text-center text-sm text-gray-500">
+        <div v-if="!hasNotifications" class="py-4 px-4 text-center text-sm text-gray-500">
           No notifications
         </div>
         <div 
-          v-for="notification in notifications" 
+          v-for="notification in notificationsArray" 
           :key="notification.id" 
           class="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 transition-colors duration-200"
           :class="{'bg-blue-50': !notification.read_at}"
@@ -82,7 +82,28 @@ const props = defineProps({
 });
 
 const isOpen = ref(false);
-const unreadCount = computed(() => props.notifications.filter(n => !n.read_at).length);
+
+// Computed property to handle different notification data structures
+const notificationsArray = computed(() => {
+  // Check if notifications is an array
+  if (Array.isArray(props.notifications)) {
+    return props.notifications;
+  }
+  // Check if notifications has a data property that is an array (paginated response)
+  else if (props.notifications && props.notifications.data && Array.isArray(props.notifications.data)) {
+    return props.notifications.data;
+  }
+  // Default to empty array
+  return [];
+});
+
+// Check if we have any notifications to display
+const hasNotifications = computed(() => {
+  return notificationsArray.value.length > 0;
+});
+
+// Count unread notifications
+const unreadCount = computed(() => notificationsArray.value.filter(n => !n.read_at).length);
 
 // Close dropdown when clicking outside
 const handleClickOutside = (event) => {
@@ -93,6 +114,12 @@ const handleClickOutside = (event) => {
 
 onMounted(() => {
   document.addEventListener('click', handleClickOutside);
+  
+  // Debug notifications
+  console.log('Notifications prop:', props.notifications);
+  console.log('Notifications type:', typeof props.notifications);
+  console.log('Is Array?', Array.isArray(props.notifications));
+  console.log('Length:', props.notifications ? props.notifications.length : 'N/A');
 });
 
 onUnmounted(() => {
@@ -135,29 +162,74 @@ const formatDate = (dateString) => {
 
 // Get notification title based on type
 const getNotificationTitle = (notification) => {
-  const data = notification.data;
-  
-  switch (data.type) {
-    case 'account_approval':
-      return 'Account Approved';
-    case 'account_pending':
-      return 'Account Pending';
-    case 'account_rejection':
-      return 'Account Rejected';
-    case 'payment_received':
-      return 'Payment Received';
-    case 'project_update':
-      return 'Project Update';
-    case 'new_donation':
-      return 'New Donation';
-    default:
-      return data.message || 'Notification';
+  try {
+    if (!notification) {
+      return 'Notification';
+    }
+    
+    // Handle case where notification.data might be a string (JSON)
+    let data;
+    if (typeof notification.data === 'string') {
+      try {
+        data = JSON.parse(notification.data);
+      } catch (e) {
+        data = {};
+      }
+    } else {
+      data = notification.data || {};
+    }
+    
+    // If no type, return a default or message
+    if (!data || !data.type) {
+      return data && data.message ? data.message : 'Notification';
+    }
+    
+    switch (data.type) {
+      case 'account_approval':
+        return 'Account Approved';
+      case 'account_pending':
+        return 'Account Pending';
+      case 'account_rejection':
+        return 'Account Rejected';
+      case 'payment_received':
+        return 'Payment Received';
+      case 'project_update':
+        return 'Project Update';
+      case 'new_donation':
+        return 'New Donation';
+      default:
+        return data.message || 'Notification';
+    }
+  } catch (error) {
+    console.error('Error in getNotificationTitle:', error);
+    return 'Notification';
   }
 };
 
 // Get notification message
 const getNotificationMessage = (notification) => {
-  return notification.data.message || '';
+  try {
+    if (!notification) {
+      return '';
+    }
+    
+    // Handle case where notification.data might be a string (JSON)
+    let data;
+    if (typeof notification.data === 'string') {
+      try {
+        data = JSON.parse(notification.data);
+      } catch (e) {
+        data = {};
+      }
+    } else {
+      data = notification.data || {};
+    }
+    
+    return data.message || '';  
+  } catch (error) {
+    console.error('Error in getNotificationMessage:', error);
+    return '';
+  }
 };
 
 // Mark notification as read
@@ -175,7 +247,8 @@ const markAllAsRead = () => {
   router.post(route('dashboard.notifications.mark-all-as-read'), {}, {
     preserveScroll: true,
     onSuccess: () => {
-      props.notifications.forEach(notification => {
+      // Update the notification read status based on the structure
+      notificationsArray.value.forEach(notification => {
         if (!notification.read_at) {
           notification.read_at = new Date().toISOString();
         }
