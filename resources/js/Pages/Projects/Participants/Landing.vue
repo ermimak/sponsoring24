@@ -4,7 +4,7 @@
       <div class="relative w-full h-64 md:h-96">
         <img :src="project.image_url" alt="Event Image" class="w-full h-full object-cover" />
         <div class="absolute top-4 right-4">
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-80 text-purple-600">fundoo</span>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-80 text-purple-600">sponsoring24</span>
         </div>
       </div>
   
@@ -69,16 +69,16 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex flex-col md:flex-row justify-between items-center">
             <div class="mb-4 md:mb-0">
-              <img src="/images/logo.svg" alt="Fundoo Logo" class="h-8" />
+              <img src="/images/logo.svg" alt="Sponsoring24 Logo" class="h-8" />
             </div>
             <div class="flex space-x-6">
-              <a href="mailto:info@fundoo.com" class="text-gray-600 hover:text-purple-600">Contact</a>
+              <a href="mailto:info@sponsoring24.com" class="text-gray-600 hover:text-purple-600">Contact</a>
               <a href="/privacy" class="text-gray-600 hover:text-purple-600">Privacy Policy</a>
               <a href="/terms" class="text-gray-600 hover:text-purple-600">Terms</a>
             </div>
           </div>
           <div class="mt-8 text-center text-gray-500 text-sm">
-            &copy; {{ new Date().getFullYear() }} Fundoo. All rights reserved.
+            &copy; {{ new Date().getFullYear() }} Sponsoring24. All rights reserved.
           </div>
         </div>
       </footer>

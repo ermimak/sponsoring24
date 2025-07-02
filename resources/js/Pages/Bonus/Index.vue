@@ -35,10 +35,10 @@ viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 1
         <h3 class="text-xl font-bold mb-4">How it works</h3>
         <ol class="list-decimal list-inside space-y-2 text-gray-700">
           <li>Share your referral link with other clubs, organizations or schools.</li>
-          <li>Anyone who uses your referral link when registering will receive a CHF 50 discount on their first annual fundoo license.</li>
+          <li>Anyone who uses your referral link when registering will receive a CHF 50 discount on their first annual Sponsoring24 license.</li>
           <li>As a reward, you will receive a credit of CHF 100.*</li>
         </ol>
-        <p class="text-xs text-gray-500 mt-4">*The amount will be credited to your next project invoice, provided your contact has completed and invoiced a project with fundoo.</p>
+        <p class="text-xs text-gray-500 mt-4">*The amount will be credited to your next project invoice, provided your contact has completed and invoiced a project with Sponsoring24.</p>
       </div>
       <div v-if="bonusCredits.length" class="bg-white rounded-lg shadow p-6">
         <h3 class="text-lg font-bold mb-4">Your Referrals</h3>

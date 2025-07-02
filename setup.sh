@@ -21,4 +21,4 @@ docker compose exec -T app php artisan key:generate
 # Set proper permissions for storage and cache
 docker compose exec -T app chmod -R 775 storage bootstrap/cache
 
-echo "Setup completed! Your Laravel application is ready at https://fundoo.onrender.com" 
+echo "Setup completed! Your Laravel application is ready at https://sponsoring24.onrender.com" 

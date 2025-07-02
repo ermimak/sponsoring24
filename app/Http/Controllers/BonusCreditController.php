@@ -276,7 +276,7 @@ class BonusCreditController extends Controller
                 $referredUser->notify(new BonusCreditNotification($bonusCredit, 'discount_eligible', [
                     'currency' => 'CHF',
                     'discount_amount' => 50.00,
-                    'referrer_name' => $referrer ? $referrer->name : 'A Fundoo user'
+                    'referrer_name' => $referrer ? $referrer->name : 'A Sponsoring24 user'
                 ]));
             }
             

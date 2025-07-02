@@ -8,7 +8,7 @@
                     </svg>
                     New registration
                 </h1>
-                <p class="text-gray-600 mt-2">Please fill out the form below to register as an organizer and use fundoo for your fundraising efforts.</p>
+                <p class="text-gray-600 mt-2">Please fill out the form below to register as an organizer and use Sponsoring24 for your fundraising efforts.</p>
                 <p class="text-gray-600 mt-2">Once we have verified your information, we will send you a link to activate your account.</p>
                 
                 <div v-if="hasReferralCode" class="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-start">

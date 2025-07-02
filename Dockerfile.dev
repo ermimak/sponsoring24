@@ -107,7 +107,7 @@ else\n\
         echo "Created .env file from .env.example"\n\
     else\n\
         echo "No .env.example found, creating minimal .env file"\n\
-        echo "APP_NAME=Fundoo\n\
+        echo "APP_NAME=Sponsoring24\n\
 APP_ENV=local\n\
 APP_KEY=\n\
 APP_DEBUG=true\n\
@@ -120,7 +120,7 @@ LOG_LEVEL=debug\n\
 DB_CONNECTION=pgsql\n\
 DB_HOST=db\n\
 DB_PORT=5432\n\
-DB_DATABASE=fundoo\n\
+DB_DATABASE=sponsoring24\n\
 DB_USERNAME=postgres\n\
 DB_PASSWORD=password" > .env\n\
     fi\n\

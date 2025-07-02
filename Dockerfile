@@ -121,7 +121,7 @@ if [ ! -f .env ]; then\n\
 APP_ENV=production\n\
 APP_KEY=$APP_KEY\n\
 APP_DEBUG=false\n\
-APP_URL=https://fundoo.onrender.com\n\
+APP_URL=https://sponsoring24.onrender.com\n\
 \n\
 LOG_CHANNEL=stack\n\
 LOG_DEPRECATIONS_CHANNEL=null\n\

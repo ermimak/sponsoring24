@@ -4,7 +4,7 @@
       <!-- Page Header -->
       <div class="mb-8">
         <h1 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">License Management</h1>
-        <p class="text-gray-600 mt-2">View and manage your Fundoo license details</p>
+        <p class="text-gray-600 mt-2">View and manage your Sponsoring24 license details</p>
       </div>
 
       <div v-if="license" class="bg-white shadow-md rounded-xl p-6 mb-6 border border-gray-200">
@@ -121,7 +121,7 @@
         <div v-else-if="license.status === 'expired'" class="border-t border-gray-200 pt-6">
           <h3 class="text-lg font-semibold mb-4 text-gray-800">Renew Your License</h3>
           <p class="text-gray-600 mb-4">
-            Your license has expired. Renew now to continue using all features of Fundoo.
+            Your license has expired. Renew now to continue using all features of Sponsoring24.
           </p>
           <button class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-purple-700 active:bg-purple-800 focus:outline-none focus:border-purple-800 focus:ring ring-purple-300 disabled:opacity-25 transition ease-in-out duration-150">
             Renew License
@@ -136,7 +136,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
           <h3 class="text-lg font-medium text-gray-900 mb-2">No Active License</h3>
-          <p class="text-gray-500 mb-6">You don't have an active license. Purchase a license to unlock all features of Fundoo.</p>
+          <p class="text-gray-500 mb-6">You don't have an active license. Purchase a license to unlock all features of Sponsoring24.</p>
           <a 
             :href="route('license.purchase')" 
             class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-purple-700 active:bg-purple-800 focus:outline-none focus:border-purple-800 focus:ring ring-purple-300 disabled:opacity-25 transition ease-in-out duration-150"

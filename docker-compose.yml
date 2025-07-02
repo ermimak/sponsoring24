@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fundoo-app
+    container_name: sponsoring24-app
     restart: unless-stopped
     working_dir: /var/www/html
     user: root
@@ -19,7 +19,7 @@ services:
       - DB_CONNECTION=pgsql
       - DB_HOST=db
       - DB_PORT=5432
-      - DB_DATABASE=fundoo
+      - DB_DATABASE=sponsoring24
       - DB_USERNAME=postgres
       - DB_PASSWORD=password
       - REDIS_HOST=redis
@@ -42,11 +42,11 @@ services:
       - db
       - redis
     networks:
-      - fundoo-network
+      - sponsoring24-network
 
   nginx:
     image: nginx:alpine
-    container_name: fundoo-nginx
+    container_name: sponsoring24-nginx
     restart: unless-stopped
     ports:
       - "${PORT:-80}:80"
@@ -56,14 +56,14 @@ services:
     depends_on:
       - app
     networks:
-      - fundoo-network
+      - sponsoring24-network
 
   db:
     image: postgres:15-alpine
-    container_name: fundoo-db
+    container_name: sponsoring24-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: fundoo
+      POSTGRES_DB: sponsoring24
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
@@ -71,24 +71,24 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
-      - fundoo-network
+      - sponsoring24-network
 
   redis:
     image: redis:alpine
-    container_name: fundoo-redis
+    container_name: sponsoring24-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
       - redis-data:/data
     networks:
-      - fundoo-network
+      - sponsoring24-network
 
   node:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: fundoo-node
+    container_name: sponsoring24-node
     restart: unless-stopped
     working_dir: /var/www/html
     volumes:
@@ -104,14 +104,14 @@ services:
     ports:
       - "5173:5173"
     networks:
-      - fundoo-network
+      - sponsoring24-network
     deploy:
       resources:
         limits:
           memory: 512M
 
 networks:
-  fundoo-network:
+  sponsoring24-network:
     driver: bridge
 
 volumes:

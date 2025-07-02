@@ -16,7 +16,7 @@ class LicenseService
      */
     public function generateLicenseKey()
     {
-        $prefix = 'FUNDOO';
+        $prefix = 'SP24';
         $randomPart = strtoupper(Str::random(16));
         $licenseKey = $prefix . '-' . $randomPart;
         

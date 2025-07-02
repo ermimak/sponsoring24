@@ -53,7 +53,7 @@ class ReferralBonusNotification extends Notification implements ShouldQueue
             ->line($referredUser->name . ' has purchased a license using your referral link.')
             ->line('We have credited CHF 100 to your account as a referral bonus.')
             ->action('View Your Referrals', url('/dashboard/referrals'))
-            ->line('Thank you for spreading the word about Fundoo!');
+            ->line('Thank you for spreading the word about Sponsoring24!');
     }
 
     /**

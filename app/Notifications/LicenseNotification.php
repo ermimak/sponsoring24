@@ -99,15 +99,15 @@ class LicenseNotification extends Notification implements ShouldQueue
     {
         switch ($this->type) {
             case 'purchase_success':
-                return 'Your Fundoo License Purchase Was Successful';
+                return 'Your Sponsoring24 License Purchase Was Successful';
             case 'license_expiring':
-                return 'Your Fundoo License Is About to Expire';
+                return 'Your Sponsoring24 License Is About to Expire';
             case 'license_expired':
-                return 'Your Fundoo License Has Expired';
+                return 'Your Sponsoring24 License Has Expired';
             case 'license_renewed':
-                return 'Your Fundoo License Has Been Renewed';
+                return 'Your Sponsoring24 License Has Been Renewed';
             default:
-                return 'Fundoo License Notification';
+                return 'Sponsoring24 License Notification';
         }
     }
 
@@ -128,20 +128,20 @@ class LicenseNotification extends Notification implements ShouldQueue
                     $discountAmount = $this->data['discount_amount'] ?? 0;
                     $discountMessage = " A discount of {$currency} {$discountAmount} was applied to your purchase.";
                 }
-                return "Your annual Fundoo license purchase for {$currency} {$amount} was successful.{$discountMessage} Your license is now active.";
+                return "Your annual Sponsoring24 license purchase for {$currency} {$amount} was successful.{$discountMessage} Your license is now active.";
             
             case 'license_expiring':
                 $daysLeft = $this->data['days_left'] ?? 30;
-                return "Your Fundoo license will expire in {$daysLeft} days. Please renew your license to continue using all features.";
+                return "Your Sponsoring24 license will expire in {$daysLeft} days. Please renew your license to continue using all features.";
             
             case 'license_expired':
-                return "Your Fundoo license has expired. Please renew your license to continue using all features.";
+                return "Your Sponsoring24 license has expired. Please renew your license to continue using all features.";
             
             case 'license_renewed':
-                return "Your Fundoo license has been renewed for another year. Thank you for your continued support!";
+                return "Your Sponsoring24 license has been renewed for another year. Thank you for your continued support!";
             
             default:
-                return "This is a notification regarding your Fundoo license.";
+                return "This is a notification regarding your Sponsoring24 license.";
         }
     }
 }

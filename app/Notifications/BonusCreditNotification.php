@@ -122,8 +122,8 @@ class BonusCreditNotification extends Notification implements ShouldQueue
                 return "{$referredName} used your referral code. A bonus credit of {$currency} {$amount} has been added to your account.";
             case 'discount_eligible':
                 $discountAmount = $this->actionData['discount_amount'] ?? '50.00';
-                $referrerName = $this->actionData['referrer_name'] ?? 'A Fundoo user';
-                return "Thanks to {$referrerName}'s referral, you are eligible for a {$currency} {$discountAmount} discount on your first annual Fundoo license. This discount will be automatically applied when you purchase your license.";
+                $referrerName = $this->actionData['referrer_name'] ?? 'A Sponsoring24 user';
+                return "Thanks to {$referrerName}'s referral, you are eligible for a {$currency} {$discountAmount} discount on your first annual Sponsoring24 license. This discount will be automatically applied when you purchase your license.";
             default:
                 return "Your bonus credit of {$currency} {$amount} has been updated.";
         }

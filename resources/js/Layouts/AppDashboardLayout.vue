@@ -32,7 +32,7 @@
         <SidebarLink icon="currency-dollar" label="Bonus Credit" to="/dashboard/bonus" />
       </nav>
       <div class="mt-auto p-4 text-xs text-blue-200 border-t border-white/10 flex items-center justify-center">
-        <span>© Sponsoring24 2025</span>
+        <span>©  2025</span>
       </div>
     </aside>
 

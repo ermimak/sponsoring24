@@ -174,7 +174,7 @@ class LicenseController extends Controller
                     'price_data' => [
                         'currency' => 'chf',
                         'product_data' => [
-                            'name' => 'Fundoo Annual License',
+                            'name' => 'Sponsoring24 Annual License',
                             'description' => 'Access to all premium features for one year',
                         ],
                         'unit_amount' => (int)($finalAmount * 100), // Convert to cents

@@ -44,9 +44,9 @@ jobs:
         path: build-artifacts
         # The run ID of the workflow that produced the artifact. This is crucial for cross-workflow artifact fetching.
         run-id: ${{ github.event.workflow_run.id }}
-        # Provide the FUNDOO secret for authentication to download artifacts from another workflow run.
-        # This has been updated from secrets.GITHUB_TOKEN to secrets.FUNDOO based on your provided secrets.
-        github-token: ${{ secrets.FUNDOO }}
+        # Provide the SPONSORING24 secret for authentication to download artifacts from another workflow run.
+        # This has been updated from secrets.GITHUB_TOKEN to secrets.SPONSORING24 based on your provided secrets.
+        github-token: ${{ secrets.SPONSORING24 }}
       # Do not continue if artifact download fails.
       continue-on-error: false
 
@@ -89,7 +89,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           set -e
-          cd /var/www/fundoo
+          cd /var/www/sponsoring24
           # Pull the latest code (optional, as artifacts are used for build, but good for config/db changes)
           git pull origin main
           # Ensure target directories exist

@@ -172,7 +172,7 @@ class EmailService
             // Replace placeholders in subject first
             $subject = $this->replacePlaceholders($subject, [
                 'donor_name' => $donation->donor_name ?? 'Donor',
-                'project_name' => $project ? $project->name : config('app.name', 'Fundoo'),
+                'project_name' => $project ? $project->name : config('app.name', 'Sponsoring24'),
                 'amount' => $donation->amount,
                 'currency' => $donation->currency,
                 'participant_name' => $participant ? $participant->first_name . ' ' . $participant->last_name : 'Participant',
@@ -412,7 +412,7 @@ class EmailService
         $defaults = [
             'currency' => 'CHF',
             'date' => date('d.m.Y'),
-            'project_name' => config('app.name', 'Fundoo'),
+            'project_name' => config('app.name', 'Sponsoring24'),
             'first_name' => 'Participant',
             'last_name' => '',
             'donor_name' => 'Donor',
@@ -463,8 +463,8 @@ class EmailService
     {
         // Set default values for null fields
         $footer = $template->footer ?? '© ' . date('Y') . ' ' . config('app.name') . '. All rights reserved.';
-        $senderName = $template->sender_name ?? config('mail.from.name', 'Fundoo');
-        $replyTo = $template->reply_to ?? config('mail.from.address', 'noreply@fundoo.app');
+        $senderName = $template->sender_name ?? config('mail.from.name', 'Sponsoring24');
+        $replyTo = $template->reply_to ?? config('mail.from.address', 'noreply@sponsoring24.app');
         $regarding = $template->regarding ?? '';
         $showLogo = $template->show_logo ?? false;
         $showHeaderImage = $template->show_header_image ?? false;

@@ -690,7 +690,7 @@
                 Facebook
               </a>
               <a 
-                :href="`https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join Fundoo and get CHF 50 off your first annual license!')}`"
+                :href="`https://twitter.com/intent/tweet?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent('Join Sponsoring24 and get CHF 50 off your first annual license!')}`"
                 target="_blank"
                 class="inline-flex items-center px-4 py-2 bg-blue-400 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-blue-500 active:bg-blue-600 focus:outline-none focus:border-blue-600 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150"
               >
@@ -700,7 +700,7 @@
                 Twitter
               </a>
               <a 
-                :href="`mailto:?subject=${encodeURIComponent('Join Fundoo and save CHF 50')}&body=${encodeURIComponent('I thought you might be interested in Fundoo. Sign up using my referral link and get CHF 50 off your first annual license: ' + referralLink)}`"
+                :href="`mailto:?subject=${encodeURIComponent('Join Sponsoring24 and save CHF 50')}&body=${encodeURIComponent('I thought you might be interested in Sponsoring24. Sign up using my referral link and get CHF 50 off your first annual license: ' + referralLink)}`"
                 class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-medium text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-800 focus:outline-none focus:border-gray-800 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
