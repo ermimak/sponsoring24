@@ -43,7 +43,7 @@ class WelcomeController extends Controller
 
         // Check if there is no project
         if (Project::count() == 0) {
-            $projects = [];
+            $projects = collect([]);
         } else {
             $projects = Project::where('is_featured', true)
             ->where('public_donation_enabled', true)
@@ -54,7 +54,7 @@ class WelcomeController extends Controller
             ->get();
         }    
         // If no featured projects, get the most recent ones
-        if ($projects->isEmpty()) {
+        if (is_null($projects)) {
             $projects = Project::where('public_donation_enabled', true)
                 ->withCount(['participants', 'donations'])
                 ->withSum('donations', 'amount')
@@ -64,6 +64,10 @@ class WelcomeController extends Controller
         }
         
         // Format project data for display
+        // Call to a member function map() on array
+        if (!is_array($projects)) {
+            $projects = collect($projects);
+        }
         $projects = $projects->map(function ($project) {
                 // Handle translatable fields
                 $name = $project->name;

@@ -13,7 +13,9 @@ README.md
 .gitignore
 .editorconfig
 .phpunit.xml
-docker/
+docker/*
+!docker/php/
+!docker/start.sh
 tests/
 storage/logs/*
 storage/framework/cache/*
