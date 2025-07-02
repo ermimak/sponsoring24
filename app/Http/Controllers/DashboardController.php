@@ -40,16 +40,58 @@ class DashboardController extends Controller
             ->first();
         
         // Get user's projects count
-        $projectsCount = Project::where('user_id', $user->id)->count();
+        $projectsCount = Project::where('created_by', $user->id)->count();
+        
+        // Calculate projects growth
+        $currentMonthProjects = Project::where('created_by', $user->id)
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
+            
+        $lastMonthProjects = Project::where('created_by', $user->id)
+            ->where('created_at', '>=', now()->subMonth()->startOfMonth())
+            ->where('created_at', '<', now()->startOfMonth())
+            ->count();
+            
+        $projectsGrowth = 0;
+        if ($lastMonthProjects > 0) {
+            $projectsGrowth = round((($currentMonthProjects - $lastMonthProjects) / $lastMonthProjects) * 100);
+        } elseif ($currentMonthProjects > 0) {
+            $projectsGrowth = 100; // 100% growth if there were no projects last month but there are this month
+        }
         
         // Get user's total donations received (if they have participants)
         $totalDonations = Donation::whereHas('participant', function($query) use ($user) {
                 $query->whereHas('project', function($q) use ($user) {
-                    $q->where('user_id', $user->id);
+                    $q->where('created_by', $user->id);
                 });
             })
-            ->where('status', 'completed')
+            ->where('status', 'paid')
             ->sum('amount');
+            
+        // Calculate donations growth
+        $currentMonthDonations = Donation::whereHas('participant', function($query) use ($user) {
+                $query->whereHas('project', function($q) use ($user) {
+                    $q->where('created_by', $user->id);
+                });
+            })
+            ->where('status', 'paid')
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->sum('amount');
+            
+        $lastMonthDonations = Donation::whereHas('participant', function($query) use ($user) {
+                $query->whereHas('project', function($q) use ($user) {
+                    $q->where('created_by', $user->id);
+                });
+            })
+            ->where('status', 'paid')
+            ->where('created_at', '>=', now()->subMonth()->startOfMonth())
+            ->where('created_at', '<', now()->startOfMonth())
+            ->sum('amount');
+            
+        $donationsGrowth = 0;
+        if ($lastMonthDonations > 0) {
+            $donationsGrowth = round((($currentMonthDonations - $lastMonthDonations) / $lastMonthDonations) * 100);
+        }
             
         // Get referral stats
         $referralStats = [
@@ -70,8 +112,27 @@ class DashboardController extends Controller
                 ->sum('amount')
         ];
         
+        // Calculate referrals growth
+        $currentMonthReferrals = BonusCredit::where('user_id', $user->id)
+            ->where('type', 'referral')
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
+            
+        $lastMonthReferrals = BonusCredit::where('user_id', $user->id)
+            ->where('type', 'referral')
+            ->where('created_at', '>=', now()->subMonth()->startOfMonth())
+            ->where('created_at', '<', now()->startOfMonth())
+            ->count();
+            
+        $referralsGrowth = 0;
+        if ($lastMonthReferrals > 0) {
+            $referralsGrowth = round((($currentMonthReferrals - $lastMonthReferrals) / $lastMonthReferrals) * 100);
+        } elseif ($currentMonthReferrals > 0) {
+            $referralsGrowth = 100; // 100% growth if there were no referrals last month but there are this month
+        }
+        
         // Get recent activity
-        $recentProjects = Project::where('user_id', $user->id)
+        $recentProjects = Project::where('created_by', $user->id)
             ->orderBy('updated_at', 'desc')
             ->limit(3)
             ->get()
@@ -123,21 +184,30 @@ class DashboardController extends Controller
             'referral_stats' => $referralStats
         ]);
         
+        // Debug data being sent to the view
+        $statsData = [
+            'activeLicense' => $activeLicense ? [
+                'key' => $activeLicense->license_key,
+                'expires_at' => $activeLicense->expires_at,
+                'days_remaining' => $activeLicense->expires_at ? now()->diffInDays($activeLicense->expires_at, false) : null
+            ] : null,
+            'projectsCount' => $projectsCount,
+            'projectsGrowth' => $projectsGrowth,
+            'totalDonations' => $totalDonations,
+            'donationsGrowth' => $donationsGrowth,
+            'referrals' => $referralStats,
+            'referralsGrowth' => $referralsGrowth,
+            'newUsersCount' => $newUsersCount,
+            'newUsersGrowth' => $newUsersGrowth
+        ];
+        
+        \Log::debug('Dashboard Stats Data:', $statsData);
+        \Log::debug('Recent Projects:', $recentProjects->toArray());
+        
         return Inertia::render('Dashboard/Index', [
             'notifications' => $notifications,
             'unreadNotificationsCount' => $unreadCount,
-            'stats' => [
-                'activeLicense' => $activeLicense ? [
-                    'key' => $activeLicense->license_key,
-                    'expires_at' => $activeLicense->expires_at,
-                    'days_remaining' => $activeLicense->expires_at ? now()->diffInDays($activeLicense->expires_at, false) : null
-                ] : null,
-                'projectsCount' => $projectsCount,
-                'totalDonations' => $totalDonations,
-                'referrals' => $referralStats,
-                'newUsersCount' => $newUsersCount,
-                'newUsersGrowth' => $newUsersGrowth
-            ],
+            'stats' => $statsData,
             'recentProjects' => $recentProjects
         ]);
     }

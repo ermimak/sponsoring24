@@ -36,12 +36,15 @@ d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.
                                             <dt class="text-sm font-medium text-gray-500 truncate">Total Donations</dt>
                                             <dd class="flex items-baseline">
                                                 <div class="text-2xl font-semibold text-gray-900">{{ formatCurrency(stats.totalDonations) }}</div>
-                                                <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                                                    <svg class="self-center flex-shrink-0 h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <div v-if="stats.donationsGrowth !== 0" class="ml-2 flex items-baseline text-sm font-semibold" :class="stats.donationsGrowth >= 0 ? 'text-green-600' : 'text-red-600'">
+                                                    <svg v-if="stats.donationsGrowth >= 0" class="self-center flex-shrink-0 h-5 w-5" :class="stats.donationsGrowth >= 0 ? 'text-green-500' : 'text-red-500'" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                                     </svg>
-                                                    <span class="sr-only">Increased by</span>
-                                                    12%
+                                                    <svg v-else class="self-center flex-shrink-0 h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span class="sr-only">{{ stats.donationsGrowth >= 0 ? 'Increased' : 'Decreased' }} by</span>
+                                                    {{ Math.abs(stats.donationsGrowth) }}%
                                                 </div>
                                             </dd>
                                         </dl>
@@ -70,12 +73,15 @@ d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9
                                             <dt class="text-sm font-medium text-gray-500 truncate">Active Projects</dt>
                                             <dd class="flex items-baseline">
                                                 <div class="text-2xl font-semibold text-gray-900">{{ stats.projectsCount }}</div>
-                                                <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                                                    <svg class="self-center flex-shrink-0 h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <div v-if="stats.projectsGrowth !== 0" class="ml-2 flex items-baseline text-sm font-semibold" :class="stats.projectsGrowth >= 0 ? 'text-green-600' : 'text-red-600'">
+                                                    <svg v-if="stats.projectsGrowth >= 0" class="self-center flex-shrink-0 h-5 w-5" :class="stats.projectsGrowth >= 0 ? 'text-green-500' : 'text-red-500'" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                                     </svg>
-                                                    <span class="sr-only">Increased by</span>
-                                                    3
+                                                    <svg v-else class="self-center flex-shrink-0 h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span class="sr-only">{{ stats.projectsGrowth >= 0 ? 'Increased' : 'Decreased' }} by</span>
+                                                    {{ Math.abs(stats.projectsGrowth) }}
                                                 </div>
                                             </dd>
                                         </dl>
@@ -104,12 +110,15 @@ d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857
                                             <dt class="text-sm font-medium text-gray-500 truncate">Total Donors</dt>
                                             <dd class="flex items-baseline">
                                                 <div class="text-2xl font-semibold text-gray-900">{{ stats.referrals.totalReferrals }}</div>
-                                                <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                                                    <svg class="self-center flex-shrink-0 h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <div v-if="stats.referralsGrowth !== 0" class="ml-2 flex items-baseline text-sm font-semibold" :class="stats.referralsGrowth >= 0 ? 'text-green-600' : 'text-red-600'">
+                                                    <svg v-if="stats.referralsGrowth >= 0" class="self-center flex-shrink-0 h-5 w-5" :class="stats.referralsGrowth >= 0 ? 'text-green-500' : 'text-red-500'" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                                                     </svg>
-                                                    <span class="sr-only">Increased by</span>
-                                                    8%
+                                                    <svg v-else class="self-center flex-shrink-0 h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                    </svg>
+                                                    <span class="sr-only">{{ stats.referralsGrowth >= 0 ? 'Increased' : 'Decreased' }} by</span>
+                                                    {{ Math.abs(stats.referralsGrowth) }}%
                                                 </div>
                                             </dd>
                                         </dl>

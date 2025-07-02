@@ -61,7 +61,7 @@ Route::middleware(['auth', 'web'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Dashboard Routes
-    Route::get('/dashboard', fn () => Inertia::render('Dashboard/Index'))->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
 
     // Projects
     Route::prefix('dashboard/projects')->name('dashboard.projects.')->group(function () {

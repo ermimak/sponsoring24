@@ -18,6 +18,9 @@ class ProjectController extends Controller
         // Get projects that are created by the current user or are public
         return Project::withCount(['participants', 'donations'])
             ->withSum('donations', 'amount')
+            ->withSum(['donations as paid_donations_sum_amount' => function($query) {
+                $query->where('status', 'paid');
+            }], 'amount')
             ->where('created_by', Auth::id())
             ->paginate(20);
     }
