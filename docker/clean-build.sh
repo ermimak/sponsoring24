@@ -14,18 +14,26 @@ fi
 # Ensure public/build directory exists
 mkdir -p /var/www/html/public/build
 
-# If we're in development mode, run npm install and build
-if [ "${APP_ENV}" = "local" ] || [ "${APP_ENV}" = "development" ]; then
-    echo "🔧 Development environment detected, installing npm dependencies..."
+# Check if node_modules exists and install if needed
+if [ ! -d "node_modules" ] || [ ! -f "node_modules/.package-lock.json" ]; then
+    echo "🔧 Installing npm dependencies..."
     npm ci
-    
-    echo "🔨 Building fresh assets..."
+fi
+
+# Check if manifest.json exists and has content, if not, build the assets
+if [ ! -f "/var/www/html/public/build/manifest.json" ] || [ ! -s "/var/www/html/public/build/manifest.json" ] || [ "$(cat /var/www/html/public/build/manifest.json)" = "{}" ]; then
+    echo "⚠️ No valid manifest.json found, building fresh assets..."
+    # Force NODE_ENV to production for optimal build
+    export NODE_ENV=production
     npm run build
-    
     echo "✅ Fresh assets built successfully"
 else
-    echo "🏭 Production environment detected, assuming assets were built during image creation"
+    echo "✅ Valid manifest.json found, using existing assets"
 fi
+
+# Ensure proper permissions on built assets
+chown -R www-data:www-data /var/www/html/public/build
+chmod -R 775 /var/www/html/public/build
 
 # Generate Ziggy routes for Vue.js
 echo "🔄 Generating Ziggy routes..."

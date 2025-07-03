@@ -67,29 +67,23 @@ class DashboardController extends Controller
             $projectsGrowth = 100; // 100% growth if there were no projects last month but there are this month
         }
         
-        // Get user's total donations received (if they have participants)
-        $totalDonations = Donation::whereHas('participant', function($query) use ($user) {
-            $query->whereHas('projects', function($q) use ($user) {
-                $q->where('created_by', $user->id);
-            });
+        // Get user's total donations received (if they have projects)
+        $totalDonations = Donation::whereHas('project', function($query) use ($user) {
+            $query->where('created_by', $user->id);
         })
             ->where('status', 'paid')
             ->sum('amount');
             
         // Calculate donations growth
-        $currentMonthDonations = Donation::whereHas('participant', function($query) use ($user) {
-            $query->whereHas('projects', function($q) use ($user) {
-                $q->where('created_by', $user->id);
-            });
+        $currentMonthDonations = Donation::whereHas('project', function($query) use ($user) {
+            $query->where('created_by', $user->id);
         })
             ->where('status', 'paid')
             ->where('created_at', '>=', now()->startOfMonth())
             ->sum('amount');
             
-        $lastMonthDonations = Donation::whereHas('participant', function($query) use ($user) {
-            $query->whereHas('projects', function($q) use ($user) {
-                $q->where('created_by', $user->id);
-            });
+        $lastMonthDonations = Donation::whereHas('project', function($query) use ($user) {
+            $query->where('created_by', $user->id);
         })
             ->where('status', 'paid')
             ->where('created_at', '>=', now()->subMonth()->startOfMonth())
