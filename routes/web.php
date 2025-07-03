@@ -28,6 +28,11 @@ use Inertia\Inertia;
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('/projects', fn () => Inertia::render('Projects/Index'))->name('projects.index');
 
+// Health Check for Docker
+Route::get('/health', function() {
+    return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
+});
+
 // Test routes (no auth required)
 Route::get('/test-email/{type?}', [ParticipantController::class, 'testTemplateEmail'])->name('test-template-email');
 
