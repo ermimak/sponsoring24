@@ -54,6 +54,11 @@ class User extends Authenticatable
             }
         });
     }
+    
+    public function licenses()
+    {
+        return $this->hasMany(License::class);
+    }
 
     // Removed getPermissionsAttribute to rely on Spatie's default permissions relationship
 }
