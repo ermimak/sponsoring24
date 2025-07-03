@@ -45,12 +45,12 @@ REDIS_HOST=127.0.0.1
 REDIS_PASSWORD=null
 REDIS_PORT=6379
 
-MAIL_MAILER=smtp
-MAIL_HOST=${MAIL_HOST}
-MAIL_PORT=${MAIL_PORT}
-MAIL_USERNAME=${MAIL_USERNAME}
-MAIL_PASSWORD=${MAIL_PASSWORD}
-MAIL_ENCRYPTION=${MAIL_ENCRYPTION}
+MAIL_MAILER=${MAIL_MAILER:-smtp}
+MAIL_HOST=${MAIL_HOST:-mailhog}
+MAIL_PORT=${MAIL_PORT:-1025}
+MAIL_USERNAME=${MAIL_USERNAME:-null}
+MAIL_PASSWORD=${MAIL_PASSWORD:-null}
+MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-null}
 MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-"hello@sponsoring24.com"}
 MAIL_FROM_NAME=${MAIL_FROM_NAME:-"Sponsoring24"}
 
@@ -185,9 +185,14 @@ supervisorctl update
 supervisorctl start laravel-scheduler
 supervisorctl start laravel-queue
 
-echo "Starting Nginx..."
-nginx -t
-service nginx start
+# Clean up old build artifacts and ensure fresh assets
+echo "Cleaning up old build artifacts and ensuring fresh assets..."
+/var/www/html/docker/clean-build.sh
+
+# Start PHP-FPM and Nginx
+echo "Starting PHP-FPM and Nginx..."
+php-fpm -D
+nginx -g "daemon off;"
 
 echo "Nginx started. Starting PHP-FPM..."
 php-fpm

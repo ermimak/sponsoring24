@@ -111,9 +111,17 @@ RUN rm -rf /etc/nginx/sites-enabled/default && \
     }\n\
 }' > /etc/nginx/conf.d/default.conf
 
-# Install dependencies and build assets
+# Install PHP dependencies only (Node/NPM handled by separate service)
 RUN composer install --no-dev --optimize-autoloader
+
+# Generate Ziggy routes for Vue.js
 RUN if [ -f artisan ]; then php artisan ziggy:generate; fi
+
+# Create directory for Ziggy in node_modules (will be used by node service)
+RUN mkdir -p /var/www/html/node_modules/ziggy
+
+# Remove any old build artifacts directory if it exists
+RUN rm -rf /var/www/html/build-artifacts
 
 # Create supervisor configuration for Laravel scheduler and queue
 RUN mkdir -p /etc/supervisor/conf.d /var/log/supervisor

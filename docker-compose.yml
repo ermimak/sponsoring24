@@ -10,6 +10,10 @@ services:
     working_dir: /var/www/html
     ports:
       - "${PORT:-80}:80"
+    depends_on:
+      - db
+      - redis
+      - mailhog
     environment:
       - APP_NAME=Sponsoring24
       - APP_ENV=${APP_ENV:-production}
@@ -51,6 +55,7 @@ services:
     volumes:
       - ./storage/app/public:/var/www/html/storage/app/public
       - ./storage/logs:/var/www/html/storage/logs
+      - ./public/build:/var/www/html/public/build
     networks:
       - sponsoring24-network
 
@@ -86,6 +91,34 @@ services:
       retries: 5
     networks:
       - sponsoring24-network
+      
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: sponsoring24-mailhog
+    ports:
+      - "${MAILHOG_PORT:-8025}:8025"
+      - "1025:1025"
+    networks:
+      - sponsoring24-network
+      
+  node:
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile
+    container_name: sponsoring24-node
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+      - /var/www/html/node_modules
+    environment:
+      - NODE_ENV=production
+      - VITE_APP_URL=${APP_URL:-https://sponsoring24.onrender.com}
+      - HOST=0.0.0.0
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    networks:
+      - sponsoring24-network
 
 networks:
   sponsoring24-network:
@@ -94,3 +127,4 @@ networks:
 volumes:
   db-data:
   redis-data:
+  node_modules:
