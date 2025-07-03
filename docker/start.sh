@@ -185,6 +185,10 @@ supervisorctl update
 supervisorctl start laravel-scheduler
 supervisorctl start laravel-queue
 
+# Fix storage directory permissions
+echo "Fixing storage directory permissions..."
+/var/www/html/docker/fix-permissions.sh
+
 # Clean up old build artifacts and ensure fresh assets
 echo "Cleaning up old build artifacts and ensuring fresh assets..."
 /var/www/html/docker/clean-build.sh
