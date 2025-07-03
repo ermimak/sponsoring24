@@ -187,11 +187,61 @@ supervisorctl start laravel-queue
 
 # Fix storage directory permissions
 echo "Fixing storage directory permissions..."
-/var/www/html/docker/fix-permissions.sh
+
+# Set correct permissions for Laravel storage directories
+echo "🔑 Setting correct permissions for Laravel storage directories..."
+
+# Set ownership to www-data (web server user)
+chown -R www-data:www-data /var/www/html/storage
+chown -R www-data:www-data /var/www/html/bootstrap/cache
+
+# Set directory permissions to 775 (drwxrwxr-x)
+find /var/www/html/storage -type d -exec chmod 775 {} \;
+find /var/www/html/bootstrap/cache -type d -exec chmod 775 {} \;
+
+# Set file permissions to 664 (rw-rw-r--)
+find /var/www/html/storage -type f -exec chmod 664 {} \;
+find /var/www/html/bootstrap/cache -type f -exec chmod 664 {} \;
+
+# Ensure log directory exists and has correct permissions
+mkdir -p /var/www/html/storage/logs
+chmod 775 /var/www/html/storage/logs
+touch /var/www/html/storage/logs/laravel.log
+chmod 664 /var/www/html/storage/logs/laravel.log
+chown www-data:www-data /var/www/html/storage/logs/laravel.log
+
+# Ensure public/build directory exists and has correct permissions
+echo "🔑 Setting correct permissions for Vite build directory..."
+mkdir -p /var/www/html/public/build
+chown -R www-data:www-data /var/www/html/public/build
+chmod -R 775 /var/www/html/public/build
 
 # Clean up old build artifacts and ensure fresh assets
 echo "Cleaning up old build artifacts and ensuring fresh assets..."
-/var/www/html/docker/clean-build.sh
+
+# Ensure public/build directory exists
+mkdir -p /var/www/html/public/build
+
+# Check if node_modules exists and install if needed
+if [ ! -d "node_modules" ] || [ ! -f "node_modules/.package-lock.json" ]; then
+    echo "🔧 Installing npm dependencies..."
+    npm ci
+fi
+
+# Check if manifest.json exists and has content, if not, build the assets
+if [ ! -f "/var/www/html/public/build/manifest.json" ] || [ ! -s "/var/www/html/public/build/manifest.json" ] || [ "$(cat /var/www/html/public/build/manifest.json 2>/dev/null)" = "{}" ]; then
+    echo "⚠️ No valid manifest.json found, building fresh assets..."
+    # Force NODE_ENV to production for optimal build
+    export NODE_ENV=production
+    npm run build
+    echo "✅ Fresh assets built successfully"
+else
+    echo "✅ Valid manifest.json found, using existing assets"
+fi
+
+# Ensure proper permissions on built assets
+chown -R www-data:www-data /var/www/html/public/build
+chmod -R 775 /var/www/html/public/build
 
 # Start PHP-FPM and Nginx
 echo "Starting PHP-FPM and Nginx..."
