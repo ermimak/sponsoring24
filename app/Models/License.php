@@ -82,4 +82,9 @@ class License extends Model
 
         return now()->diffInDays($this->expires_at);
     }
+    
+    public function getIsActiveAttribute()
+    {
+        return $this->isActive();
+    }
 }

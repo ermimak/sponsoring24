@@ -31,13 +31,21 @@ class DashboardController extends Controller
         $unreadCount = $user->unreadNotifications()->count();
         
         // Get user's active license if any
+        // Check if license is not null
+        if ($user->licenses()->where('status', 'active')->where('expires_at', '>', now())->exists()) {
+            $activeLicense = $user->licenses()->where('status', 'active')->where('expires_at', '>', now())->first();
+        } else {
+            $activeLicense = null;
+        }
+                
         $activeLicense = License::where('user_id', $user->id)
-            ->where('active', true)
+            ->where('status', 'active')
             ->where(function($query) {
                 $query->whereNull('expires_at')
                       ->orWhere('expires_at', '>', now());
             })
             ->first();
+        
         
         // Get user's projects count
         $projectsCount = Project::where('created_by', $user->id)->count();
@@ -61,28 +69,28 @@ class DashboardController extends Controller
         
         // Get user's total donations received (if they have participants)
         $totalDonations = Donation::whereHas('participant', function($query) use ($user) {
-                $query->whereHas('project', function($q) use ($user) {
-                    $q->where('created_by', $user->id);
-                });
-            })
+            $query->whereHas('projects', function($q) use ($user) {
+                $q->where('created_by', $user->id);
+            });
+        })
             ->where('status', 'paid')
             ->sum('amount');
             
         // Calculate donations growth
         $currentMonthDonations = Donation::whereHas('participant', function($query) use ($user) {
-                $query->whereHas('project', function($q) use ($user) {
-                    $q->where('created_by', $user->id);
-                });
-            })
+            $query->whereHas('projects', function($q) use ($user) {
+                $q->where('created_by', $user->id);
+            });
+        })
             ->where('status', 'paid')
             ->where('created_at', '>=', now()->startOfMonth())
             ->sum('amount');
             
         $lastMonthDonations = Donation::whereHas('participant', function($query) use ($user) {
-                $query->whereHas('project', function($q) use ($user) {
-                    $q->where('created_by', $user->id);
-                });
-            })
+            $query->whereHas('projects', function($q) use ($user) {
+                $q->where('created_by', $user->id);
+            });
+        })
             ->where('status', 'paid')
             ->where('created_at', '>=', now()->subMonth()->startOfMonth())
             ->where('created_at', '<', now()->startOfMonth())

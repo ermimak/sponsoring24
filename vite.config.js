@@ -5,8 +5,12 @@ import path from 'path';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const isLocal = process.env.APP_ENV === 'local' || !process.env.APP_ENV;
-const host = isLocal ? 'localhost' : 'sponsoring24.onrender.com';
-const protocol = isLocal ? 'http' : 'https';
+
+// Get host and protocol from APP_URL or use defaults
+let appUrl = process.env.APP_URL || (isLocal ? 'http://localhost' : 'https://sponsoring24.onrender.com');
+const urlParts = new URL(appUrl);
+const host = urlParts.hostname;
+const protocol = urlParts.protocol.replace(':', '');
 
 export default defineConfig({
     plugins: [
