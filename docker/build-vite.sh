@@ -8,10 +8,16 @@ echo "🚀 Building Vite assets..."
 # Set working directory
 cd /var/www/html
 
-# Ensure node_modules exists
+# Ensure node_modules exists and vite is installed
 if [ ! -d "node_modules" ]; then
     echo "📦 Installing npm dependencies..."
     npm ci
+else
+    # Check if vite is installed locally
+    if [ ! -d "node_modules/vite" ]; then
+        echo "📦 Installing Vite locally..."
+        npm install vite
+    fi
 fi
 
 # Clean up old build artifacts

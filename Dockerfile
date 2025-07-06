@@ -27,9 +27,10 @@ RUN pecl install redis-5.3.7 \
 RUN mkdir -p /var/log/php /var/log/supervisor \
     && chown -R www-data:www-data /var/log/php
 
-# Install Node.js
+# Install Node.js and Vite
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+    && apt-get install -y nodejs \
+    && npm install -g vite
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
