@@ -219,9 +219,18 @@ chmod -R 775 /var/www/html/public/build
 # Clean up old build artifacts and ensure fresh assets
 echo "Cleaning up old build artifacts and ensuring fresh assets..."
 
-# Run the Vite build script
-echo "Running Vite build script..."
-/usr/local/bin/build-vite.sh
+# Run fix-permissions script
+/usr/local/bin/fix-permissions.sh
+
+# Check if we're running on Render
+if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
+    echo "📦 Detected Render environment, using special build script..."
+    /usr/local/bin/render-build.sh
+else
+    # Run standard clean-build script
+    echo "📦 Using standard build script..."
+    /usr/local/bin/build-vite.sh
+fi
 
 # Verify manifest.json exists and has proper permissions
 if [ -f "/var/www/html/public/build/manifest.json" ]; then

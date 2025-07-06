@@ -58,10 +58,12 @@ COPY docker/build-vite.sh /usr/local/bin/
 COPY docker/start.sh /usr/local/bin/
 COPY docker/fix-permissions.sh /usr/local/bin/
 COPY docker/clean-build.sh /usr/local/bin/
+COPY render-build.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/build-vite.sh \
     && chmod +x /usr/local/bin/start.sh \
     && chmod +x /usr/local/bin/fix-permissions.sh \
-    && chmod +x /usr/local/bin/clean-build.sh
+    && chmod +x /usr/local/bin/clean-build.sh \
+    && chmod +x /usr/local/bin/render-build.sh
 
 # Create storage directory structure and set permissions
 RUN mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
