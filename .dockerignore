@@ -16,6 +16,9 @@ README.md
 docker/*
 !docker/php/
 !docker/start.sh
+!docker/build-vite.sh
+!docker/fix-permissions.sh
+!docker/clean-build.sh
 tests/
 storage/logs/*
 storage/framework/cache/*

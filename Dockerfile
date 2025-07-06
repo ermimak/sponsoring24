@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-enable opcache
 
 # Install additional PHP extensions that might be needed
-RUN pecl install redis \
+RUN pecl install redis-5.3.7 \
     && docker-php-ext-enable redis
 
 # Create log directories
@@ -49,11 +49,18 @@ RUN mkdir -p /home/dev/.composer && \
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy existing application directory contents
-COPY . /var/www/html
-
-# Copy existing application directory permissions
+# Copy existing application directory contents with proper ownership
 COPY --chown=www-data:www-data . /var/www/html
+
+# Copy Docker scripts to /usr/local/bin and make them executable
+COPY docker/build-vite.sh /usr/local/bin/
+COPY docker/start.sh /usr/local/bin/
+COPY docker/fix-permissions.sh /usr/local/bin/
+COPY docker/clean-build.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/build-vite.sh \
+    && chmod +x /usr/local/bin/start.sh \
+    && chmod +x /usr/local/bin/fix-permissions.sh \
+    && chmod +x /usr/local/bin/clean-build.sh
 
 # Create storage directory structure and set permissions
 RUN mkdir -p /var/www/html/storage/framework/{sessions,views,cache} \
