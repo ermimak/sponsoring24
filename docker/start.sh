@@ -235,16 +235,38 @@ fi
 # Verify manifest.json exists and has proper permissions
 if [ -f "/var/www/html/public/build/manifest.json" ]; then
     echo "✅ Vite manifest.json verified"
-    # Double-check permissions
-    chown www-data:www-data /var/www/html/public/build/manifest.json
-    chmod 664 /var/www/html/public/build/manifest.json
+    chmod 644 /var/www/html/public/build/manifest.json
+    
+    # Display manifest content for debugging
+    echo "📄 Manifest content:"
+    cat /var/www/html/public/build/manifest.json
 else
+    echo "❌ Failed to create Vite manifest.json"
     echo "⚠️ Warning: Vite manifest.json still not found after build"
-    # Create an empty manifest as fallback
-    echo "Creating empty manifest.json as fallback..."
-    echo '{}' > /var/www/html/public/build/manifest.json
-    chown www-data:www-data /var/www/html/public/build/manifest.json
-    chmod 664 /var/www/html/public/build/manifest.json
+    
+    # Create a basic manifest as a fallback
+    echo "⚠️ Creating basic manifest as fallback"
+    mkdir -p /var/www/html/public/build
+    echo '{
+  "resources/css/app.css": {
+    "file": "assets/app.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app.js",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  }
+}' > /var/www/html/public/build/manifest.json
+    chmod 644 /var/www/html/public/build/manifest.json
+    
+    # Create assets directory and basic files
+    mkdir -p /var/www/html/public/build/assets
+    echo "/* Fallback CSS */" > /var/www/html/public/build/assets/app.css
+    echo "console.log('Fallback JS');" > /var/www/html/public/build/assets/app.js
+    chmod 644 /var/www/html/public/build/assets/app.css
+    chmod 644 /var/www/html/public/build/assets/app.js
 fi
 
 # Ensure proper permissions on all built assets

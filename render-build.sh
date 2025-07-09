@@ -102,8 +102,21 @@ else
         
         # Create empty asset files to prevent 404 errors
         mkdir -p public/build/assets
-        touch public/build/assets/app.css
-        touch public/build/assets/app.js
+        
+        # Create actual CSS and JS files with basic content
+        echo "/* Auto-generated CSS file */" > public/build/assets/app.css
+        echo "console.log('Auto-generated JS file');" > public/build/assets/app.js
+        
+        # Copy actual resources if they exist
+        if [ -d "resources/css" ]; then
+            echo "💾 Copying CSS resources..."
+            cp -r resources/css/* public/build/assets/ || true
+        fi
+        
+        if [ -d "resources/js" ]; then
+            echo "💾 Copying JS resources..."
+            cp -r resources/js/* public/build/assets/ || true
+        fi
     fi
 fi
 
