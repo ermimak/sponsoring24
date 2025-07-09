@@ -156,8 +156,7 @@ stopwaitsecs=60' > /etc/supervisor/conf.d/laravel.conf
 # Copy PHP configuration
 COPY docker/php/production.ini /usr/local/etc/php/conf.d/99-production.ini
 
-# Copy Render-specific Nginx configuration
-COPY docker/nginx-render.conf /var/www/html/docker/nginx-render.conf
+# We'll create the Nginx configuration dynamically at runtime in start.sh
 
 # Copy startup script
 COPY docker/start.sh /usr/local/bin/start.sh
