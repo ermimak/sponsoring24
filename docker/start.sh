@@ -229,8 +229,38 @@ if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
     
     # Use Render-specific Nginx configuration with dynamic port binding
     echo "🚀 Configuring Nginx for Render with PORT=${PORT:-10000}..."
-    # Replace the default Nginx configuration with our Render-specific one
-    envsubst '${PORT}' < /var/www/html/docker/nginx-render.conf > /etc/nginx/conf.d/default.conf
+    
+    # Create Nginx configuration dynamically
+    cat > /etc/nginx/conf.d/default.conf << EOF
+server {
+    listen ${PORT:-10000};
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
+
+    charset utf-8;
+    client_max_body_size 100M;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+EOF
     
     # Log the Nginx configuration for debugging
     echo "📑 Nginx configuration:"
