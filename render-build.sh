@@ -40,6 +40,10 @@ chmod -R 775 public/build
 # Force production mode
 export NODE_ENV=production
 
+# Increase Node.js memory limit to prevent out-of-memory errors
+export NODE_OPTIONS="--max-old-space-size=4096"
+echo "🧠 Increased Node.js memory limit: NODE_OPTIONS=$NODE_OPTIONS"
+
 # Build assets
 echo "🔨 Building Vite assets..."
 
@@ -54,7 +58,17 @@ npx vite --version
 # Try building with explicit production flag
 export NODE_ENV=production
 echo "🔨 Running npm run build with NODE_ENV=$NODE_ENV"
-npm run build
+
+# Add a timeout to prevent hanging builds
+timeout 10m npm run build
+
+# Check if the build timed out
+if [ $? -eq 124 ]; then
+    echo "⚠️ Build timed out after 10 minutes, trying alternative build approach"
+    # Try a more conservative build approach
+    echo "🔄 Trying alternative build with reduced parallelism..."
+    npx vite build --emptyOutDir --minify=esbuild --outDir=public/build
+fi
 
 # Verify manifest.json was created
 if [ -f "public/build/manifest.json" ] && [ -s "public/build/manifest.json" ] && [ "$(cat public/build/manifest.json)" != "{}" ]; then

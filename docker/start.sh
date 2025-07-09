@@ -224,11 +224,20 @@ echo "Cleaning up old build artifacts and ensuring fresh assets..."
 
 # Check if we're running on Render
 if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
-    echo "📦 Detected Render environment, using special build script..."
+    echo "💶 Detected Render environment, using special build script..."
     /usr/local/bin/render-build.sh
+    
+    # Use Render-specific Nginx configuration with dynamic port binding
+    echo "🚀 Configuring Nginx for Render with PORT=${PORT:-10000}..."
+    # Replace the default Nginx configuration with our Render-specific one
+    envsubst '${PORT}' < /var/www/html/docker/nginx-render.conf > /etc/nginx/conf.d/default.conf
+    
+    # Log the Nginx configuration for debugging
+    echo "📑 Nginx configuration:"
+    cat /etc/nginx/conf.d/default.conf
 else
     # Run standard clean-build script
-    echo "📦 Using standard build script..."
+    echo "💶 Using standard build script..."
     /usr/local/bin/build-vite.sh
 fi
 
