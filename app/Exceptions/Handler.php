@@ -50,8 +50,17 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
+        // Enable detailed error logging for production debugging
         $this->reportable(function (Throwable $e) {
-            //
+            // Log detailed error information
+            if (app()->environment('production')) {
+                $logPath = storage_path('logs/laravel-detailed.log');
+                file_put_contents($logPath, date('[Y-m-d H:i:s] ') . 
+                    "Error: {$e->getMessage()}\n" .
+                    "File: {$e->getFile()}:{$e->getLine()}\n" .
+                    "Trace: {$e->getTraceAsString()}\n\n", 
+                    FILE_APPEND);
+            }
         });
         
         // Handle generic exceptions
@@ -73,7 +82,7 @@ class Handler extends ExceptionHandler
                     'status' => 500,
                     'message' => app()->environment('production') 
                         ? 'An unexpected error occurred. Please try again later.' 
-                        : $e->getMessage() ?: 'An unexpected error occurred',
+                        : ($e->getMessage() ?: 'An unexpected error occurred'),
                 ])->toResponse($request)->setStatusCode(500);
             }
             
@@ -81,18 +90,20 @@ class Handler extends ExceptionHandler
         });
 
         // Handle 404 errors
-        $this->renderable(function (NotFoundHttpException $e, $request) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Resource not found',
-                ], 404);
-            }
+        if (app()->environment('production')) {
+            $this->renderable(function (NotFoundHttpException $e, $request) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'Resource not found',
+                    ], 404);
+                }
 
-            return Inertia::render('Errors/NotFound', [
-                'status' => 404,
-                'message' => 'The page you are looking for could not be found.',
-            ])->toResponse($request)->setStatusCode(404);
-        });
+                return Inertia::render('Errors/NotFound', [
+                    'status' => 404,
+                    'message' => 'The page you are looking for could not be found.',
+                ])->toResponse($request)->setStatusCode(404);
+            });
+        }
 
         // Handle 405 Method Not Allowed errors
         $this->renderable(function (MethodNotAllowedHttpException $e, $request) {

@@ -3,7 +3,15 @@
 # This script is specifically for Render.com deployment
 # It ensures Vite is properly installed and assets are built correctly
 
+# Enable debugging and error reporting
+set -x
+set -e
+
 echo "🚀 Starting Render build process..."
+echo "📊 Environment: NODE_ENV=$NODE_ENV, PATH=$PATH"
+echo "📂 Current directory: $(pwd)"
+echo "📋 Directory listing:"
+ls -la
 
 # Ensure we're in the project root
 cd /var/www/html || exit 1
@@ -34,6 +42,18 @@ export NODE_ENV=production
 
 # Build assets
 echo "🔨 Building Vite assets..."
+
+# Show package.json scripts
+echo "📝 Package.json scripts:"
+cat package.json | grep -A 15 "\"scripts\""
+
+# Show vite version
+echo "📍 Vite version:"
+npx vite --version
+
+# Try building with explicit production flag
+export NODE_ENV=production
+echo "🔨 Running npm run build with NODE_ENV=$NODE_ENV"
 npm run build
 
 # Verify manifest.json was created
@@ -82,8 +102,21 @@ else
         
         # Create empty asset files to prevent 404 errors
         mkdir -p public/build/assets
-        touch public/build/assets/app.css
-        touch public/build/assets/app.js
+        
+        # Create actual CSS and JS files with basic content
+        echo "/* Auto-generated CSS file */" > public/build/assets/app.css
+        echo "console.log('Auto-generated JS file');" > public/build/assets/app.js
+        
+        # Copy actual resources if they exist
+        if [ -d "resources/css" ]; then
+            echo "💾 Copying CSS resources..."
+            cp -r resources/css/* public/build/assets/ || true
+        fi
+        
+        if [ -d "resources/js" ]; then
+            echo "💾 Copying JS resources..."
+            cp -r resources/js/* public/build/assets/ || true
+        fi
     fi
 fi
 
