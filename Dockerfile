@@ -156,12 +156,16 @@ stopwaitsecs=60' > /etc/supervisor/conf.d/laravel.conf
 # Copy PHP configuration
 COPY docker/php/production.ini /usr/local/etc/php/conf.d/99-production.ini
 
+# Copy Render-specific Nginx configuration
+COPY docker/nginx-render.conf /var/www/html/docker/nginx-render.conf
+
 # Copy startup script
 COPY docker/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
-# Expose port 80
-EXPOSE 80
+# Expose port 80 and Render's dynamic port
+EXPOSE 80 10000
+# Note: Render will use the PORT environment variable (default: 10000)
 
 # Start Nginx and PHP-FPM
 CMD ["/usr/local/bin/start.sh"]

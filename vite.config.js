@@ -13,6 +13,32 @@ const host = urlParts.hostname;
 const protocol = urlParts.protocol.replace(':', '');
 
 export default defineConfig({
+    // Optimize build for production environments
+    build: {
+        // Reduce chunk size to prevent memory issues
+        chunkSizeWarningLimit: 1000,
+        // Optimize CSS to reduce memory usage
+        cssCodeSplit: true,
+        // Reduce memory usage by disabling source maps in production
+        sourcemap: !isProduction,
+        // Optimize rollup options
+        rollupOptions: {
+            output: {
+                manualChunks: (id) => {
+                    // Split vendor chunks to reduce memory pressure
+                    if (id.includes('node_modules')) {
+                        if (id.includes('@fortawesome')) {
+                            return 'vendor-fortawesome';
+                        }
+                        if (id.includes('vue')) {
+                            return 'vendor-vue';
+                        }
+                        return 'vendor';
+                    }
+                },
+            },
+        },
+    },
     plugins: [
         laravel({
             input: [
