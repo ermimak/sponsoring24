@@ -251,9 +251,21 @@ fi
 chown -R www-data:www-data /var/www/html/public/build
 chmod -R 775 /var/www/html/public/build
 
+# Ensure supervisor processes aren't already running
+if pgrep -f "laravel-scheduler" > /dev/null; then
+    echo "Stopping existing laravel-scheduler process"
+    pkill -f "laravel-scheduler"
+    sleep 1
+fi
+
+if pgrep -f "laravel-queue" > /dev/null; then
+    echo "Stopping existing laravel-queue process"
+    pkill -f "laravel-queue"
+    sleep 1
+fi
+
 # Check if we're running on Render
 if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
-    echo "🚀 Running on Render, configuring for port ${PORT:-10000}..."
     
     # Configure Nginx to listen on the PORT environment variable
     cat > /etc/nginx/conf.d/default.conf << EOF
@@ -298,9 +310,16 @@ EOF
 fi
 
 # Start PHP-FPM
-echo "Starting PHP-FPM..."
 php-fpm -D
 
+# Start supervisor in the background if it's not already running
+if ! pgrep supervisord > /dev/null; then
+    # Create a PID file directory for supervisor
+    mkdir -p /var/run/supervisor
+    
+    # Start supervisor with minimal output
+    /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+fi
+
 # Start Nginx in foreground mode
-echo "Starting Nginx..."
 exec nginx -g "daemon off;"

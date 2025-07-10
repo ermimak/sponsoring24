@@ -13,29 +13,28 @@ const host = urlParts.hostname;
 const protocol = urlParts.protocol.replace(':', '');
 
 export default defineConfig({
-    // Optimize build for production environments
+    // Ultra-optimized build for low-memory environments
     build: {
         // Reduce chunk size to prevent memory issues
-        chunkSizeWarningLimit: 1000,
+        chunkSizeWarningLimit: 500,
         // Optimize CSS to reduce memory usage
         cssCodeSplit: true,
-        // Reduce memory usage by disabling source maps in production
-        sourcemap: !isProduction,
-        // Optimize rollup options
+        // Disable source maps in production to save memory
+        sourcemap: false,
+        // Minimize asset inlining to reduce memory pressure
+        assetsInlineLimit: 4096, // 4kb
+        // Use the fastest minifier
+        minify: 'esbuild',
+        // Optimize rollup options for minimal memory usage
         rollupOptions: {
+            treeshake: true,
             output: {
-                manualChunks: (id) => {
-                    // Split vendor chunks to reduce memory pressure
-                    if (id.includes('node_modules')) {
-                        if (id.includes('@fortawesome')) {
-                            return 'vendor-fortawesome';
-                        }
-                        if (id.includes('vue')) {
-                            return 'vendor-vue';
-                        }
-                        return 'vendor';
-                    }
-                },
+                // Disable code-splitting to reduce memory usage during build
+                inlineDynamicImports: true,
+                // Simplify chunk naming for faster builds
+                entryFileNames: 'assets/[name].js',
+                chunkFileNames: 'assets/[name].js',
+                assetFileNames: 'assets/[name].[ext]'
             },
         },
     },
