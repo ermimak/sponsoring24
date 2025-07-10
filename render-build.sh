@@ -40,6 +40,10 @@ chmod -R 775 public/build
 # Force production mode
 export NODE_ENV=production
 
+# Increase Node.js memory limit to prevent out-of-memory errors
+export NODE_OPTIONS="--max-old-space-size=4096"
+echo "🧠 Increased Node.js memory limit: NODE_OPTIONS=$NODE_OPTIONS"
+
 # Build assets
 echo "🔨 Building Vite assets..."
 
@@ -56,7 +60,11 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 
 # Try building with explicit production flag
 export NODE_ENV=production
+
 echo "🔨 Running npm run build with NODE_ENV=$NODE_ENV and NODE_OPTIONS=$NODE_OPTIONS"
+=======
+echo "🔨 Running npm run build with NODE_ENV=$NODE_ENV"
+
 
 # Add a timeout to prevent hanging builds
 timeout 10m npm run build
@@ -67,6 +75,12 @@ if [ $? -ne 0 ]; then
     # Try a more conservative build approach with reduced memory usage
     export NODE_OPTIONS="--max-old-space-size=2048"
     echo "🔄 Trying alternative build with reduced memory usage: NODE_OPTIONS=$NODE_OPTIONS"
+=======
+# Check if the build timed out
+if [ $? -eq 124 ]; then
+    echo "⚠️ Build timed out after 10 minutes, trying alternative build approach"
+    # Try a more conservative build approach
+    echo "🔄 Trying alternative build with reduced parallelism..."
     npx vite build --emptyOutDir --minify=esbuild --outDir=public/build
 fi
 
@@ -116,8 +130,21 @@ else
         
         # Create empty asset files to prevent 404 errors
         mkdir -p public/build/assets
-        touch public/build/assets/app.css
-        touch public/build/assets/app.js
+        
+        # Create actual CSS and JS files with basic content
+        echo "/* Auto-generated CSS file */" > public/build/assets/app.css
+        echo "console.log('Auto-generated JS file');" > public/build/assets/app.js
+        
+        # Copy actual resources if they exist
+        if [ -d "resources/css" ]; then
+            echo "💾 Copying CSS resources..."
+            cp -r resources/css/* public/build/assets/ || true
+        fi
+        
+        if [ -d "resources/js" ]; then
+            echo "💾 Copying JS resources..."
+            cp -r resources/js/* public/build/assets/ || true
+        fi
     fi
 fi
 

@@ -224,32 +224,94 @@ echo "Cleaning up old build artifacts and ensuring fresh assets..."
 
 # Check if we're running on Render
 if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
-    echo "📦 Detected Render environment, using special build script..."
+    echo "💶 Detected Render environment, using special build script..."
     /usr/local/bin/render-build.sh
+    
+    # Use Render-specific Nginx configuration with dynamic port binding
+    echo "🚀 Configuring Nginx for Render with PORT=${PORT:-10000}..."
+    
+    # Create Nginx configuration dynamically
+    cat > /etc/nginx/conf.d/default.conf << EOF
+server {
+    listen 0.0.0.0:${PORT:-10000};
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
+
+    charset utf-8;
+    client_max_body_size 100M;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+EOF
+    
+    # Log the Nginx configuration for debugging
+    echo "📑 Nginx configuration:"
+    cat /etc/nginx/conf.d/default.conf
 else
     # Run standard clean-build script
-    echo "📦 Using standard build script..."
+    echo "💶 Using standard build script..."
     /usr/local/bin/build-vite.sh
 fi
 
 # Verify manifest.json exists and has proper permissions
 if [ -f "/var/www/html/public/build/manifest.json" ]; then
     echo "✅ Vite manifest.json verified"
-    # Double-check permissions
-    chown www-data:www-data /var/www/html/public/build/manifest.json
-    chmod 664 /var/www/html/public/build/manifest.json
+    chmod 644 /var/www/html/public/build/manifest.json
+    
+    # Display manifest content for debugging
+    echo "📄 Manifest content:"
+    cat /var/www/html/public/build/manifest.json
 else
+    echo "❌ Failed to create Vite manifest.json"
     echo "⚠️ Warning: Vite manifest.json still not found after build"
-    # Create an empty manifest as fallback
-    echo "Creating empty manifest.json as fallback..."
-    echo '{}' > /var/www/html/public/build/manifest.json
-    chown www-data:www-data /var/www/html/public/build/manifest.json
-    chmod 664 /var/www/html/public/build/manifest.json
+    
+    # Create a basic manifest as a fallback
+    echo "⚠️ Creating basic manifest as fallback"
+    mkdir -p /var/www/html/public/build
+    echo '{
+  "resources/css/app.css": {
+    "file": "assets/app.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app.js",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  }
+}' > /var/www/html/public/build/manifest.json
+    chmod 644 /var/www/html/public/build/manifest.json
+    
+    # Create assets directory and basic files
+    mkdir -p /var/www/html/public/build/assets
+    echo "/* Fallback CSS */" > /var/www/html/public/build/assets/app.css
+    echo "console.log('Fallback JS');" > /var/www/html/public/build/assets/app.js
+    chmod 644 /var/www/html/public/build/assets/app.css
+    chmod 644 /var/www/html/public/build/assets/app.js
 fi
 
 # Ensure proper permissions on all built assets
 chown -R www-data:www-data /var/www/html/public/build
 chmod -R 775 /var/www/html/public/build
+
 
 # Check if we're running on Render
 if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
@@ -289,6 +351,16 @@ server {
 EOF
 
     # Create a health check endpoint
+=======
+# Start PHP-FPM
+echo "Starting PHP-FPM..."
+php-fpm -D
+
+# Check if we're running on Render
+if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
+    echo "🔍 Running on Render, ensuring port ${PORT:-10000} is properly bound..."
+    
+    # Create a simple health check endpoint for Render
     mkdir -p /var/www/html/public/health
     echo '<?php echo "OK"; ?>' > /var/www/html/public/health/index.php
     chmod 644 /var/www/html/public/health/index.php
@@ -304,3 +376,20 @@ php-fpm -D
 # Start Nginx in foreground mode
 echo "Starting Nginx..."
 exec nginx -g "daemon off;"
+=======
+    # Log port binding information
+    echo "📡 Binding to port ${PORT:-10000} for Render..."
+    
+    # Start Nginx in foreground mode to keep container running
+    echo "🚀 Starting Nginx on port ${PORT:-10000}..."
+    exec nginx -g "daemon off;"
+else
+    # Start Nginx normally for local development
+    echo "Starting Nginx..."
+    nginx -g "daemon off;"
+    
+    echo "Nginx started. PHP-FPM is running."
+    # Keep container running and show logs
+    tail -f /var/log/nginx/error.log /var/log/nginx/access.log /var/www/html/storage/logs/laravel.log
+fi
+
