@@ -51,10 +51,24 @@ cat package.json | grep -A 15 "\"scripts\""
 echo "📍 Vite version:"
 npx vite --version
 
+# Set Node.js memory limit to prevent out-of-memory errors
+export NODE_OPTIONS="--max-old-space-size=4096"
+
 # Try building with explicit production flag
 export NODE_ENV=production
-echo "🔨 Running npm run build with NODE_ENV=$NODE_ENV"
-npm run build
+echo "🔨 Running npm run build with NODE_ENV=$NODE_ENV and NODE_OPTIONS=$NODE_OPTIONS"
+
+# Add a timeout to prevent hanging builds
+timeout 10m npm run build
+
+# Check if the build timed out or failed
+if [ $? -ne 0 ]; then
+    echo "⚠️ Build failed or timed out, trying alternative build approach"
+    # Try a more conservative build approach with reduced memory usage
+    export NODE_OPTIONS="--max-old-space-size=2048"
+    echo "🔄 Trying alternative build with reduced memory usage: NODE_OPTIONS=$NODE_OPTIONS"
+    npx vite build --emptyOutDir --minify=esbuild --outDir=public/build
+fi
 
 # Verify manifest.json was created
 if [ -f "public/build/manifest.json" ] && [ -s "public/build/manifest.json" ] && [ "$(cat public/build/manifest.json)" != "{}" ]; then

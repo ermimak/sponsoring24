@@ -251,14 +251,56 @@ fi
 chown -R www-data:www-data /var/www/html/public/build
 chmod -R 775 /var/www/html/public/build
 
-# Start PHP-FPM and Nginx
-echo "Starting PHP-FPM and Nginx..."
+# Check if we're running on Render
+if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
+    echo "🚀 Running on Render, configuring for port ${PORT:-10000}..."
+    
+    # Configure Nginx to listen on the PORT environment variable
+    cat > /etc/nginx/conf.d/default.conf << EOF
+server {
+    listen ${PORT:-10000} default_server;
+    listen [::]:${PORT:-10000} default_server;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
+
+    charset utf-8;
+    client_max_body_size 100M;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+EOF
+
+    # Create a health check endpoint
+    mkdir -p /var/www/html/public/health
+    echo '<?php echo "OK"; ?>' > /var/www/html/public/health/index.php
+    chmod 644 /var/www/html/public/health/index.php
+    
+    echo "📡 Nginx configured to listen on port ${PORT:-10000}"
+    cat /etc/nginx/conf.d/default.conf
+fi
+
+# Start PHP-FPM
+echo "Starting PHP-FPM..."
 php-fpm -D
-nginx -g "daemon off;"
 
-echo "Nginx started. Starting PHP-FPM..."
-php-fpm
-
-echo "PHP-FPM started. Both services are running."
-# Keep container running and show logs
-tail -f /var/log/nginx/error.log /var/log/nginx/access.log /var/www/html/storage/logs/laravel.log
+# Start Nginx in foreground mode
+echo "Starting Nginx..."
+exec nginx -g "daemon off;"
