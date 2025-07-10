@@ -233,7 +233,7 @@ if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
     # Create Nginx configuration dynamically
     cat > /etc/nginx/conf.d/default.conf << EOF
 server {
-    listen ${PORT:-10000};
+    listen 0.0.0.0:${PORT:-10000};
     server_name _;
     root /var/www/html/public;
     index index.php;
@@ -312,14 +312,31 @@ fi
 chown -R www-data:www-data /var/www/html/public/build
 chmod -R 775 /var/www/html/public/build
 
-# Start PHP-FPM and Nginx
-echo "Starting PHP-FPM and Nginx..."
+# Start PHP-FPM
+echo "Starting PHP-FPM..."
 php-fpm -D
-nginx -g "daemon off;"
 
-echo "Nginx started. Starting PHP-FPM..."
-php-fpm
-
-echo "PHP-FPM started. Both services are running."
-# Keep container running and show logs
-tail -f /var/log/nginx/error.log /var/log/nginx/access.log /var/www/html/storage/logs/laravel.log
+# Check if we're running on Render
+if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
+    echo "🔍 Running on Render, ensuring port ${PORT:-10000} is properly bound..."
+    
+    # Create a simple health check endpoint for Render
+    mkdir -p /var/www/html/public/health
+    echo '<?php echo "OK"; ?>' > /var/www/html/public/health/index.php
+    chmod 644 /var/www/html/public/health/index.php
+    
+    # Log port binding information
+    echo "📡 Binding to port ${PORT:-10000} for Render..."
+    
+    # Start Nginx in foreground mode to keep container running
+    echo "🚀 Starting Nginx on port ${PORT:-10000}..."
+    exec nginx -g "daemon off;"
+else
+    # Start Nginx normally for local development
+    echo "Starting Nginx..."
+    nginx -g "daemon off;"
+    
+    echo "Nginx started. PHP-FPM is running."
+    # Keep container running and show logs
+    tail -f /var/log/nginx/error.log /var/log/nginx/access.log /var/www/html/storage/logs/laravel.log
+fi
