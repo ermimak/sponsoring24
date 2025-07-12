@@ -29,12 +29,16 @@ export default defineConfig({
         rollupOptions: {
             treeshake: true,
             output: {
-                // Disable code-splitting to reduce memory usage during build
-                inlineDynamicImports: true,
                 // Simplify chunk naming for faster builds
                 entryFileNames: 'assets/[name].js',
                 chunkFileNames: 'assets/[name].js',
-                assetFileNames: 'assets/[name].[ext]'
+                assetFileNames: 'assets/[name].[ext]',
+                // Use manual chunks for better memory efficiency
+                manualChunks: (id) => {
+                    if (id.includes('node_modules')) {
+                        return 'vendor';
+                    }
+                }
             },
         },
     },
