@@ -11,6 +11,15 @@ echo "Starting Render build process..."
 # Ensure we're in the project root
 cd /var/www/html || exit 1
 
+# Copy the Render-specific environment file to .env
+echo "Setting up production environment file..."
+if [ -f ".env.render" ]; then
+    cp .env.render .env
+    echo ".env file configured for production."
+else
+    echo "WARNING: .env.render not found. The application might use incorrect settings."
+fi
+
 # Assets are pre-built and included in the repository.
 # This script now only needs to ensure permissions are correct.
 
