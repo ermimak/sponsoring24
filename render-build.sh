@@ -3,105 +3,63 @@
 # This script is specifically for Render.com deployment
 # It ensures Vite is properly installed and assets are built correctly
 
-# Enable debugging and error reporting
-set -x
+# Enable error reporting but disable verbose debugging
 set -e
 
-echo "🚀 Starting Render build process..."
-echo "📊 Environment: NODE_ENV=$NODE_ENV, PATH=$PATH"
-echo "📂 Current directory: $(pwd)"
-echo "📋 Directory listing:"
-ls -la
+echo "Starting Render build process..."
 
 # Ensure we're in the project root
 cd /var/www/html || exit 1
 
-# Install Vite globally if not already installed
-if ! command -v vite &> /dev/null; then
-    echo "📦 Installing Vite globally..."
-    npm install -g vite
-fi
+# Skip global Vite install to save memory
 
-# Install dependencies
-echo "📦 Installing npm dependencies..."
-npm ci
+# Install only essential dependencies with minimal output
+echo "Installing minimal npm dependencies..."
 
-# Ensure Vite is installed locally
-if [ ! -d "node_modules/vite" ]; then
-    echo "📦 Installing Vite locally..."
-    npm install vite
-fi
+# Create a temporary package.json with only essential dependencies
+TEMP_PKG=$(mktemp)
+jq '{name,dependencies:{"vite":"*","@vitejs/plugin-vue":"*","laravel-vite-plugin":"*","vue":"*"}}' package.json > "$TEMP_PKG"
+mv "$TEMP_PKG" package.json.minimal
+
+# Install only the minimal dependencies needed for build
+npm i --no-audit --no-fund --silent --no-package-lock --production --prefer-offline --no-optional --progress=false --json=false --prefix ./node_modules_minimal -f package.json.minimal
+
+# Use the minimal node_modules for the build
+export NODE_PATH=./node_modules_minimal/node_modules
 
 # Create build directory with proper permissions
-echo "🔧 Preparing build directory..."
+echo "Preparing build directory..."
 mkdir -p public/build
 chmod -R 775 public/build
 
 # Force production mode
 export NODE_ENV=production
 
-# Increase Node.js memory limit to prevent out-of-memory errors
-export NODE_OPTIONS="--max-old-space-size=4096"
-echo "🧠 Increased Node.js memory limit: NODE_OPTIONS=$NODE_OPTIONS"
-
 # Build assets
-echo "🔨 Building Vite assets..."
+echo "Building Vite assets..."
 
-# Show package.json scripts
-echo "📝 Package.json scripts:"
-cat package.json | grep -A 15 "\"scripts\""
+# Set Node.js memory limit to stay under Render's 512MB limit
+export NODE_OPTIONS="--max-old-space-size=384"
 
-# Show vite version
-echo "📍 Vite version:"
-npx vite --version
-
-# Try building with explicit production flag
+# Force production mode
 export NODE_ENV=production
-echo "🔨 Running npm run build with NODE_ENV=$NODE_ENV"
+echo "Running minimal Vite build"
 
-# Add a timeout to prevent hanging builds
-timeout 10m npm run build
+# Clear memory before build
+sync
+echo 3 > /proc/sys/vm/drop_caches 2>/dev/null || true
 
-# Check if the build timed out
-if [ $? -eq 124 ]; then
-    echo "⚠️ Build timed out after 10 minutes, trying alternative build approach"
-    # Try a more conservative build approach
-    echo "🔄 Trying alternative build with reduced parallelism..."
-    npx vite build --emptyOutDir --minify=esbuild --outDir=public/build
-fi
+# Use minimal node modules for build
+NODE_PATH=$NODE_PATH ./node_modules_minimal/node_modules/.bin/vite build --emptyOutDir --minify=esbuild --outDir=public/build
 
 # Verify manifest.json was created
 if [ -f "public/build/manifest.json" ] && [ -s "public/build/manifest.json" ] && [ "$(cat public/build/manifest.json)" != "{}" ]; then
-    echo "✅ Vite manifest.json created successfully"
-    ls -la public/build/
+    echo "Vite manifest.json created successfully"
 else
-    echo "❌ Failed to create Vite manifest.json"
-    echo "⚠️ Attempting direct Vite build..."
+    echo "Failed to create Vite manifest.json - creating fallback"
     
-    # Try direct Vite build command
-    npx vite build
-    
-    # Check again
-    if [ -f "public/build/manifest.json" ] && [ -s "public/build/manifest.json" ] && [ "$(cat public/build/manifest.json)" != "{}" ]; then
-        echo "✅ Vite manifest.json created successfully on second attempt"
-        ls -la public/build/
-    else
-        echo "❌ Still failed to create Vite manifest.json"
-        echo "⚠️ Creating a debug log for troubleshooting..."
-        
-        # Create debug log
-        echo "DEBUG LOG" > vite-build-debug.log
-        echo "Node version: $(node -v)" >> vite-build-debug.log
-        echo "NPM version: $(npm -v)" >> vite-build-debug.log
-        echo "Vite global: $(which vite || echo 'not found')" >> vite-build-debug.log
-        echo "Package.json:" >> vite-build-debug.log
-        cat package.json >> vite-build-debug.log
-        echo "Vite config:" >> vite-build-debug.log
-        cat vite.config.js >> vite-build-debug.log
-        
-        # Create empty manifest as last resort
-        echo "⚠️ Creating empty manifest.json as fallback..."
-        echo '{
+    # Create empty manifest as fallback
+    echo '{
   "resources/css/app.css": {
     "file": "assets/app.css",
     "src": "resources/css/app.css",
@@ -116,21 +74,15 @@ else
         
         # Create empty asset files to prevent 404 errors
         mkdir -p public/build/assets
-        
-        # Create actual CSS and JS files with basic content
-        echo "/* Auto-generated CSS file */" > public/build/assets/app.css
-        echo "console.log('Auto-generated JS file');" > public/build/assets/app.js
-        
-        # Copy actual resources if they exist
-        if [ -d "resources/css" ]; then
-            echo "💾 Copying CSS resources..."
-            cp -r resources/css/* public/build/assets/ || true
-        fi
-        
-        if [ -d "resources/js" ]; then
-            echo "💾 Copying JS resources..."
-            cp -r resources/js/* public/build/assets/ || true
-        fi
+        touch public/build/assets/app.css
+        touch public/build/assets/app.js
+
+# Clean up temporary files to free memory
+rm -f package.json.minimal
+rm -rf node_modules_minimal
+
+# Clear npm cache to free disk space
+npm cache clean --force > /dev/null 2>&1 || true
     fi
 fi
 

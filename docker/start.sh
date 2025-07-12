@@ -312,6 +312,57 @@ fi
 chown -R www-data:www-data /var/www/html/public/build
 chmod -R 775 /var/www/html/public/build
 
+# Ensure supervisor processes aren't already running
+if pgrep -f "laravel-scheduler" > /dev/null; then
+    echo "Stopping existing laravel-scheduler process"
+    pkill -f "laravel-scheduler"
+    sleep 1
+fi
+
+if pgrep -f "laravel-queue" > /dev/null; then
+    echo "Stopping existing laravel-queue process"
+    pkill -f "laravel-queue"
+    sleep 1
+fi
+
+# Check if we're running on Render
+if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
+    
+    # Configure Nginx to listen on the PORT environment variable
+    cat > /etc/nginx/conf.d/default.conf << EOF
+server {
+    listen ${PORT:-10000} default_server;
+    listen [::]:${PORT:-10000} default_server;
+    server_name _;
+    root /var/www/html/public;
+    index index.php;
+
+    charset utf-8;
+    client_max_body_size 100M;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_param SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+EOF
+
+    # Create a health check endpoint
+=======
 # Start PHP-FPM
 echo "Starting PHP-FPM..."
 php-fpm -D
@@ -325,6 +376,25 @@ if [ -n "$RENDER" ] || [ -n "$RENDER_EXTERNAL_URL" ]; then
     echo '<?php echo "OK"; ?>' > /var/www/html/public/health/index.php
     chmod 644 /var/www/html/public/health/index.php
     
+    echo "📡 Nginx configured to listen on port ${PORT:-10000}"
+    cat /etc/nginx/conf.d/default.conf
+fi
+
+# Start PHP-FPM
+php-fpm -D
+
+# Start supervisor in the background if it's not already running
+if ! pgrep supervisord > /dev/null; then
+    # Create a PID file directory for supervisor
+    mkdir -p /var/run/supervisor
+    
+    # Start supervisor with minimal output
+    /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
+fi
+
+# Start Nginx in foreground mode
+exec nginx -g "daemon off;"
+=======
     # Log port binding information
     echo "📡 Binding to port ${PORT:-10000} for Render..."
     
@@ -340,3 +410,4 @@ else
     # Keep container running and show logs
     tail -f /var/log/nginx/error.log /var/log/nginx/access.log /var/www/html/storage/logs/laravel.log
 fi
+
