@@ -43,18 +43,42 @@
             <slot></slot>
         </main>
 
-        <footer class="bg-white shadow-sm mt-8">
-            <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-                <p class="text-center text-gray-500 text-sm">
-                    © {{ new Date().getFullYear() }} Sponsoring24. All rights reserved.
-                </p>
+        <footer class="bg-gray-800 text-white mt-12">
+            <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Sponsoring24</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li>
+                                <Link :href="route('about')" class="text-base text-gray-300 hover:text-white">About Us</Link>
+                            </li>
+                            <li>
+                                <Link :href="route('contact')" class="text-base text-gray-300 hover:text-white">Contact</Link>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-semibold text-gray-400 tracking-wider uppercase">Legal</h3>
+                        <ul class="mt-4 space-y-4">
+                            <li>
+                                <Link :href="route('terms')" class="text-base text-gray-300 hover:text-white">Terms of Service</Link>
+                            </li>
+                            <li>
+                                <Link :href="route('privacy')" class="text-base text-gray-300 hover:text-white">Privacy Policy</Link>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700 pt-8">
+                    <p class="text-base text-gray-400 text-center">&copy; {{ new Date().getFullYear() }} Sponsoring24. All rights reserved.</p>
+                </div>
             </div>
         </footer>
     </div>
 </template>
 
 <script setup>
-import { usePage } from '@inertiajs/vue3';
+import { usePage, Link } from '@inertiajs/vue3';
 
 const page = usePage();
 </script> 
