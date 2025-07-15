@@ -69,6 +69,13 @@
       "_vendor.js"
     ]
   },
+  "_MainLayout.js": {
+    "file": "assets/MainLayout.js",
+    "name": "MainLayout",
+    "imports": [
+      "_vendor.js"
+    ]
+  },
   "_Modal.js": {
     "file": "assets/Modal.js",
     "name": "Modal",
@@ -186,6 +193,16 @@
     "file": "assets/app.css",
     "src": "resources/css/app.css",
     "isEntry": true
+  },
+  "resources/js/Pages/About.vue": {
+    "file": "assets/About.js",
+    "name": "About",
+    "src": "resources/js/Pages/About.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_MainLayout.js",
+      "_vendor.js"
+    ]
   },
   "resources/js/Pages/Admin/Content/FeaturedProjects.vue": {
     "file": "assets/FeaturedProjects.js",
@@ -530,6 +547,16 @@
     "css": [
       "assets/Index.css",
       "assets/app.css"
+    ]
+  },
+  "resources/js/Pages/Contact.vue": {
+    "file": "assets/Contact.js",
+    "name": "Contact",
+    "src": "resources/js/Pages/Contact.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_MainLayout.js",
+      "_vendor.js"
     ]
   },
   "resources/js/Pages/Dashboard.vue": {
@@ -888,6 +915,16 @@
       "assets/app.css"
     ]
   },
+  "resources/js/Pages/Privacy.vue": {
+    "file": "assets/Privacy.js",
+    "name": "Privacy",
+    "src": "resources/js/Pages/Privacy.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_MainLayout.js",
+      "_vendor.js"
+    ]
+  },
   "resources/js/Pages/Projects/AnalyticsTab.vue": {
     "file": "assets/AnalyticsTab.js",
     "name": "AnalyticsTab",
@@ -1118,6 +1155,16 @@
       "assets/app.css"
     ]
   },
+  "resources/js/Pages/Terms.vue": {
+    "file": "assets/Terms.js",
+    "name": "Terms",
+    "src": "resources/js/Pages/Terms.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "_MainLayout.js",
+      "_vendor.js"
+    ]
+  },
   "resources/js/Pages/User/UserCreateEdit.vue": {
     "file": "assets/UserCreateEdit.js",
     "name": "UserCreateEdit",
@@ -1158,6 +1205,7 @@
     "src": "resources/js/Pages/Welcome.vue",
     "isDynamicEntry": true,
     "imports": [
+      "_MainLayout.js",
       "_vendor.js",
       "resources/js/app.js"
     ],
@@ -1174,6 +1222,7 @@
       "_vendor.js"
     ],
     "dynamicImports": [
+      "resources/js/Pages/About.vue",
       "resources/js/Pages/Admin/Content/FeaturedProjects.vue",
       "resources/js/Pages/Admin/Content/Hero.vue",
       "resources/js/Pages/Admin/Content/Index.vue",
@@ -1194,6 +1243,7 @@
       "resources/js/Pages/Auth/Register.vue",
       "resources/js/Pages/Auth/ResetPassword.vue",
       "resources/js/Pages/Bonus/Index.vue",
+      "resources/js/Pages/Contact.vue",
       "resources/js/Pages/Dashboard.vue",
       "resources/js/Pages/Dashboard/Index.vue",
       "resources/js/Pages/Dashboard/License.vue",
@@ -1218,6 +1268,7 @@
       "resources/js/Pages/Members/Index.vue",
       "resources/js/Pages/NewsShow.vue",
       "resources/js/Pages/Notifications/Index.vue",
+      "resources/js/Pages/Privacy.vue",
       "resources/js/Pages/Projects/AnalyticsTab.vue",
       "resources/js/Pages/Projects/Create.vue",
       "resources/js/Pages/Projects/Donations/DonationPreview.vue",
@@ -1235,6 +1286,7 @@
       "resources/js/Pages/Projects/ParticipantsTab.vue",
       "resources/js/Pages/Projects/ProjectImageUpload.vue",
       "resources/js/Pages/Settings.vue",
+      "resources/js/Pages/Terms.vue",
       "resources/js/Pages/User/UserCreateEdit.vue",
       "resources/js/Pages/User/UserManagement.vue",
       "resources/js/Pages/Welcome.vue"

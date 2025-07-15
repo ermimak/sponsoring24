@@ -28,6 +28,12 @@ use Inertia\Inertia;
 Route::get('/', [WelcomeController::class, 'index'])->name('home');
 Route::get('/projects', fn () => Inertia::render('Projects/Index'))->name('projects.index');
 
+// Informational Pages
+Route::get('/about', fn () => Inertia::render('About'))->name('about');
+Route::get('/contact', fn () => Inertia::render('Contact'))->name('contact');
+Route::get('/terms', fn () => Inertia::render('Terms'))->name('terms');
+Route::get('/privacy', fn () => Inertia::render('Privacy'))->name('privacy');
+
 // Health Check for Docker
 Route::get('/health', function() {
     return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
