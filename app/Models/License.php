@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class License extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -15,6 +17,7 @@ class License extends Model
      * @var array
      */
     protected $fillable = [
+        'uuid',
         'user_id',
         'license_key',
         'status',
@@ -35,6 +38,7 @@ class License extends Model
      * @var array
      */
     protected $casts = [
+        'uuid' => 'string',
         'issued_at' => 'datetime',
         'expires_at' => 'datetime',
         'discount_applied' => 'boolean',

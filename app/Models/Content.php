@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Content extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -15,6 +17,7 @@ class Content extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'uuid',
         'section',
         'title',
         'subtitle',
@@ -31,6 +34,7 @@ class Content extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'uuid' => 'string',
         'content' => 'array',
         'meta' => 'array',
         'is_active' => 'boolean',

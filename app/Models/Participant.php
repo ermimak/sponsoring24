@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
 class Participant extends Model
 {
+    use HasUuid;
     protected $fillable = [
+        'uuid',
         'gender',
         'first_name',
         'last_name',
@@ -28,6 +31,7 @@ class Participant extends Model
     ];
 
     protected $casts = [
+        'uuid' => 'string',
         'public_registration' => 'boolean',
         'archived' => 'boolean',
         'birthday' => 'date',

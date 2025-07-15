@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Setting extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -17,6 +19,7 @@ class Setting extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'uuid',
         'organization_name',
         'contact_title',
         'contact_first_name',
@@ -57,6 +60,7 @@ class Setting extends Model
     protected function casts(): array
     {
         return [
+            'uuid' => 'string',
             'project_overview_enabled' => 'boolean',
         ];
     }

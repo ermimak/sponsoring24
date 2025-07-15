@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class UserActivity extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The attributes that are mass assignable.
@@ -15,6 +17,7 @@ class UserActivity extends Model
      * @var array
      */
     protected $fillable = [
+        'uuid',
         'user_id',
         'activity_type',
         'description',
@@ -29,6 +32,7 @@ class UserActivity extends Model
      * @var array
      */
     protected $casts = [
+        'uuid' => 'string',
         'metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

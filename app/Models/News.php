@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class News extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The table associated with the model.
@@ -22,6 +24,7 @@ class News extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'uuid',
         'title',
         'excerpt',
         'content',
@@ -36,6 +39,7 @@ class News extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'uuid' => 'string',
         'is_published' => 'boolean',
         'published_at' => 'datetime',
     ];
