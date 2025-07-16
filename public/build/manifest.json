@@ -8,19 +8,6 @@
       "resources/js/app.js"
     ]
   },
-  "_AppDashboardLayout.js": {
-    "file": "assets/AppDashboardLayout.js",
-    "name": "AppDashboardLayout",
-    "imports": [
-      "_vendor.js",
-      "_SidebarLink.js",
-      "_SuccessMessage.js",
-      "__plugin-vue_export-helper.js"
-    ],
-    "css": [
-      "assets/DashboardLayout.css"
-    ]
-  },
   "_AuthLayout.js": {
     "file": "assets/AuthLayout.js",
     "name": "AuthLayout",
@@ -52,7 +39,7 @@
       "__plugin-vue_export-helper.js"
     ],
     "css": [
-      "assets/DashboardLayout.css"
+      "assets/Dashboard.css"
     ]
   },
   "_InputError.js": {
@@ -73,7 +60,8 @@
     "file": "assets/MainLayout.js",
     "name": "MainLayout",
     "imports": [
-      "_vendor.js"
+      "_vendor.js",
+      "resources/js/app.js"
     ]
   },
   "_Modal.js": {
@@ -201,7 +189,11 @@
     "isDynamicEntry": true,
     "imports": [
       "_MainLayout.js",
-      "_vendor.js"
+      "_vendor.js",
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/app.css"
     ]
   },
   "resources/js/Pages/Admin/Content/FeaturedProjects.vue": {
@@ -556,7 +548,11 @@
     "isDynamicEntry": true,
     "imports": [
       "_MainLayout.js",
-      "_vendor.js"
+      "_vendor.js",
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/app.css"
     ]
   },
   "resources/js/Pages/Dashboard.vue": {
@@ -567,13 +563,13 @@
     "imports": [
       "_vendor.js",
       "resources/js/app.js",
-      "_AppDashboardLayout.js",
-      "_NotificationDropdown.js",
       "_SidebarLink.js",
       "_SuccessMessage.js",
-      "__plugin-vue_export-helper.js"
+      "__plugin-vue_export-helper.js",
+      "_NotificationDropdown.js"
     ],
     "css": [
+      "assets/Dashboard.css",
       "assets/app.css"
     ]
   },
@@ -891,11 +887,15 @@
     "src": "resources/js/Pages/NewsShow.vue",
     "isDynamicEntry": true,
     "imports": [
-      "_AppDashboardLayout.js",
+      "_DashboardLayout.js",
       "_vendor.js",
       "_SidebarLink.js",
-      "_SuccessMessage.js",
+      "_NotificationDropdown.js",
+      "resources/js/app.js",
       "__plugin-vue_export-helper.js"
+    ],
+    "css": [
+      "assets/app.css"
     ]
   },
   "resources/js/Pages/Notifications/Index.vue": {
@@ -922,7 +922,11 @@
     "isDynamicEntry": true,
     "imports": [
       "_MainLayout.js",
-      "_vendor.js"
+      "_vendor.js",
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/app.css"
     ]
   },
   "resources/js/Pages/Projects/AnalyticsTab.vue": {
@@ -962,7 +966,7 @@
       "_vendor.js"
     ],
     "css": [
-      "assets/DashboardLayout.css"
+      "assets/Dashboard.css"
     ]
   },
   "resources/js/Pages/Projects/DonationsTab.vue": {
@@ -1162,7 +1166,11 @@
     "isDynamicEntry": true,
     "imports": [
       "_MainLayout.js",
-      "_vendor.js"
+      "_vendor.js",
+      "resources/js/app.js"
+    ],
+    "css": [
+      "assets/app.css"
     ]
   },
   "resources/js/Pages/User/UserCreateEdit.vue": {
