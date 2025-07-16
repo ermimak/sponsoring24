@@ -17,7 +17,6 @@ class License extends Model
      * @var array
      */
     protected $fillable = [
-        'uuid',
         'user_id',
         'license_key',
         'status',
@@ -38,7 +37,6 @@ class License extends Model
      * @var array
      */
     protected $casts = [
-        'uuid' => 'string',
         'issued_at' => 'datetime',
         'expires_at' => 'datetime',
         'discount_applied' => 'boolean',

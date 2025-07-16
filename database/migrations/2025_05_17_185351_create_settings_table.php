@@ -9,7 +9,7 @@ class CreateSettingsTable extends Migration
     public function up()
     {
         Schema::create('settings', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('organization_name')->nullable();
             $table->string('contact_title')->nullable();
             $table->string('contact_first_name')->nullable();
@@ -39,7 +39,8 @@ class CreateSettingsTable extends Migration
             $table->string('iban')->nullable();
             $table->string('recipient')->nullable();
             $table->boolean('project_overview_enabled')->default(false);
-            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
+            $table->uuid('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
             // $table->foreignId('organization_id')->nullable()->constrained('organizations')->onDelete('set null');
             $table->timestamps();
         });

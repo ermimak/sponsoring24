@@ -52,7 +52,7 @@
         </table>
 
         <!-- Open Donation -->
-        <div class="flex justify-between items-center border-t border-gray-200 pt-4">
+        <div v-if="donation.status === 'open'" class="flex justify-between items-center border-t border-gray-200 pt-4">
           <p class="text-lg font-semibold text-gray-900">Open donation</p>
           <p class="text-lg font-bold text-purple-700">{{ donation.currency }} {{ parseFloat(donation.amount).toFixed(2) }}</p>
         </div>
@@ -84,7 +84,7 @@
             <span>{{ donation.currency }} {{ parseFloat(roundingUpAmount).toFixed(2) }}</span>
         </div>
 
-        <div class="flex justify-between items-center border-t border-gray-200 pt-4">
+        <div v-if="donation.status === 'open'" class="flex justify-between items-center border-t border-gray-200 pt-4">
             <p class="text-lg font-semibold text-gray-900">Total:</p>
             <p class="text-xl font-bold text-purple-700">{{ donation.currency }} {{ (parseFloat(donation.amount) + parseFloat(roundingUpAmount)).toFixed(2) }}</p>
         </div>

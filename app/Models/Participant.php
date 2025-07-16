@@ -9,7 +9,6 @@ class Participant extends Model
 {
     use HasUuid;
     protected $fillable = [
-        'uuid',
         'gender',
         'first_name',
         'last_name',
@@ -31,7 +30,6 @@ class Participant extends Model
     ];
 
     protected $casts = [
-        'uuid' => 'string',
         'public_registration' => 'boolean',
         'archived' => 'boolean',
         'birthday' => 'date',
@@ -41,12 +39,14 @@ class Participant extends Model
     public function memberGroups()
     {
         return $this->belongsToMany(MemberGroup::class, 'member_group_participant', 'participant_id', 'member_group_id')
+            ->using(MemberGroupParticipant::class)
             ->withTimestamps();
     }
 
     public function projects()
     {
         return $this->belongsToMany(Project::class, 'participant_project', 'participant_id', 'project_id')
+            ->using(ParticipantProject::class)
             ->withPivot(['status', 'role'])
             ->withTimestamps();
     }

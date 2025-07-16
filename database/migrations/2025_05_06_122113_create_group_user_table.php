@@ -11,14 +11,16 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('member_groups', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->string('name');
             $table->timestamps();
         });
         Schema::create('member_group_participant', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('member_group_id')->constrained('member_groups')->onDelete('cascade');
-            $table->foreignId('participant_id')->constrained('participants')->onDelete('cascade');
+            $table->uuid('id')->primary();
+            $table->uuid('member_group_id');
+            $table->foreign('member_group_id')->references('id')->on('member_groups')->onDelete('cascade');
+            $table->uuid('participant_id');
+            $table->foreign('participant_id')->references('id')->on('participants')->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -19,7 +19,6 @@ class Setting extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'uuid',
         'organization_name',
         'contact_title',
         'contact_first_name',
@@ -60,7 +59,6 @@ class Setting extends Model
     protected function casts(): array
     {
         return [
-            'uuid' => 'string',
             'project_overview_enabled' => 'boolean',
         ];
     }

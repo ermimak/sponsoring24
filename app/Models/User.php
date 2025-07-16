@@ -16,7 +16,7 @@ class User extends Authenticatable
     use HasUuid;
 
     protected $fillable = [
-        'uuid', 'name', 'email', 'password', 'referral_code', 'discount_eligible', 'discount_used', 'created_by',
+        'name', 'email', 'password', 'referral_code', 'discount_eligible', 'discount_used', 'created_by',
     ];
 
     protected $hidden = [
@@ -25,7 +25,6 @@ class User extends Authenticatable
 
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'uuid' => 'string',
     ];
 
     public function setting()

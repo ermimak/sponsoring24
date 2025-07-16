@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 
 class Project extends Model
 {
     use HasFactory;
     use HasTranslations;
+    use HasUuid;
 
     protected $fillable = [
         'id',
@@ -44,22 +45,12 @@ class Project extends Model
 
     public $translatable = ['name', 'description'];
 
-    protected $keyType = 'string';
-    public $incrementing = false;
-
-    protected static function boot()
-    {
-        parent::boot();
-        static::creating(function ($model) {
-            if (empty($model->{$model->getKeyName()})) {
-                $model->{$model->getKeyName()} = (string) Str::uuid();
-            }
-        });
-    }
+    // UUID handling is now managed by the HasUuid trait
 
     public function participants()
     {
         return $this->belongsToMany(Participant::class, 'participant_project', 'project_id', 'participant_id')
+            ->using(ParticipantProject::class)
             ->withPivot(['status', 'role'])
             ->withTimestamps();
     }

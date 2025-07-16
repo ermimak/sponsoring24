@@ -1,11 +1,11 @@
 <template>
-    <AppDashboardLayout title="News Show">
+    <DashboardLayout title="News Show">
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 News Show
             </h2>
         </template>
-    </AppDashboardLayout>
+    </DashboardLayout>
     <div class="p-6">
         <h1 class="text-2xl font-bold">{{ news.title }}</h1>
         <p class="mt-4">{{ news.content }}</p>
@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import AppDashboardLayout from '@/Layouts/AppDashboardLayout.vue';
+import DashboardLayout from '@/Layouts/DashboardLayout.vue';
 import { ref } from 'vue';
 
 const news = ref({

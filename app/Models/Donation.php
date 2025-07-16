@@ -9,7 +9,6 @@ class Donation extends Model
 {
     use HasUuid;
     protected $fillable = [
-        'uuid',
         'project_id',
         'participant_id',
         'supporter_id',
@@ -27,7 +26,6 @@ class Donation extends Model
     ];
 
     protected $casts = [
-        'uuid' => 'string',
         'billing_date' => 'datetime',
         'paid_at' => 'datetime',
         'confirmed_at' => 'datetime',

@@ -17,7 +17,6 @@ class UserActivity extends Model
      * @var array
      */
     protected $fillable = [
-        'uuid',
         'user_id',
         'activity_type',
         'description',
@@ -32,7 +31,6 @@ class UserActivity extends Model
      * @var array
      */
     protected $casts = [
-        'uuid' => 'string',
         'metadata' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',

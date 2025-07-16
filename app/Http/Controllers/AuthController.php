@@ -44,6 +44,13 @@ class AuthController extends Controller
             ]);
         }
         
+        // Clear any existing session data
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        
+        // Explicitly authenticate the user with the UUID
+        Auth::login($user);
+        
         // Check if user is approved
         if ($user->approval_status !== 'approved') {
             $message = 'Your account is pending approval by an administrator.';

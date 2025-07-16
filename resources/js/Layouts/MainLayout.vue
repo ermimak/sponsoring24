@@ -10,8 +10,8 @@
                     </div>
                     <div class="flex items-center">
                         <div class="flex space-x-4">
-                            <a href="/de" class="text-gray-600 hover:text-gray-900">Deutsch</a>
-                            <a href="/fr" class="text-gray-600 hover:text-gray-900">Français</a>
+                            <!-- <a href="/de" class="text-gray-600 hover:text-gray-900">Deutsch</a>
+                            <a href="/fr" class="text-gray-600 hover:text-gray-900">Français</a> -->
                             <template v-if="$page.props.auth?.user">
                                 <div class="relative ml-3">
                                     <button
@@ -28,10 +28,8 @@
                                 </div>
                             </template>
                             <template v-else>
-                                <a href="/login" class="text-gray-600 hover:text-gray-900">Login</a>
-                                <a href="/register" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
-                                    Register
-                                </a>
+                                <a href="/register" class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-bold px-8 py-3 rounded-full shadow-lg transition-all duration-300">Sign Up Now</a>
+                                <a href="/login" class="bg-white hover:bg-gray-100 text-gray-800 font-bold px-8 py-3 rounded-full shadow-lg border border-gray-200 transition-all duration-300">Log In</a>
                             </template>
                         </div>
                     </div>
@@ -79,6 +77,6 @@
 
 <script setup>
 import { usePage, Link } from '@inertiajs/vue3';
-
+import { route } from '@/ziggy-plugin';
 const page = usePage();
 </script> 

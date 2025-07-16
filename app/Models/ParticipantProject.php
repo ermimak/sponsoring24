@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class ParticipantProject extends Pivot
 {
+    use HasUuid;
     protected $table = 'participant_project';
 
     protected $fillable = [

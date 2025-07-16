@@ -2,31 +2,20 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class Supporter extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     protected $table = 'supporters';
 
-    /**
-     * Indicates if the IDs are auto-incrementing.
-     *
-     * @var bool
-     */
-    public $incrementing = false;
-
-    /**
-     * The data type of the primary key.
-     *
-     * @var string
-     */
-    protected $keyType = 'string';
+    // UUID handling is now managed by the HasUuid trait
 
     protected $fillable = [
         'gender',
@@ -42,17 +31,7 @@ class Supporter extends Model
         'phone',
     ];
 
-    /**
-     * Boot the model.
-     */
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            $model->{$model->getKeyName()} = Str::uuid()->toString();
-        });
-    }
+    // Boot method is now handled by the HasUuid trait
 
     /**
      * Get the donations associated with the supporter.

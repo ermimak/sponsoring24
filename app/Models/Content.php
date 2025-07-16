@@ -17,7 +17,6 @@ class Content extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'uuid',
         'section',
         'title',
         'subtitle',
@@ -34,7 +33,6 @@ class Content extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'uuid' => 'string',
         'content' => 'array',
         'meta' => 'array',
         'is_active' => 'boolean',
