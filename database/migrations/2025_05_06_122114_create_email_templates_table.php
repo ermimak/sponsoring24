@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('email_templates', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->uuid('project_id');
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->string('type'); // invitation, bill, reminder, etc.

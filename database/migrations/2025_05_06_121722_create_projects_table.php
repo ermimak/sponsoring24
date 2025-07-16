@@ -26,7 +26,8 @@ return new class extends Migration {
             $table->string('flat_rate_help_text')->nullable();
             $table->boolean('unit_based_enabled')->default(false);
             $table->boolean('public_donation_enabled')->default(false);
-            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->uuid('created_by')->nullable();
+            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
             $table->timestamps();
         });
     }

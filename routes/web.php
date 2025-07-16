@@ -96,6 +96,9 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::post('/{project}/duplicate', [ProjectController::class, 'duplicate'])
             ->name('duplicate')
             ->where(['project' => '[0-9a-fA-F-]{36}']);
+        Route::get('/{project}/show', [ProjectController::class, 'show'])
+            ->name('show')
+            ->where(['project' => '[0-9a-fA-F-]{36}']);
     });
     Route::apiResource('dashboard/projects', ProjectController::class)
         ->except(['index', 'create', 'edit', 'show', 'uploadImage', 'duplicate','update'])

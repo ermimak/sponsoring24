@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table("member_groups", function (Blueprint $table) {
-            $table->unsignedBigInteger("created_by")->nullable();
+            $table->uuid("created_by")->nullable();
             $table->foreign("created_by")->references("id")->on("users")->onDelete("cascade");
         });
     }

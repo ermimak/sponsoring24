@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class News extends Model
 {
     use HasFactory;
+    use HasUuid;
 
     /**
      * The table associated with the model.

@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 
 class Donation extends Model
 {
+    use HasUuid;
     protected $fillable = [
         'project_id',
         'participant_id',

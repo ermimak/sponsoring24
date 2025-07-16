@@ -43,6 +43,7 @@ class Kernel extends HttpKernel
             \Illuminate\Session\Middleware\AuthenticateSession::class,
             \App\Http\Middleware\HandleErrors::class,
             \App\Http\Middleware\HandleInertiaBackButton::class,
+            \App\Http\Middleware\ValidateUuidSession::class,
         ],
 
         'api' => [

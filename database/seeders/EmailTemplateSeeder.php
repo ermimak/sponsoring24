@@ -35,7 +35,6 @@ class EmailTemplateSeeder extends Seeder
             
             // Create a test project
             $project = Project::create([
-                'id' => Str::uuid(),
                 'name' => 'Test Project',
                 'description' => 'A test project for email templates',
                 'user_id' => $user->id,
