@@ -1,6 +1,17 @@
+# Stage 1: Build frontend assets
+# This stage uses a Node.js image to build your assets.
+FROM node:20-alpine as frontend-builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# Stage 2: Final PHP application image
+# This is your main application image. It no longer needs Node.js.
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Install system dependencies (Node.js is removed)
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -23,29 +34,29 @@ RUN apt-get update && apt-get install -y \
 RUN pecl install redis-5.3.7 \
     && docker-php-ext-enable redis
 
-# Create log directories
-RUN mkdir -p /var/log/php /var/log/supervisor \
-    && chown -R www-data:www-data /var/log/php
-
-# Install Node.js and Vite
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g vite
-
-# Clear cache
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Get latest Composer and set up Composer cache
+# Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-ENV COMPOSER_ALLOW_SUPERUSER=1
-ENV COMPOSER_HOME=/composer
-ENV COMPOSER_CACHE_DIR=/composer/cache
-RUN mkdir -p /composer/cache && chmod -R 777 /composer
 
-# Create system user to run Composer and Artisan Commands
-RUN useradd -G www-data,root -u 1000 -d /home/dev dev
-RUN mkdir -p /home/dev/.composer && \
-    chown -R dev:dev /home/dev
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy composer files and install dependencies
+COPY database/ database/
+COPY composer.json composer.lock ./
+RUN composer install --no-scripts --no-autoloader --no-dev
+
+# Copy application code
+COPY . .
+
+# Copy built assets from the frontend-builder stage
+COPY --from=frontend-builder /app/public/build ./public/build
+
+# Finish composer install
+RUN composer install --optimize-autoloader --no-dev
+
+# Set permissions for Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Set working directory
 WORKDIR /var/www/html
