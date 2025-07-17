@@ -4,6 +4,9 @@ services:
     env: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
+    dockerBuildArgs:
+      - name: APP_URL
+        value: ${APP_URL}
     plan: free
     healthCheckPath: /
     envVars:
