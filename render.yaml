@@ -15,7 +15,7 @@ services:
       - key: APP_DEBUG
         value: false
       - key: APP_URL
-        sync: false
+        sync: true
       - key: APP_KEY
         generateValue: true
       - key: LOG_CHANNEL
@@ -36,8 +36,7 @@ services:
         sync: false
       - key: REDIS_PORT
         sync: false
-      - key: VITE_APP_URL
-        sync: false
+
     buildFilter:
       paths:
         - package.json
