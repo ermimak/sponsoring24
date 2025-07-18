@@ -2,11 +2,12 @@
 # This stage uses a Node.js image to build your assets.
 FROM node:20-alpine as frontend-builder
 
-# Set build-time argument for the app URL, which will be passed from docker-compose.
+# Set build-time argument for the app URL (for local builds)
 ARG APP_URL
 
-# Set the environment variable for Vite to use during the build.
-ENV VITE_APP_URL=${APP_URL}
+# Set environment variable for Vite
+# Use RENDER_EXTERNAL_URL if available (on Render), otherwise use APP_URL (for local builds)
+ENV VITE_APP_URL=${RENDER_EXTERNAL_URL:-$APP_URL}
 
 WORKDIR /app
 COPY package*.json ./
