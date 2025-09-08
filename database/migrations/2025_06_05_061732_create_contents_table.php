@@ -17,7 +17,7 @@ return new class extends Migration
         }
         
         Schema::create('contents', function (Blueprint $table) {
-            $table->uuid('id')->primary();
+            $table->char('id', 36)->primary();
             $table->string('section')->unique();
             $table->string('title')->nullable();
             $table->string('subtitle')->nullable();

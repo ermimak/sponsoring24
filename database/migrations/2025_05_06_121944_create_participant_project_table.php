@@ -11,10 +11,10 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('participant_project', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('participant_id');
+            $table->char('id', 36)->primary();
+            $table->char('participant_id', 36);
             $table->foreign('participant_id')->references('id')->on('participants')->onDelete('cascade');
-            $table->uuid('project_id');
+            $table->char('project_id', 36);
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->string('status')->nullable();
             $table->string('role')->nullable();

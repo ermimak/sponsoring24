@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('participants', function (Blueprint $table) {
             // Add created_by column
-            $table->uuid('created_by')->nullable();
+            $table->char('created_by', 36)->nullable();
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');
         });
     }

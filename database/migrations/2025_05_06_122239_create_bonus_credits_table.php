@@ -11,9 +11,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('bonus_credits', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('user_id'); // Referrer
-            $table->uuid('referred_user_id'); // Referred user
+            $table->char('id', 36)->primary();
+            $table->char('user_id', 36); // Referrer
+            $table->char('referred_user_id', 36); // Referred user
             $table->decimal('amount', 8, 2)->default(100.00);
             $table->string('status')->default('pending'); // pending, credited
             $table->timestamps();
