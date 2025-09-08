@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->uuid('created_by')->nullable();
+            $table->char('created_by', 36)->nullable();
             $table->foreign('created_by')->references('id')->on('users')->onDelete('set null');
         });
     }

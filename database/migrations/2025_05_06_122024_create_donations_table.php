@@ -11,12 +11,12 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('donations', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('project_id');
+            $table->char('id', 36)->primary();
+            $table->char('project_id', 36);
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
-            $table->uuid('participant_id')->nullable();
+            $table->char('participant_id', 36)->nullable();
             $table->foreign('participant_id')->references('id')->on('participants')->nullOnDelete();
-            $table->uuid('supporter_id')->nullable(); // supporter user or contact
+            $table->char('supporter_id', 36)->nullable(); // supporter user or contact
             $table->foreign('supporter_id')->references('id')->on('supporters')->nullOnDelete();
             $table->decimal('amount', 10, 2);
             $table->string('type'); // flat, unit, etc.

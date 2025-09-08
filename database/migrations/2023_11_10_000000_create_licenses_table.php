@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('licenses', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-            $table->uuid('user_id');
+            $table->char('id', 36)->primary();
+            $table->char('user_id', 36);
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->string('license_key')->unique();
             $table->enum('status', ['active', 'expired', 'revoked'])->default('active');

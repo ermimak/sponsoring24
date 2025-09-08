@@ -2,16 +2,17 @@
 
 namespace App\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 trait HasUuid
 {
     /**
-     * Boot the trait and set up event listeners.
+     * Boot the trait for MySQL-compatible UUID handling.
      */
-    protected static function bootHasUuid()
+    protected static function bootHasUuid(): void
     {
-        static::creating(function ($model) {
+        static::creating(function (Model $model) {
             if (empty($model->{$model->getKeyName()})) {
                 $model->{$model->getKeyName()} = (string) Str::uuid();
             }
@@ -20,20 +21,17 @@ trait HasUuid
 
     /**
      * Get the value indicating whether the IDs are incrementing.
-     *
-     * @return bool
      */
-    public function getIncrementing()
+    public function getIncrementing(): bool
     {
         return false;
     }
 
     /**
      * Get the auto-incrementing key type.
-     *
-     * @return string
+     * Returns 'string' for MySQL CHAR(36) UUID compatibility.
      */
-    public function getKeyType()
+    public function getKeyType(): string
     {
         return 'string';
     }
