@@ -9,12 +9,10 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    libpq-dev \
-    postgresql-client \
+    default-mysql-client \
     nginx \
     libzip-dev \
-    && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
-    && docker-php-ext-install pdo pdo_pgsql pgsql mbstring exif pcntl bcmath gd zip
+    && docker-php-ext-install pdo pdo_mysql mysqli mbstring exif pcntl bcmath gd zip
 
 # Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
@@ -118,11 +116,11 @@ LOG_CHANNEL=stack\n\
 LOG_DEPRECATIONS_CHANNEL=null\n\
 LOG_LEVEL=debug\n\
 \n\
-DB_CONNECTION=pgsql\n\
+DB_CONNECTION=mysql\n\
 DB_HOST=db\n\
-DB_PORT=5432\n\
+DB_PORT=3306\n\
 DB_DATABASE=sponsoring24\n\
-DB_USERNAME=postgres\n\
+DB_USERNAME=sponsoring24\n\
 DB_PASSWORD=password" > .env\n\
     fi\n\
 fi\n\
