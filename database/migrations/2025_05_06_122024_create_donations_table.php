@@ -15,9 +15,9 @@ return new class extends Migration {
             $table->char('project_id', 36);
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->char('participant_id', 36)->nullable();
-            $table->foreign('participant_id')->references('id')->on('participants')->nullOnDelete();
+            $table->foreign('participant_id')->references('id')->on('participants')->onDelete('set null');
             $table->char('supporter_id', 36)->nullable(); // supporter user or contact
-            $table->foreign('supporter_id')->references('id')->on('supporters')->nullOnDelete();
+            $table->foreign('supporter_id')->references('id')->on('supporters')->onDelete('set null');
             $table->decimal('amount', 10, 2);
             $table->string('type'); // flat, unit, etc.
             $table->date('billing_date')->nullable();
