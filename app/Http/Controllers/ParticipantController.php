@@ -16,6 +16,8 @@ use App\Notifications\NewDonationNotification;
 use App\Services\EmailService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Http\Requests\SecureDonationRequest;
+use App\Services\AuditLogService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
@@ -313,42 +315,25 @@ class ParticipantController extends Controller
             // Get the email service
             $emailService = app(\App\Services\EmailService::class);
             
-            // Create a test donation if needed
+            // Use existing donation for template testing, or create a mock object for testing
             $donation = \App\Models\Donation::first();
-            Log::info('Looking for donation', [
-                'found' => $donation ? true : false,
-                'donation_id' => $donation ? $donation->id : null
-            ]);
             
             if (!$donation) {
-                try {
-                    // First try to create a donation record in the database
-                    $donation = \App\Models\Donation::create([
-                        'donor_name' => 'Test Donor',
-                        'donor_email' => 'test@example.com',
-                        'amount' => 100,
-                        'currency' => 'CHF',
-                        'participant_id' => $participant->id,
-                        'project_id' => $template->project_id,
-                    ]);
-                    
-                    Log::info('Created new donation', ['donation_id' => $donation->id]);
-                } catch (\Exception $e) {
-                    // If creation fails, use a temporary donation object
-                    Log::warning('Failed to create donation record: ' . $e->getMessage(), [
-                        'trace' => $e->getTraceAsString()
-                    ]);
-                    
-                    $donation = new \App\Models\Donation([
-                        'id' => 999999, // Temporary ID
-                        'donor_name' => 'Test Donor',
-                        'donor_email' => 'test@example.com',
-                        'amount' => 100,
-                        'currency' => 'CHF',
-                        'participant_id' => $participant->id,
-                        'project_id' => $template->project_id,
-                    ]);
-                }
+                // Create a mock donation object for template testing only (not saved to database)
+                $donation = new \App\Models\Donation([
+                    'id' => 'test-donation-id',
+                    'donor_name' => 'Test Donor',
+                    'donor_email' => 'test@example.com',
+                    'amount' => 100,
+                    'currency' => 'CHF',
+                    'participant_id' => $participant->id,
+                    'project_id' => $template->project_id,
+                ]);
+                
+                Log::info('Using mock donation for template testing', [
+                    'participant_id' => $participant->id,
+                    'project_id' => $template->project_id
+                ]);
             }
             
             // Prepare additional data
@@ -762,7 +747,7 @@ class ParticipantController extends Controller
         }
     }
 
-    public function storeDonation(Request $request, $projectId, $participantId)
+    public function storeDonation(SecureDonationRequest $request, $projectId, $participantId)
     {
         try {
             $project = Project::findOrFail($projectId);
@@ -770,11 +755,7 @@ class ParticipantController extends Controller
                 $query->where('project_id', $projectId);
             })->findOrFail($participantId);
 
-            $validated = $request->validate([
-                'amount' => 'required|numeric|min:1',
-                'currency' => 'required|string|in:USD,EUR,GBP,CHF',
-                'step' => 'required|in:donation,confirmation',
-            ]);
+            $validated = $request->validated();
 
             if ($validated['step'] === 'donation') {
                 $request->session()->put('donation_data', [

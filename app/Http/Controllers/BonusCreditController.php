@@ -83,8 +83,8 @@ class BonusCreditController extends Controller
             $referrer = User::where('referral_code', $referralCode)->first();
             
             if (!$referrer) {
-                // Try case-insensitive match as fallback
-                $referrer = User::whereRaw('LOWER(referral_code) = ?', [strtolower($referralCode)])->first();
+                // Try case-insensitive match as fallback using safe query builder methods
+                $referrer = User::whereRaw('LOWER(referral_code) = LOWER(?)', [$referralCode])->first();
                 
                 if ($referrer) {
                     Log::info('Found referrer with case-insensitive match', [
