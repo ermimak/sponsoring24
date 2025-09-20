@@ -311,15 +311,15 @@ Route::post('webhook/donation/stripe', [PaymentController::class, 'handleWebhook
     ->name('webhook.donation.stripe')
     ->middleware('api'); // Use API middleware to skip CSRF but still get basic request handling
 // Route::post('api/projects/{project}/participants/{participant}/donate', [PublicParticipantController::class, 'donate']);
-Route::prefix('projects/{projectId}')->middleware(['validate.participant', 'throttle:60,1'])->group(function () {
+Route::prefix('projects/{projectId}')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:60,1'])->group(function () {
     Route::get('participants/{participantId}', [ParticipantController::class, 'showLandingPage'])->name('participant.landing');
     Route::get('participants/{participantId}/donate', [ParticipantController::class, 'showDonationPage'])->name('participant.donate');
     Route::post('participants/{participantId}/donate', [ParticipantController::class, 'storeDonation'])->name('participant.donate.store')->middleware('throttle:10,1');
 });
-Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{token}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm')->middleware(['validate.participant', 'throttle:30,1']);
-Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment')->middleware(['validate.participant', 'throttle:30,1']);
-Route::get('projects/{projectId}/participants/{participantId}/donate/success/{donationId}', [ParticipantController::class, 'showDonationSuccess'])->name('participant.donate.success')->middleware(['validate.participant', 'throttle:30,1']);
-Route::get('projects/{projectId}/participants/{participantId}/donate/invoice/success/{donationId}', [ParticipantController::class, 'showInvoiceSuccess'])->name('participant.donate.invoice.success')->middleware(['validate.participant', 'throttle:30,1']);
+Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{token}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:30,1']);
+Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:30,1']);
+Route::get('projects/{projectId}/participants/{participantId}/donate/success/{donationId}', [ParticipantController::class, 'showDonationSuccess'])->name('participant.donate.success')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:30,1']);
+Route::get('projects/{projectId}/participants/{participantId}/donate/invoice/success/{donationId}', [ParticipantController::class, 'showInvoiceSuccess'])->name('participant.donate.invoice.success')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:30,1']);
 
 Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
 
