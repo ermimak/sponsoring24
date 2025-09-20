@@ -35,8 +35,8 @@ Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum')
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload', function (Request $request) {
         $request->validate([
-            'image_landscape' => 'nullable|image|max:2048',
-            'image_square' => 'nullable|image|max:2048',
+            'image_landscape' => 'nullable|image|max:6144',
+            'image_square' => 'nullable|image|max:6144',
         ]);
 
         $data = [];

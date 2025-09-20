@@ -24,14 +24,14 @@ class SecureFileUploadRequest extends FormRequest
             'image_landscape' => [
                 'nullable',
                 File::image()
-                    ->max(5 * 1024) // 5MB max
-                    ->dimensions(['min_width' => 100, 'min_height' => 100, 'max_width' => 4000, 'max_height' => 4000]),
+                    ->max(20 * 1024) // 20MB max for high-quality project images
+                    ->dimensions(['min_width' => 100, 'min_height' => 100, 'max_width' => 8000, 'max_height' => 8000]),
             ],
             'image_portrait' => [
                 'nullable',
                 File::image()
-                    ->max(5 * 1024) // 5MB max
-                    ->dimensions(['min_width' => 100, 'min_height' => 100, 'max_width' => 4000, 'max_height' => 4000]),
+                    ->max(20 * 1024) // 20MB max for high-quality project images
+                    ->dimensions(['min_width' => 100, 'min_height' => 100, 'max_width' => 8000, 'max_height' => 8000]),
             ],
             'file' => [
                 'nullable',
@@ -48,8 +48,8 @@ class SecureFileUploadRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'image_landscape.max' => 'Landscape image must not exceed 5MB.',
-            'image_portrait.max' => 'Portrait image must not exceed 5MB.',
+            'image_landscape.max' => 'Landscape image must not exceed 20MB.',
+            'image_portrait.max' => 'Portrait image must not exceed 20MB.',
             'file.max' => 'File must not exceed 10MB.',
             'file.mimes' => 'File must be a PDF, Word document, Excel file, CSV, or text file.',
         ];

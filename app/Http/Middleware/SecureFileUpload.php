@@ -48,7 +48,7 @@ class SecureFileUpload
     private function scanFile($file, $fieldName): bool
     {
         // Check file size (additional layer beyond validation)
-        if ($file->getSize() > 50 * 1024 * 1024) { // 50MB absolute max
+        if ($file->getSize() > 128 * 1024 * 1024) { // 128MB absolute max to match server config
             Log::warning('File too large', [
                 'field' => $fieldName,
                 'size' => $file->getSize(),
