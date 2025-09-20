@@ -22,7 +22,14 @@ class SecureDonationRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $step = $this->input('step', 'donation');
+        
+        $rules = [
+            'step' => [
+                'required',
+                'string',
+                Rule::in(['donation', 'confirmation'])
+            ],
             'amount' => [
                 'required',
                 'numeric',
@@ -35,65 +42,82 @@ class SecureDonationRequest extends FormRequest
                 'string',
                 Rule::in(['CHF', 'EUR', 'USD']) // Only allow supported currencies
             ],
-            'donor_name' => [
-                'required',
-                'string',
-                'min:2',
-                'max:100',
-                'regex:/^[\p{L}\s\-\.\']+$/u' // Only letters, spaces, hyphens, dots, apostrophes
-            ],
-            'donor_email' => [
-                'required',
-                'email:rfc,dns',
-                'max:255',
-                'filter:FILTER_VALIDATE_EMAIL'
-            ],
-            'donor_phone' => [
-                'nullable',
-                'string',
-                'max:20',
-                'regex:/^[\+]?[0-9\s\-\(\)]+$/' // Phone number format
-            ],
-            'donor_address' => [
-                'nullable',
-                'string',
-                'max:255'
-            ],
-            'donor_city' => [
-                'nullable',
-                'string',
-                'max:100',
-                'regex:/^[\p{L}\s\-\.\']+$/u'
-            ],
-            'donor_postal_code' => [
-                'nullable',
-                'string',
-                'max:20',
-                'regex:/^[A-Z0-9\s\-]+$/i'
-            ],
-            'donor_country' => [
-                'nullable',
-                'string',
-                'max:100',
-                'regex:/^[\p{L}\s\-\.\']+$/u'
-            ],
-            'message' => [
-                'nullable',
-                'string',
-                'max:1000' // Limit message length
-            ],
-            'anonymous' => [
-                'boolean'
-            ],
-            'newsletter' => [
-                'boolean'
-            ],
-            'payment_method' => [
-                'required',
-                'string',
-                Rule::in(['stripe', 'invoice', 'bank_transfer'])
-            ]
         ];
+
+        // Add validation rules based on step
+        if ($step === 'confirmation') {
+            $rules = array_merge($rules, [
+                'gender' => [
+                    'required',
+                    'string',
+                    Rule::in(['Masculine', 'Feminine', 'Other'])
+                ],
+                'first_name' => [
+                    'required',
+                    'string',
+                    'min:2',
+                    'max:100',
+                    'regex:/^[\p{L}\s\-\.\']+$/u' // Only letters, spaces, hyphens, dots, apostrophes
+                ],
+                'last_name' => [
+                    'required',
+                    'string',
+                    'min:2',
+                    'max:100',
+                    'regex:/^[\p{L}\s\-\.\']+$/u'
+                ],
+                'company' => [
+                    'nullable',
+                    'string',
+                    'max:255'
+                ],
+                'address' => [
+                    'required',
+                    'string',
+                    'max:255'
+                ],
+                'address_suffix' => [
+                    'nullable',
+                    'string',
+                    'max:255'
+                ],
+                'postal_code' => [
+                    'required',
+                    'string',
+                    'max:20',
+                    'regex:/^[A-Z0-9\s\-]+$/i'
+                ],
+                'location' => [
+                    'required',
+                    'string',
+                    'max:100',
+                    'regex:/^[\p{L}\s\-\.\']+$/u'
+                ],
+                'country' => [
+                    'required',
+                    'string',
+                    'max:100',
+                    'regex:/^[\p{L}\s\-\.\']+$/u'
+                ],
+                'email' => [
+                    'required',
+                    'email:rfc,dns',
+                    'max:255'
+                ],
+                'phone' => [
+                    'required',
+                    'string',
+                    'max:20',
+                    'regex:/^[\+]?[0-9\s\-\(\)]+$/' // Phone number format
+                ],
+                'privacy_policy' => [
+                    'required',
+                    'accepted'
+                ],
+            ]);
+        }
+
+        return $rules;
     }
 
     /**
@@ -103,11 +127,13 @@ class SecureDonationRequest extends FormRequest
     {
         return [
             'amount.regex' => 'Amount can only have up to 2 decimal places.',
-            'donor_name.regex' => 'Name can only contain letters, spaces, hyphens, dots, and apostrophes.',
-            'donor_phone.regex' => 'Please enter a valid phone number.',
-            'donor_city.regex' => 'City can only contain letters, spaces, hyphens, dots, and apostrophes.',
-            'donor_postal_code.regex' => 'Please enter a valid postal code.',
-            'donor_country.regex' => 'Country can only contain letters, spaces, hyphens, dots, and apostrophes.',
+            'first_name.regex' => 'First name can only contain letters, spaces, hyphens, dots, and apostrophes.',
+            'last_name.regex' => 'Last name can only contain letters, spaces, hyphens, dots, and apostrophes.',
+            'phone.regex' => 'Please enter a valid phone number.',
+            'location.regex' => 'Location can only contain letters, spaces, hyphens, dots, and apostrophes.',
+            'postal_code.regex' => 'Please enter a valid postal code.',
+            'country.regex' => 'Country can only contain letters, spaces, hyphens, dots, and apostrophes.',
+            'privacy_policy.accepted' => 'You must accept the privacy policy to continue.',
         ];
     }
 
@@ -117,15 +143,25 @@ class SecureDonationRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Sanitize inputs
-        $this->merge([
-            'donor_name' => $this->sanitizeString($this->donor_name),
-            'donor_email' => $this->sanitizeEmail($this->donor_email),
-            'donor_address' => $this->sanitizeString($this->donor_address),
-            'donor_city' => $this->sanitizeString($this->donor_city),
-            'donor_country' => $this->sanitizeString($this->donor_country),
-            'message' => $this->sanitizeString($this->message),
+        $sanitized = [
             'amount' => $this->sanitizeAmount($this->amount),
-        ]);
+        ];
+
+        // Only sanitize confirmation step fields if they exist
+        if ($this->input('step') === 'confirmation') {
+            $sanitized = array_merge($sanitized, [
+                'first_name' => $this->sanitizeString($this->first_name),
+                'last_name' => $this->sanitizeString($this->last_name),
+                'company' => $this->sanitizeString($this->company),
+                'email' => $this->sanitizeEmail($this->email),
+                'address' => $this->sanitizeString($this->address),
+                'address_suffix' => $this->sanitizeString($this->address_suffix),
+                'location' => $this->sanitizeString($this->location),
+                'country' => $this->sanitizeString($this->country),
+            ]);
+        }
+
+        $this->merge($sanitized);
     }
 
     /**

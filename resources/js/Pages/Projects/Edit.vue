@@ -476,8 +476,12 @@ async function submit() {
   error.value = '';
   try {
     const formData = new FormData();
-    formData.append('name', JSON.stringify(form.value.name));
-    formData.append('description', JSON.stringify(form.value.description));
+    Object.keys(form.value.name).forEach(lang => {
+      formData.append(`name[${lang}]`, form.value.name[lang] || '');
+    });
+    Object.keys(form.value.description).forEach(lang => {
+      formData.append(`description[${lang}]`, form.value.description[lang] || '');
+    });
     formData.append('location', form.value.location);
     formData.append('language', form.value.language);
     formData.append('start', form.value.start);
@@ -495,19 +499,37 @@ async function submit() {
       formData.append('image_square', form.value.image_square);
     }
 
+    formData.append('_method', 'PUT');
+
     const updateUrl = route('dashboard.projects.update', { project: projectId.value });
 
     await axios.post(updateUrl, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      method: 'PUT',
     });
 
     alert('Project updated!');
   } catch (e) {
-    error.value = `Failed to update project: ${e.message}`;
-    console.error('Error updating project:', e);
-  } finally {
     loading.value = false;
+    console.error('Error updating project:', e);
+    
+    if (e.response && e.response.data) {
+      if (e.response.data.errors) {
+        // Handle validation errors
+        const errorMessages = [];
+        Object.keys(e.response.data.errors).forEach(field => {
+          e.response.data.errors[field].forEach(message => {
+            errorMessages.push(`${field}: ${message}`);
+          });
+        });
+        error.value = `Validation errors:\n${errorMessages.join('\n')}`;
+      } else if (e.response.data.message) {
+        error.value = e.response.data.message;
+      } else {
+        error.value = 'Failed to update project. Please check your input and try again.';
+      }
+    } else {
+      error.value = `Failed to update project: ${e.message}`;
+    }
   }
 }
 

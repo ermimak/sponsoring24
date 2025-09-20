@@ -93,7 +93,7 @@ class Address extends \Faker\Provider\Address
     protected static $secondaryAddressFormats = [
         'Bloco A', 'Bloco B', 'Bloco C', 'Bc. # Ap. ##', 'Bc. ## Ap. ##',
         '#º Andar', '##º Andar', '###º Andar', 'Apto #', 'Apto ##', 'Apto ###',
-        'Apto ####', 'F', 'Fundos', 'Anexo',
+        'Apto ####', 'F', 'Sponsoring24s', 'Anexo',
     ];
 
     /**

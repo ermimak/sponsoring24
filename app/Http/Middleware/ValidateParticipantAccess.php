@@ -39,32 +39,20 @@ class ValidateParticipantAccess
 
         RateLimiter::hit($key, 60); // 1 minute decay
 
-        // Validate that project exists and is active
+        // Validate that project exists and donations are allowed
         try {
             $project = Project::findOrFail($projectId);
             
-            // Check if project is active (has start/end dates)
-            if ($project->start && $project->start->isFuture()) {
-                Log::info('Access attempt to future project', [
+            // Check if donations are still allowed based on allow_donation_until date
+            if ($project->allow_donation_until && $project->allow_donation_until->isPast()) {
+                Log::info('Access attempt to project with expired donation period', [
                     'project_id' => $projectId,
-                    'start_date' => $project->start,
-                    'ip' => $request->ip()
-                ]);
-                
-                return response()->view('errors.project-not-active', [
-                    'message' => 'This project is not yet active.'
-                ], 403);
-            }
-
-            if ($project->end && $project->end->isPast()) {
-                Log::info('Access attempt to expired project', [
-                    'project_id' => $projectId,
-                    'end_date' => $project->end,
+                    'allow_donation_until' => $project->allow_donation_until,
                     'ip' => $request->ip()
                 ]);
                 
                 return response()->view('errors.project-expired', [
-                    'message' => 'This project has ended.'
+                    'message' => 'The donation period for this project has ended.'
                 ], 403);
             }
 

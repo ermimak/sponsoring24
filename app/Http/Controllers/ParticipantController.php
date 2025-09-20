@@ -885,7 +885,12 @@ class ParticipantController extends Controller
                 // Send notification to project owner
                 $projectOwner = User::find($project->created_by);
                 if ($projectOwner) {
-                    $projectOwner->notify(new NewDonationNotification($donation,$donationData['amount'], $project, $participant));
+                    $projectOwner->notify(new NewDonationNotification([
+                        'donation' => $donation,
+                        'amount' => $donationData['amount'],
+                        'project' => $project,
+                        'donor' => $participant
+                    ]));
                 }
                 
                 // Send notification to admin users
@@ -894,7 +899,12 @@ class ParticipantController extends Controller
                 })->get();
                 
                 foreach ($admins as $admin) {
-                    $admin->notify(new NewDonationNotification($donation,$donationData['amount'], $project, $participant));
+                    $admin->notify(new NewDonationNotification([
+                        'donation' => $donation,
+                        'amount' => $donationData['amount'],
+                        'project' => $project,
+                        'donor' => $participant
+                    ]));
                 }
 
                 $request->session()->forget('donation_data');
