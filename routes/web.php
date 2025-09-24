@@ -335,10 +335,16 @@ Route::get('/content/news/{news}', [\App\Http\Controllers\Admin\ContentControlle
 // API Routes
 Route::get('/api/projects', [ProjectController::class, 'index'])->name('api.projects');
 
-// Payment Routes
-Route::post('/api/payments/create-payment-intent', [PaymentController::class, 'createPaymentIntent'])->name('payment.intent');
-Route::post('/api/payments/request-invoice', [PaymentController::class, 'requestInvoice'])->name('payment.invoice');
-Route::post('/api/webhook/stripe', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+
+
+// Test route to verify webhook setup (remove in production)
+Route::get('/api/test-webhook-config', function() {
+    return response()->json([
+        'webhook_secret_configured' => !empty(config('services.stripe.webhook.secret')),
+        'stripe_key_configured' => !empty(config('services.stripe.key')),
+        'stripe_secret_configured' => !empty(config('services.stripe.secret')),
+    ]);
+});
 
 // Debug Route (Remove in Production)
 Route::get('/debug-login', function () {

@@ -15,6 +15,7 @@ class VerifyCsrfToken extends Middleware
         // Stripe webhooks need to be excluded from CSRF protection
         'webhook/license/stripe',
         'webhook/donation/stripe',
+        'api/webhook/stripe',
         // API routes are protected by Sanctum instead
         'api/*',
     ];

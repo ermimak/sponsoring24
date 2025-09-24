@@ -32,6 +32,9 @@ services:
       - PHP_MAX_EXECUTION_TIME=120
       - PHP_POST_MAX_SIZE=128M
       - PHP_UPLOAD_MAX_FILESIZE=128M
+      - STRIPE_KEY=${STRIPE_KEY}
+      - STRIPE_SECRET=${STRIPE_SECRET}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     depends_on:
       - db
       - redis

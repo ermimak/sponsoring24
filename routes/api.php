@@ -31,6 +31,15 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 
+// Stripe Payment Routes (no CSRF protection needed)
+Route::post('/payments/create-payment-intent', [\App\Http\Controllers\PaymentController::class, 'createPaymentIntent'])->name('api.payment.intent');
+Route::post('/payments/request-invoice', [\App\Http\Controllers\PaymentController::class, 'requestInvoice'])->name('api.payment.invoice');
+
+// Stripe Webhook Route
+// This route is exempt from CSRF protection as it's in the API group.
+Route::post('/webhook/stripe', [\App\Http\Controllers\PaymentController::class, 'handleWebhook'])->name('stripe.webhook');
+
+
 // Move upload route inside auth middleware group since it requires authentication
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload', function (Request $request) {

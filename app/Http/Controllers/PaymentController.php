@@ -174,8 +174,9 @@ class PaymentController extends Controller
     public function handleWebhook(Request $request)
     {
         $payload = $request->getContent();
+        Log::info('Stripe Webhook Request Received:', ['body' => $payload]);
         $sigHeader = $request->header('Stripe-Signature');
-        $endpointSecret = config('services.stripe.webhook_secret');
+        $endpointSecret = config('services.stripe.webhook.secret');
         $event = null;
 
         try {

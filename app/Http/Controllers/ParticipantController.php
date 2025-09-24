@@ -1018,6 +1018,7 @@ class ParticipantController extends Controller
             'project' => $project,
             'participant' => $participant,
             'donation' => $donation,
+            'stripeKey' => config('services.stripe.key'),
         ]);
     }
     
