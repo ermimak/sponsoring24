@@ -32,8 +32,8 @@ const toastOptions = {
 // Configure axios to use the same protocol as the current page
 axios.defaults.baseURL = window.location.origin;
 // Force HTTP for local development
-if (window.location.hostname === 'localhost') {
-  axios.defaults.baseURL = 'http://localhost';
+if (window.location.hostname === 'localhost' && window.location.port) {
+    axios.defaults.baseURL = 'http://localhost:' + window.location.port;
 }
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';

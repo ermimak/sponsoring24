@@ -34,6 +34,7 @@ Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum')
 // Stripe Payment Routes (no CSRF protection needed)
 Route::post('/payments/create-payment-intent', [\App\Http\Controllers\PaymentController::class, 'createPaymentIntent'])->name('api.payment.intent');
 Route::post('/payments/request-invoice', [\App\Http\Controllers\PaymentController::class, 'requestInvoice'])->name('api.payment.invoice');
+Route::post('/payments/finalize', [\App\Http\Controllers\PaymentController::class, 'finalizePayment'])->name('api.payment.finalize');
 
 // Stripe Webhook Route
 // This route is exempt from CSRF protection as it's in the API group.

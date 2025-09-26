@@ -477,7 +477,7 @@ class LicenseController extends Controller
         
         $payload = $request->getContent();
         $sig_header = $request->header('Stripe-Signature');
-        $endpoint_secret = config('services.stripe.webhook.secret');
+        $endpoint_secret = config('services.stripe.webhook_secret');
         
         // Save raw payload for debugging
         Log::debug('Received webhook payload', [

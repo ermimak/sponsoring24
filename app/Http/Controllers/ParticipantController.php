@@ -1031,9 +1031,7 @@ class ParticipantController extends Controller
         $participant = Participant::findOrFail($participantId);
         $donation = Donation::findOrFail($donationId);
 
-        if ($donation->status === 'confirmed') {
-            $donation->update(['status' => 'paid']);
-        }
+        // Do not auto-mark as paid here; status is updated by webhook or finalizePayment
         
         // Check if donation belongs to this participant and project
         if ($donation->participant_id != $participantId || $donation->project_id != $projectId) {

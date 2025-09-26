@@ -39,6 +39,27 @@ Route::get('/health', function() {
     return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
 });
 
+// Debug route to check asset URLs (remove after fixing)
+Route::get('/debug-assets', function() {
+    $vite = app(\Illuminate\Foundation\Vite::class);
+    
+    return response()->json([
+        'asset_url' => env('ASSET_URL'),
+        'app_url' => config('app.url'),
+        'app_env' => config('app.env'),
+        'manifest_exists' => file_exists(public_path('build/manifest.json')),
+        'hot_file_exists' => file_exists(public_path('hot')),
+        'storage_hot_exists' => file_exists(storage_path('framework/vite.hot')),
+        'sample_assets' => [
+            'app.js_exists' => file_exists(public_path('build/assets/app.js')),
+            'vendor.js_exists' => file_exists(public_path('build/assets/vendor.js')),
+            'app.css_exists' => file_exists(public_path('build/assets/app.css')),
+        ],
+        'request_url' => request()->url(),
+        'request_root' => request()->root(),
+    ]);
+})->name('debug.assets');
+
 // Test routes (no auth required)
 Route::get('/test-email/{type?}', [ParticipantController::class, 'testTemplateEmail'])->name('test-template-email');
 
@@ -306,10 +327,6 @@ Route::middleware(['auth', 'web'])->group(function () {
 Route::post('webhook/license/stripe', [LicenseController::class, 'handleWebhook'])
     ->name('webhook.license.stripe')
     ->middleware('api'); // Use API middleware to skip CSRF but still get basic request handling
-
-Route::post('webhook/donation/stripe', [PaymentController::class, 'handleWebhook'])
-    ->name('webhook.donation.stripe')
-    ->middleware('api'); // Use API middleware to skip CSRF but still get basic request handling
 // Route::post('api/projects/{project}/participants/{participant}/donate', [PublicParticipantController::class, 'donate']);
 Route::prefix('projects/{projectId}')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:60,1'])->group(function () {
     Route::get('participants/{participantId}', [ParticipantController::class, 'showLandingPage'])->name('participant.landing');
@@ -360,5 +377,3 @@ Route::get('/debug-login', function () {
 
     return redirect()->route('login');
 })->name('debug.login');
-
-
