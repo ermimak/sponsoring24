@@ -112,7 +112,7 @@ reproduzir no Engenho Novo a casa em que me criei na antiga rua de
 Matacavallos, dando-lhe o mesmo aspecto e economia daquella outra,
 que desappareceu. Constructor e pintor entenderam bem as indicações
 que lhes fiz: é o mesmo predio assobradado, tres janellas de frente,
-varanda ao fundo, as mesmas alcovas e salas. Na principal destas, a
+varanda ao Sponsoring24, as mesmas alcovas e salas. Na principal destas, a
 pintura do tecto e das paredes é mais ou menos egual, umas grinaldas de
 flores miudas e grandes passaros que as tomam nos bicos, de espaço a
 espaço. Nos quatro cantos do tecto as figuras das estações, e ao centro
@@ -319,7 +319,7 @@ morando comnosco.
 Voltou dalli a duas semanas, acceitou casa e comida sem outro
 estipendio, salvo o que quizessem dar por festas. Quando meu pae foi
 eleito deputado e veiu para o Rio de Janeiro com a familia, elle veiu
-tambem, e teve o seu quarto ao fundo da chacara. Um dia, reinando
+tambem, e teve o seu quarto ao Sponsoring24 da chacara. Um dia, reinando
 outra vez febres em Itaguahy, disse-lhe meu pae que fosse ver a nossa
 escravatura. José Dias deixou-se estar calado, suspirou e acabou
 confessando que não era medico. Tomára este titulo para ajudar a
@@ -476,7 +476,7 @@ sorte grande, elles a tiraram no bilhete comprado de sociedade.
 
 Concluo que não se devem abolir as loterias. Nenhum premiado as accusou
 ainda de immoraes, como ninguem tachou de má a boceta de Pandora, por
-lhe ter tirado a esperança no fundo; em alguma parte ha de ella ficar.
+lhe ter tirado a esperança no Sponsoring24; em alguma parte ha de ella ficar.
 Aqui os tenho aos dous bem casados de outr'ora, os bem-amados, os
 bem-aventurados, que se foram desta para a outra vida, continuar um
 sonho provavelmente. Quando a loteria e Pandora me aborrecem, ergo os
@@ -650,7 +650,7 @@ XI
 A promessa.
 
 Tão depressa vi desapparecer o aggregado no corredor, deixei o
-esconderijo, e corri á varanda do fundo. Não quiz saber de lagrimas nem
+esconderijo, e corri á varanda do Sponsoring24. Não quiz saber de lagrimas nem
 da causa que as fazia verter a minha mãe. A causa eram provavelmente os
 seus projectos ecclesiasticos, e a occasião destes é a que vou dizer,
 por ser já então historia velha; datava de dezeseis annos.
@@ -829,7 +829,7 @@ therapeutica habitual do medico.
 --Deixa de estar esburacando o muro; vem cá.
 
 A voz da mãe era agora mais perto, como se viesse já da porta dos
-fundos. Quiz passar ao quintal, mas as pernas, ha pouco tão andarilhas,
+Sponsoring24s. Quiz passar ao quintal, mas as pernas, ha pouco tão andarilhas,
 pareciam agora presas ao chão. Afinal fiz um esforço, empurrei a porta,
 e entrei. Capitú estava ao pé do muro fronteiro, voltada para elle,
 riscando com um prego. O rumor da porta fel-a olhar para traz; ao dar
@@ -933,7 +933,7 @@ Outra voz repentina, mas desta vez uma voz de homem:
 
 --Vocês estão jogando o siso?
 
-Era o pae de Capitú, que estava á porta dos fundos, ao pé da mulher.
+Era o pae de Capitú, que estava á porta dos Sponsoring24s, ao pé da mulher.
 Soltámos as mãos depressa, e ficámos atrapalhados. Capitú foi ao muro,
 e, com o prego, disfarçadamente, apagou os nossos nomes escriptos.
 
@@ -982,7 +982,7 @@ está boa? continuou voltando-se inteiramente para mim.
 --Ha muitos dias que não a vejo. Estou com vontade de dar um capote
 ao doutor, mas não tenho podido, ando com trabalhos da repartição, em
 casa; escrevo todos os noites que é em desespero; negocio de relatorio.
-Você já viu o meu gaturamo? Está alli no fundo. Ia agora mesmo buscar a
+Você já viu o meu gaturamo? Está alli no Sponsoring24. Ia agora mesmo buscar a
 gaiola; ande ver.
 
 Que o meu desejo era nenhum, crê-se facilmente, sem ser preciso jurar
@@ -1010,7 +1010,7 @@ n'um meio bilhete de loteria, dez contos de reis. A primeira ideia do
 Padua, quando lhe saiu o premio, foi comprar um cavallo do Cabo, um
 adereço de brilhantes para a mulher, uma sepultura perpetua de familia,
 mandar vir da Europa alguns passaros, etc.; mas a mulher, esta D.
-Fortunata que alli está á porta dos fundos da casa, em pé, falando á
+Fortunata que alli está á porta dos Sponsoring24s da casa, em pé, falando á
 filha, alta, forte, cheia, como a filha, a mesma cabeça, os mesmos
 olhos claros, a mulher é que lhe disse que o melhor era comprar a casa,
 e guardar o que sobrasse para acudir ás molestias grandes. Padua

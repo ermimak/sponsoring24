@@ -55,7 +55,7 @@
 
 <script setup>
 import { defineProps } from 'vue';
-
+import {route} from 'ziggy-js';
 const props = defineProps({
   project: Object,
   participant: Object,

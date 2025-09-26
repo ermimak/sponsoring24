@@ -31,12 +31,22 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
 
+// Stripe Payment Routes (no CSRF protection needed)
+Route::post('/payments/create-payment-intent', [\App\Http\Controllers\PaymentController::class, 'createPaymentIntent'])->name('api.payment.intent');
+Route::post('/payments/request-invoice', [\App\Http\Controllers\PaymentController::class, 'requestInvoice'])->name('api.payment.invoice');
+Route::post('/payments/finalize', [\App\Http\Controllers\PaymentController::class, 'finalizePayment'])->name('api.payment.finalize');
+
+// Stripe Webhook Route
+// This route is exempt from CSRF protection as it's in the API group.
+Route::post('/webhook/stripe', [\App\Http\Controllers\PaymentController::class, 'handleWebhook'])->name('stripe.webhook');
+
+
 // Move upload route inside auth middleware group since it requires authentication
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload', function (Request $request) {
         $request->validate([
-            'image_landscape' => 'nullable|image|max:2048',
-            'image_square' => 'nullable|image|max:2048',
+            'image_landscape' => 'nullable|image|max:6144',
+            'image_square' => 'nullable|image|max:6144',
         ]);
 
         $data = [];

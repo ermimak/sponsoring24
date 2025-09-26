@@ -51,7 +51,8 @@ export default defineConfig({
             refresh: true,
             buildDirectory: 'build',
             publicDirectory: 'public',
-            assetUrl: `${protocol}://${host}`,
+            // Allow overriding asset base URL (useful for Plesk Site Preview). If unset, defaults to absolute /build paths.
+            assetUrl: process.env.ASSET_URL || undefined,
         }),
         vue({
             template: {

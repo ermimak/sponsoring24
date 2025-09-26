@@ -237,6 +237,16 @@ async function handleCardPayment() {
     } else {
       // Payment successful
       if (result.paymentIntent.status === 'succeeded') {
+        // Finalize payment server-side to update donation, avoiding webhook race conditions
+        try {
+          await axios.post('/api/payments/finalize', {
+            donation_id: props.donation.id,
+            payment_intent_id: result.paymentIntent.id,
+          });
+        } catch (e) {
+          console.error('Finalize payment failed:', e);
+          // Proceed to success page even if finalize fallback fails
+        }
         // Redirect to success page
         router.visit(route('participant.donate.success', {
           projectId: props.project.id,

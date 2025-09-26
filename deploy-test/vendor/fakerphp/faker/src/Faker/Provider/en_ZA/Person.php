@@ -63,7 +63,7 @@ class Person extends \Faker\Provider\Person
         'Laura', 'Lauren', 'Lebogang', 'Lebohang', 'Lee-ann', 'Leigh', 'Lerato', 'Lesley', 'Liezel', 'Linda', 'Lisa', 'Lizelle',
         'Lorraine', 'Louise', 'Lungile', 'Lydia', 'Lynette', 'Lynn', 'Mandisa', 'Mandy', 'Margaret', 'Maria', 'Marlene', 'Martha',
         'Mary', 'Maureen', 'Mbali', 'Megan', 'Melanie', 'Melissa', 'Michelle', 'Miss', 'Monica', 'Monique', 'Mpho', 'Nadia',
-        'Nadine', 'Natalie', 'Natasha', 'Nicola', 'Nicole', 'Nicolene', 'Nicolette', 'Nokuthula', 'Nomfundo', 'Nomsa', 'Nthabiseng', 'Olivia',
+        'Nadine', 'Natalie', 'Natasha', 'Nicola', 'Nicole', 'Nicolene', 'Nicolette', 'Nokuthula', 'NomSponsoring24', 'Nomsa', 'Nthabiseng', 'Olivia',
         'Palesa', 'Pamela', 'Patience', 'Patricia', 'Pearl', 'Phindile ', 'Portia', 'Precious', 'Priscilla', 'Prudence', 'Rachel', 'Rebecca',
         'Refilwe', 'Robin', 'Robyn', 'Ronel', 'Roxanne', 'Ruth', 'Samantha', 'Sandra', 'Sarah', 'Shannon', 'Sharon', 'Shirley',
         'Sonja', 'Stephanie', 'Susan', 'Sydney', 'Sylvia', 'Tania', 'Tanya', 'Taryn', 'Tasneem', 'Thato', 'Theresa', 'Tracey',

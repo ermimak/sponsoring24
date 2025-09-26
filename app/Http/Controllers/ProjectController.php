@@ -33,7 +33,7 @@ class ProjectController extends Controller
             'description' => 'nullable|array',
             'location' => 'nullable|string',
             'language' => 'required|string|in:de,fr',
-            'start' => 'required|date',
+            'start' => 'required|date|after_or_equal:today',
             'end' => 'required|date|after:start',
             'allow_donation_until' => 'nullable|date|after:end',
             'image_landscape' => 'nullable|string',
@@ -114,14 +114,14 @@ class ProjectController extends Controller
             'description' => 'nullable|array',
             'location' => 'nullable|string',
             'language' => 'required|string|in:de,fr',
-            'start' => 'required|date',
+            'start' => 'required|date|after_or_equal:today',
             'end' => 'required|date|after:start',
             'allow_donation_until' => 'nullable|date|after:end',
             'flat_rate_enabled' => 'boolean',
             'unit_based_enabled' => 'boolean',
             'public_donation_enabled' => 'boolean',
-            'image_landscape' => 'nullable|image|max:2048|dimensions:width=1200,height=300',
-            'image_square' => 'nullable|image|max:2048|dimensions:width=400,height=400',
+            'image_landscape' => 'nullable|image|max:6144|dimensions:width=1200,height=300',
+            'image_square' => 'nullable|image|max:6144|dimensions:width=400,height=400',
         ];
         
         // Add conditional validation rules for flat-rate donations
@@ -334,8 +334,8 @@ class ProjectController extends Controller
         }
 
         $request->validate([
-            'image_landscape' => 'nullable|image|max:2048|dimensions:width=1200,height=300',
-            'image_square' => 'nullable|image|max:2048|dimensions:width=400,height=400',
+            'image_landscape' => 'nullable|image|max:6144|dimensions:width=1200,height=300',
+            'image_square' => 'nullable|image|max:6144|dimensions:width=400,height=400',
         ]);
 
         $data = [];

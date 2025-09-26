@@ -39,6 +39,27 @@ Route::get('/health', function() {
     return response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]);
 });
 
+// Debug route to check asset URLs (remove after fixing)
+Route::get('/debug-assets', function() {
+    $vite = app(\Illuminate\Foundation\Vite::class);
+    
+    return response()->json([
+        'asset_url' => env('ASSET_URL'),
+        'app_url' => config('app.url'),
+        'app_env' => config('app.env'),
+        'manifest_exists' => file_exists(public_path('build/manifest.json')),
+        'hot_file_exists' => file_exists(public_path('hot')),
+        'storage_hot_exists' => file_exists(storage_path('framework/vite.hot')),
+        'sample_assets' => [
+            'app.js_exists' => file_exists(public_path('build/assets/app.js')),
+            'vendor.js_exists' => file_exists(public_path('build/assets/vendor.js')),
+            'app.css_exists' => file_exists(public_path('build/assets/app.css')),
+        ],
+        'request_url' => request()->url(),
+        'request_root' => request()->root(),
+    ]);
+})->name('debug.assets');
+
 // Test routes (no auth required)
 Route::get('/test-email/{type?}', [ParticipantController::class, 'testTemplateEmail'])->name('test-template-email');
 
@@ -270,8 +291,8 @@ Route::middleware(['auth', 'web'])->group(function () {
     // File Upload Route
     Route::post('/upload', function (Request $request) {
         $request->validate([
-            'image_landscape' => 'nullable|image|max:2048',
-            'image_square' => 'nullable|image|max:2048',
+            'image_landscape' => 'nullable|image|max:6144',
+            'image_square' => 'nullable|image|max:6144',
         ]);
 
         $data = [];
@@ -306,20 +327,16 @@ Route::middleware(['auth', 'web'])->group(function () {
 Route::post('webhook/license/stripe', [LicenseController::class, 'handleWebhook'])
     ->name('webhook.license.stripe')
     ->middleware('api'); // Use API middleware to skip CSRF but still get basic request handling
-
-Route::post('webhook/donation/stripe', [PaymentController::class, 'handleWebhook'])
-    ->name('webhook.donation.stripe')
-    ->middleware('api'); // Use API middleware to skip CSRF but still get basic request handling
 // Route::post('api/projects/{project}/participants/{participant}/donate', [PublicParticipantController::class, 'donate']);
-Route::prefix('projects/{projectId}')->group(function () {
+Route::prefix('projects/{projectId}')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:60,1'])->group(function () {
     Route::get('participants/{participantId}', [ParticipantController::class, 'showLandingPage'])->name('participant.landing');
     Route::get('participants/{participantId}/donate', [ParticipantController::class, 'showDonationPage'])->name('participant.donate');
-    Route::post('participants/{participantId}/donate', [ParticipantController::class, 'storeDonation'])->name('participant.donate.store');
+    Route::post('participants/{participantId}/donate', [ParticipantController::class, 'storeDonation'])->name('participant.donate.store')->middleware('throttle:10,1');
 });
-Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{token}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm');
-Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment');
-Route::get('projects/{projectId}/participants/{participantId}/donate/success/{donationId}', [ParticipantController::class, 'showDonationSuccess'])->name('participant.donate.success');
-Route::get('projects/{projectId}/participants/{participantId}/donate/invoice/success/{donationId}', [ParticipantController::class, 'showInvoiceSuccess'])->name('participant.donate.invoice.success');
+Route::get('projects/{projectId}/participants/{participantId}/donate/confirm/{token}', [ParticipantController::class, 'confirmDonation'])->name('participant.donate.confirm')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:30,1']);
+Route::get('projects/{projectId}/participants/{participantId}/donate/payment/{donationId}', [ParticipantController::class, 'showPaymentOptions'])->name('participant.donate.payment')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:30,1']);
+Route::get('projects/{projectId}/participants/{participantId}/donate/success/{donationId}', [ParticipantController::class, 'showDonationSuccess'])->name('participant.donate.success')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:30,1']);
+Route::get('projects/{projectId}/participants/{participantId}/donate/invoice/success/{donationId}', [ParticipantController::class, 'showInvoiceSuccess'])->name('participant.donate.invoice.success')->middleware([\App\Http\Middleware\ValidateParticipantAccess::class, 'throttle:30,1']);
 
 Route::get('donations/{donation}/preview', [DonationController::class, 'showPreview'])->name('donations.preview');
 
@@ -335,10 +352,16 @@ Route::get('/content/news/{news}', [\App\Http\Controllers\Admin\ContentControlle
 // API Routes
 Route::get('/api/projects', [ProjectController::class, 'index'])->name('api.projects');
 
-// Payment Routes
-Route::post('/api/payments/create-payment-intent', [PaymentController::class, 'createPaymentIntent'])->name('payment.intent');
-Route::post('/api/payments/request-invoice', [PaymentController::class, 'requestInvoice'])->name('payment.invoice');
-Route::post('/api/webhook/stripe', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+
+
+// Test route to verify webhook setup (remove in production)
+Route::get('/api/test-webhook-config', function() {
+    return response()->json([
+        'webhook_secret_configured' => !empty(config('services.stripe.webhook.secret')),
+        'stripe_key_configured' => !empty(config('services.stripe.key')),
+        'stripe_secret_configured' => !empty(config('services.stripe.secret')),
+    ]);
+});
 
 // Debug Route (Remove in Production)
 Route::get('/debug-login', function () {
@@ -354,5 +377,3 @@ Route::get('/debug-login', function () {
 
     return redirect()->route('login');
 })->name('debug.login');
-
-

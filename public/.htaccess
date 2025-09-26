@@ -13,6 +13,10 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
+    # Plesk Site Preview compatibility: strip preview prefix (e.g. /plesk-site-preview/domain.tld/https/host/)
+    RewriteCond %{REQUEST_URI} ^/plesk-site-preview/ [NC]
+    RewriteRule ^plesk-site-preview/[^/]+/(?:https?/[^/]+/)?(.*)$ /$1 [L,PT,QSA]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$

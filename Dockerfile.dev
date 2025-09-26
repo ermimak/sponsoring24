@@ -41,6 +41,11 @@ RUN rm -rf /etc/nginx/sites-enabled/default && \
     server_name _;\n\
     root /var/www/html/public;\n\
 \n\
+    # Increase upload size limits\n\
+    client_max_body_size 128M;\n\
+    client_body_timeout 120s;\n\
+    client_header_timeout 120s;\n\
+\n\
     add_header X-Frame-Options "SAMEORIGIN";\n\
     add_header X-Content-Type-Options "nosniff";\n\
 \n\
@@ -72,6 +77,8 @@ RUN rm -rf /etc/nginx/sites-enabled/default && \
         include fastcgi_params;\n\
         fastcgi_buffers 16 16k;\n\
         fastcgi_buffer_size 32k;\n\
+        fastcgi_read_timeout 120s;\n\
+        fastcgi_send_timeout 120s;\n\
     }\n\
 \n\
     location ~ /\.(?!well-known).* {\n\

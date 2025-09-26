@@ -4,7 +4,7 @@
       <div class="relative w-full h-64">
         <img :src="project.image_url" alt="Event Image" class="w-full h-full object-cover" />
         <div class="absolute top-4 right-4">
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-80 text-purple-600">fundo</span>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-80 text-purple-600">Sponsoring24</span>
         </div>
       </div>
   
@@ -183,24 +183,25 @@ required />
     confirmation_email: String,
     confirmation_link: String,
     message: String,
+    form: Object,
   })
   
   const page = usePage()
   const form = ref({
-    amount: 0,
-    currency: 'CHF',
-    gender: 'Masculine',
-    first_name: '',
-    last_name: '',
-    company: '',
-    address: '',
-    address_suffix: '',
-    postal_code: '',
-    location: '',
-    country: 'Switzerland',
-    email: '',
-    phone: '',
-    privacy_policy: false,
+    amount: props.form?.amount || 0,
+    currency: props.form?.currency || 'CHF',
+    gender: props.form?.gender || 'Masculine',
+    first_name: props.form?.first_name || '',
+    last_name: props.form?.last_name || '',
+    company: props.form?.company || '',
+    address: props.form?.address || '',
+    address_suffix: props.form?.address_suffix || '',
+    postal_code: props.form?.postal_code || '',
+    location: props.form?.location || '',
+    country: props.form?.country || 'Switzerland',
+    email: props.form?.email || '',
+    phone: props.form?.phone || '',
+    privacy_policy: props.form?.privacy_policy || false,
   })
   
   const errors = ref({})
@@ -224,7 +225,7 @@ required />
   
     router.post(`/projects/${props.project.id}/participants/${props.participant.id}/donate`, {
       ...form.value,
-      step: props.step === 'donation' ? 'donation' : 'confirmation',
+      step: props.step,
     }, {
       onSuccess: () => {
         loading.value = false
@@ -234,6 +235,8 @@ required />
         errors.value = err
         loading.value = false
         console.error('Form submission failed:', err);
+        console.log('Current step:', props.step);
+        console.log('Form data:', form.value);
       },
     })
   }
